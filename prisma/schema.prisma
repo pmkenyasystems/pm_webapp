@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("admin") // admin, member
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles Article[] @relation("ArticleAuthor")
+}
+
+model Member {
+  id               String    @id @default(cuid())
+  ippmsId          String    @unique
+  firstName        String
+  lastName         String
+  email            String?
+  phone            String
+  idNumber         String
+  dateOfBirth      DateTime?
+  address          String?
+  county           String?
+  constituency     String?
+  ward             String?
+  membershipDate   DateTime  @default(now())
+  status           String    @default("active") // active, inactive, suspended
+  profileCreatedAt DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  volunteers Volunteer[]
+}
+
+model Volunteer {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String
+  phone        String
+  idNumber     String?
+  address      String?
+  county       String?
+  skills       String? // JSON string of skills
+  availability String? // full-time, part-time, weekends, etc.
+  motivation   String? // Why they want to volunteer
+  isMember     Boolean  @default(false)
+  memberId     String?
+  status       String   @default("pending") // pending, approved, rejected
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  member Member? @relation(fields: [memberId], references: [id])
+}
+
+model Donation {
+  id            String   @id @default(cuid())
+  amount        Float
+  currency      String   @default("KES")
+  paymentMethod String // mpesa, card
+  transactionId String? // M-Pesa transaction ID or Stripe payment intent ID
+  donorName     String?
+  donorEmail    String?
+  donorPhone    String?
+  status        String   @default("pending") // pending, completed, failed
+  metadata      String? // JSON string for additional data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Article {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String // Rich text content
+  excerpt     String?
+  imageUrl    String?
+  authorId    String
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author User @relation("ArticleAuthor", fields: [authorId], references: [id])
+}
+
+model Event {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  description  String
+  imageUrl     String?
+  location     String
+  startDate    DateTime
+  endDate      DateTime?
+  isPublic     Boolean   @default(true)
+  maxAttendees Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
