@@ -35,7 +35,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative h-[80vh] min-h-[480px] overflow-hidden">
+    <section className="relative h-[75vh] overflow-hidden">
       {/* Background Image Slider */}
       <div className="absolute inset-0">
         {sliderImages.map((image, index) => (

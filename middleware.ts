@@ -9,7 +9,11 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        // Only allow access to admin routes if user is authenticated
+        // Allow access to login page without authentication
+        if (req.nextUrl.pathname === '/admin/login') {
+          return true
+        }
+        // Only allow access to other admin routes if user is authenticated
         if (req.nextUrl.pathname.startsWith('/admin')) {
           return !!token
         }
