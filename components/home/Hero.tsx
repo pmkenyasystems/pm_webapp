@@ -21,6 +21,7 @@ const sliderImages = [
   '/images/slider/slide1.png',
   '/images/slider/slide2.jpeg',
   '/images/slider/slide3.jpeg',
+  '/images/slider/slider5.png',
 ]
 
 export default function Hero() {
