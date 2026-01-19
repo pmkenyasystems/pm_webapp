@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import axios from 'axios'
 import Stripe from 'stripe'
 
+export const dynamic = 'force-dynamic'
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16',
 })
