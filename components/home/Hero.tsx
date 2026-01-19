@@ -18,7 +18,7 @@ const playfair = Playfair_Display({
 })
 
 const sliderImages = [
-  '/images/slider/slide1.JPG',
+  '/images/slider/slide1.png',
   '/images/slider/slide2.jpeg',
   '/images/slider/slide3.jpeg',
 ]
