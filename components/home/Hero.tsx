@@ -18,8 +18,8 @@ const playfair = Playfair_Display({
 })
 
 const sliderImages = [
-  '/images/slider/slide1.png',
-  '/images/slider/slide2.jpeg',
+  '/images/slider/slide1.jpeg',
+  '/images/slider/slide2.png',
   '/images/slider/slide3.jpeg',
   '/images/slider/slider5.png',
 ]
@@ -52,10 +52,11 @@ export default function Hero() {
               fill
               className="object-cover"
               priority={index === 0}
-              quality={90}
+              quality={100}
+              sizes="100vw"
             />
             {/* Dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/50 via-[#004080]/50 to-primary-blue/50"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/30 via-[#004080]/30 to-primary-blue/30"></div>
           </div>
         ))}
       </div>
