@@ -25,12 +25,13 @@ export default function AboutPage() {
             Our mission is to transform Kenya through:
           </p>
           <ul className="list-disc list-inside text-gray-700 text-lg space-y-2 ml-4">
-            <li>Progressive policies that address the real needs of Kenyans</li>
-            <li>Transparent and accountable governance at all levels</li>
-            <li>Economic empowerment for all citizens</li>
-            <li>Social justice and equality</li>
-            <li>Environmental sustainability</li>
-            <li>National unity and cohesion</li>
+            <li>Family and social welfare </li>
+            <li>Foreign policy and immigration </li>
+            <li>Constitutional order</li>
+            <li>Economy</li>
+            <li>Education</li>
+            <li>Health</li>
+            <li>Youth</li>
           </ul>
         </section>
 
