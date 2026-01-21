@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
-          modules: user.modules,
+          modules: (user as any).modules ?? undefined,
         }
       },
     }),
