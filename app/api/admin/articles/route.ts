@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { hasModuleAccess } from '@/lib/permissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    // Check if user has access to news module
+    const hasAccess = await hasModuleAccess('news')
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: 'Forbidden: You do not have access to the News module' },
+        { status: 403 }
       )
     }
 

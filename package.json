@@ -14,7 +14,10 @@
     "db:studio": "prisma studio",
     "init:admin": "tsx scripts/init-admin.ts",
     "create:event": "tsx scripts/create-event.ts",
-    "create:article": "tsx scripts/create-article.ts"
+    "create:article": "tsx scripts/create-article.ts",
+    "seed:counties": "tsx scripts/seed-counties.ts",
+    "seed:constituencies": "tsx scripts/seed-constituencies.ts",
+    "seed:wards": "tsx scripts/seed-wards.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
