@@ -31,7 +31,7 @@ model Member {
   lastName         String
   email            String?
   phone            String?
-  idNumber         String
+  idNumber         String    @unique
   dateOfBirth      DateTime?
   gender           String?
   religion         String?
