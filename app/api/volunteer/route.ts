@@ -12,17 +12,15 @@ export async function POST(request: NextRequest) {
       lastName,
       email,
       phone,
-      idNumber,
       address,
       county,
       skills,
       availability,
-      motivation,
       isMember,
       memberId,
     } = data
 
-    if (!firstName || !lastName || !email || !phone || !availability || !motivation) {
+    if (!firstName || !lastName || !email || !phone || !availability) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -49,12 +47,12 @@ export async function POST(request: NextRequest) {
         lastName,
         email,
         phone,
-        idNumber: idNumber || null,
+        idNumber: null,
         address: address || null,
         county: county || null,
         skills: skills || null,
         availability,
-        motivation,
+        motivation: null,
         isMember: isMember || false,
         memberId: isMember && memberId ? memberId : null,
         status: 'pending',

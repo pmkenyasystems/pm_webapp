@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { isSuperAdmin, hasModuleAccess } from '@/lib/permissions'
 import DashboardStats from '@/components/admin/DashboardStats'
 import RecentActivity from '@/components/admin/RecentActivity'
 import Link from 'next/link'
@@ -38,6 +39,15 @@ export default async function AdminDashboard() {
   }
 
   const stats = await getDashboardData()
+  const superAdmin = await isSuperAdmin()
+  
+  // Check module access
+  const [hasNewsAccess, hasEventsAccess, hasElectionsAccess, hasPositionsAccess] = await Promise.all([
+    hasModuleAccess('news'),
+    hasModuleAccess('events'),
+    hasModuleAccess('elections'),
+    hasModuleAccess('positions'),
+  ])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -45,19 +55,47 @@ export default async function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <div className="flex gap-4">
-              <Link
-                href="/admin/articles/new"
-                className="bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-[#002244] transition"
-              >
-                New Article
-              </Link>
-              <Link
-                href="/admin/events/new"
-                className="bg-primary-red text-white px-4 py-2 rounded-md hover:bg-[#9A162D] transition"
-              >
-                New Event
-              </Link>
+            <div className="flex gap-4 flex-wrap">
+              {hasNewsAccess && (
+                <Link
+                  href="/admin/articles/new"
+                  className="bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-[#002244] transition"
+                >
+                  New Article
+                </Link>
+              )}
+              {hasEventsAccess && (
+                <Link
+                  href="/admin/events/new"
+                  className="bg-primary-red text-white px-4 py-2 rounded-md hover:bg-[#9A162D] transition"
+                >
+                  New Event
+                </Link>
+              )}
+              {hasElectionsAccess && (
+                <Link
+                  href="/admin/elections"
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                >
+                  Manage Elections
+                </Link>
+              )}
+              {hasPositionsAccess && (
+                <Link
+                  href="/admin/positions"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition"
+                >
+                  Manage Positions
+                </Link>
+              )}
+              {superAdmin && (
+                <Link
+                  href="/admin/users"
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+                >
+                  Manage Admins
+                </Link>
+              )}
             </div>
           </div>
         </div>

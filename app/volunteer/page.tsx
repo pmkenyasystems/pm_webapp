@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function VolunteerPage() {
   const [formData, setFormData] = useState({
@@ -8,18 +8,65 @@ export default function VolunteerPage() {
     lastName: '',
     email: '',
     phone: '',
-    idNumber: '',
     address: '',
     county: '',
     skills: '',
     availability: '',
-    motivation: '',
     isMember: false,
     memberId: '',
   })
+  const [counties, setCounties] = useState<Array<{ id: string; countyCode: number; countyName: string }>>([])
+  const [loadingCounties, setLoadingCounties] = useState(true)
+  const [countyError, setCountyError] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    // Fetch counties from the database
+    const fetchCounties = async () => {
+      try {
+        setLoadingCounties(true)
+        const response = await fetch('/api/locations/counties')
+        
+        if (!response.ok) {
+          let errorMessage = 'Failed to load counties. Please refresh the page.'
+          try {
+            const errorData = await response.json()
+            console.error('Error fetching counties:', errorData)
+            errorMessage = errorData.error || errorData.message || errorMessage
+            if (errorData.details) {
+              console.error('Error details:', errorData.details)
+            }
+          } catch (parseError) {
+            console.error('Failed to parse error response:', parseError)
+            errorMessage = `Server error (${response.status}): ${response.statusText}`
+          }
+          setCountyError(errorMessage)
+          return
+        }
+        
+        const data = await response.json()
+        console.log('Counties data received:', data)
+        
+        if (data.counties && Array.isArray(data.counties)) {
+          console.log(`Loaded ${data.counties.length} counties`)
+          setCounties(data.counties)
+          setCountyError('')
+        } else {
+          console.error('Unexpected data format:', data)
+          setCountyError('Invalid counties data format.')
+        }
+      } catch (err) {
+        console.error('Error fetching counties:', err)
+        setCountyError('Failed to load counties. Please refresh the page.')
+      } finally {
+        setLoadingCounties(false)
+      }
+    }
+    
+    fetchCounties()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -54,12 +101,10 @@ export default function VolunteerPage() {
         lastName: '',
         email: '',
         phone: '',
-        idNumber: '',
         address: '',
         county: '',
         skills: '',
         availability: '',
-        motivation: '',
         isMember: false,
         memberId: '',
       })
@@ -161,33 +206,33 @@ export default function VolunteerPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                  ID Number
-                </label>
-                <input
-                  type="text"
-                  id="idNumber"
-                  name="idNumber"
-                  value={formData.idNumber}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-2">
-                  County
-                </label>
-                <input
-                  type="text"
-                  id="county"
-                  name="county"
-                  value={formData.county}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                />
-              </div>
+            <div>
+              <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-2">
+                County
+              </label>
+              <select
+                id="county"
+                name="county"
+                value={formData.county}
+                onChange={handleChange}
+                disabled={loadingCounties}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {loadingCounties ? 'Loading counties...' : 'Select a county'}
+                </option>
+                {counties.map((county) => (
+                  <option key={county.id} value={county.countyName}>
+                    {county.countyName}
+                  </option>
+                ))}
+              </select>
+              {countyError && (
+                <p className="mt-1 text-sm text-red-600">{countyError}</p>
+              )}
+              {!loadingCounties && !countyError && counties.length === 0 && (
+                <p className="mt-1 text-sm text-gray-500">No counties available. Please contact support.</p>
+              )}
             </div>
 
             <div>
@@ -263,22 +308,6 @@ export default function VolunteerPage() {
                 <option value="evenings">Evenings only</option>
                 <option value="flexible">Flexible</option>
               </select>
-            </div>
-
-            <div>
-              <label htmlFor="motivation" className="block text-sm font-medium text-gray-700 mb-2">
-                Why do you want to volunteer? *
-              </label>
-              <textarea
-                id="motivation"
-                name="motivation"
-                value={formData.motivation}
-                onChange={handleChange}
-                required
-                rows={4}
-                placeholder="Tell us why you want to volunteer with People's Renaissance Movement..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              />
             </div>
 
             {error && (

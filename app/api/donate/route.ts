@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!paymentMethod || !['mpesa', 'card'].includes(paymentMethod)) {
+    if (!paymentMethod || !['mpesa', 'card', 'paypal'].includes(paymentMethod)) {
       return NextResponse.json(
         { error: 'Invalid payment method' },
         { status: 400 }
@@ -121,6 +121,67 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           message: 'M-Pesa STK push sent successfully',
           checkoutRequestId: stkResult.CheckoutRequestID,
+        })
+      } catch (error: any) {
+        await prisma.donation.update({
+          where: { id: donation.id },
+          data: { status: 'failed' },
+        })
+        throw error
+      }
+    } else if (paymentMethod === 'paypal') {
+      // PayPal payment
+      if (!email) {
+        return NextResponse.json(
+          { error: 'Email is required for PayPal payment' },
+          { status: 400 }
+        )
+      }
+
+      try {
+        // TODO: Implement PayPal integration
+        // For now, we'll create a PayPal checkout session
+        // You'll need to install @paypal/checkout-server-sdk and configure PayPal credentials
+        
+        // Example PayPal integration structure:
+        // const paypal = require('@paypal/checkout-server-sdk')
+        // const environment = new paypal.core.SandboxEnvironment(
+        //   process.env.PAYPAL_CLIENT_ID,
+        //   process.env.PAYPAL_CLIENT_SECRET
+        // )
+        // const client = new paypal.core.PayPalHttpClient(environment)
+        // 
+        // const request = new paypal.orders.OrdersCreateRequest()
+        // request.prefer("return=representation")
+        // request.requestBody({
+        //   intent: 'CAPTURE',
+        //   purchase_units: [{
+        //     amount: {
+        //       currency_code: 'KES',
+        //       value: amount.toString()
+        //     }
+        //   }]
+        // })
+        // 
+        // const order = await client.execute(request)
+        // const approvalUrl = order.result.links.find(link => link.rel === 'approve').href
+
+        // For now, return a placeholder URL
+        // In production, replace this with actual PayPal checkout URL
+        const paypalCheckoutUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/donate/paypal?donationId=${donation.id}&amount=${amount}`
+        
+        // Update donation with PayPal order ID (placeholder for now)
+        await prisma.donation.update({
+          where: { id: donation.id },
+          data: {
+            transactionId: `paypal_${donation.id}`,
+            metadata: JSON.stringify({ status: 'pending', method: 'paypal' }),
+          },
+        })
+
+        return NextResponse.json({ 
+          checkoutUrl: paypalCheckoutUrl,
+          message: 'Redirecting to PayPal...'
         })
       } catch (error: any) {
         await prisma.donation.update({
