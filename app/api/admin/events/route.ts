@@ -83,9 +83,9 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json()
-    const { title, slug, description, imageUrl, location, startDate, endDate, isPublic, maxAttendees } = data
+    const { title, description, imageUrl, location, startDate, endDate, isPublic, maxAttendees } = data
 
-    if (!title || !slug || !description || !location || !startDate) {
+    if (!title || !description || !location || !startDate) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -95,7 +95,6 @@ export async function POST(request: NextRequest) {
     const event = await prisma.event.create({
       data: {
         title,
-        slug,
         description,
         imageUrl: imageUrl || null,
         location,

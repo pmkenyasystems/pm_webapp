@@ -92,7 +92,7 @@ export default async function FeaturedContent() {
                   key={event.id}
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
                 >
-                  <Link href={`/events/${event.slug}`}>
+                  <Link href={`/events/${event.id}`}>
                     {event.imageUrl && (
                       <div className="h-48 bg-gray-200"></div>
                     )}
@@ -117,7 +117,7 @@ export default async function FeaturedContent() {
                   </Link>
                   <div className="px-6 pb-4">
                     <SocialShare
-                      url={`/events/${event.slug}`}
+                      url={`/events/${event.id}`}
                       title={event.title}
                       description={event.description.substring(0, 100)}
                     />

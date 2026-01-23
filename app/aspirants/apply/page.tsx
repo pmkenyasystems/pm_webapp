@@ -63,19 +63,19 @@ export default function AspirantApplicationPage() {
     if (memberData) {
       try {
         const member = JSON.parse(memberData)
-        setLoggedInMember(member)
+        // Redirect logged-in members to profile page where the form is now located
+        router.push('/membership/profile?section=aspirant')
+        return
       } catch (e) {
         console.error('Error parsing member session:', e)
         localStorage.removeItem('memberSession')
         router.push('/membership')
+        return
       }
     } else {
       router.push('/membership')
       return
     }
-
-    // Fetch initial data
-    fetchInitialData()
   }, [router])
 
   const fetchInitialData = async () => {

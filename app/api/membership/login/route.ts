@@ -15,9 +15,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find member by ID number
+    // Find member by ID number with membership category
     const member = await prisma.member.findUnique({
       where: { idNumber },
+      include: {
+        membershipCategory: true,
+      },
     })
 
     if (!member) {

@@ -13,7 +13,6 @@ export default function EditEventPage() {
   const eventId = params.id as string
   const [formData, setFormData] = useState({
     title: '',
-    slug: '',
     description: '',
     imageUrl: '',
     location: '',
@@ -51,7 +50,6 @@ export default function EditEventPage() {
 
       setFormData({
         title: event.title,
-        slug: event.slug,
         description: event.description,
         imageUrl: event.imageUrl || '',
         location: event.location,
@@ -144,21 +142,6 @@ export default function EditEventPage() {
               id="title"
               name="title"
               value={formData.title}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-red focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-              Slug *
-            </label>
-            <input
-              type="text"
-              id="slug"
-              name="slug"
-              value={formData.slug}
               onChange={handleChange}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-red focus:border-transparent"

@@ -3,18 +3,18 @@ import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
 import Link from 'next/link'
 
-async function getEvent(slug: string) {
+async function getEvent(id: string) {
   try {
     return await prisma.event.findUnique({
-      where: { slug }
+      where: { id }
     })
   } catch (error) {
     return null
   }
 }
 
-export default async function EventPage({ params }: { params: { slug: string } }) {
-  const event = await getEvent(params.slug)
+export default async function EventPage({ params }: { params: { id: string } }) {
+  const event = await getEvent(params.id)
 
   if (!event || !event.isPublic) {
     notFound()
@@ -77,4 +77,3 @@ export default async function EventPage({ params }: { params: { slug: string } }
     </div>
   )
 }
-

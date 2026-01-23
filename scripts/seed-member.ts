@@ -6,6 +6,16 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Creating sample member...')
 
+  // Get Life Membership category
+  const lifeMembership = await prisma.membershipCategory.findUnique({
+    where: { title: 'Life Membership' },
+  })
+
+  if (!lifeMembership) {
+    console.error('❌ Life Membership category not found. Please run seed-membership-categories.ts first.')
+    return
+  }
+
   // Hash a default password
   const defaultPassword = 'password123'
   const hashedPassword = await bcrypt.hash(defaultPassword, 10)
@@ -20,6 +30,7 @@ async function main() {
       email: 'john.doe@example.com',
       phone: '+254712345678',
       password: hashedPassword,
+      membershipCategoryId: lifeMembership.id,
     },
     create: {
       ippmsId: 'IPPMS001',
@@ -41,6 +52,7 @@ async function main() {
       pwd: false,
       status: 'active',
       password: hashedPassword,
+      membershipCategoryId: lifeMembership.id,
     },
   })
 
@@ -51,6 +63,7 @@ async function main() {
   console.log(`  Email: ${member.email}`)
   console.log(`  Phone: ${member.phone}`)
   console.log(`  Membership No: ${member.membershipNo}`)
+  console.log(`  Membership Category: Life Membership`)
   console.log(`\nLogin Credentials:`)
   console.log(`  ID Number: ${member.idNumber}`)
   console.log(`  Password: ${defaultPassword}`)

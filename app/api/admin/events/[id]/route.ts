@@ -28,13 +28,12 @@ export async function PUT(
     }
 
     const data = await request.json()
-    const { title, slug, description, imageUrl, location, startDate, endDate, isPublic, maxAttendees } = data
+    const { title, description, imageUrl, location, startDate, endDate, isPublic, maxAttendees } = data
 
     const event = await prisma.event.update({
       where: { id: params.id },
       data: {
         title,
-        slug,
         description,
         imageUrl: imageUrl || null,
         location,
