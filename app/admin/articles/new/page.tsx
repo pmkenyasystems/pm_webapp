@@ -60,7 +60,7 @@ export default function NewArticlePage() {
         throw new Error(data.error || 'Failed to create article')
       }
 
-      router.push('/admin/dashboard')
+      router.push('/admin/articles')
     } catch (err: any) {
       setError(err.message)
     } finally {

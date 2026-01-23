@@ -12,12 +12,36 @@ export async function GET(request: NextRequest) {
       const constituencies = await prisma.constituency.findMany({
         where: { countyCode: parseInt(countyCode) },
         orderBy: { constituencyName: 'asc' },
+        include: {
+          county: {
+            select: {
+              countyName: true,
+            },
+          },
+          _count: {
+            select: {
+              wards: true,
+            },
+          },
+        },
       })
       return NextResponse.json({ constituencies })
     }
 
     const constituencies = await prisma.constituency.findMany({
       orderBy: { constituencyName: 'asc' },
+      include: {
+        county: {
+          select: {
+            countyName: true,
+          },
+        },
+        _count: {
+          select: {
+            wards: true,
+          },
+        },
+      },
     })
 
     return NextResponse.json({ constituencies })

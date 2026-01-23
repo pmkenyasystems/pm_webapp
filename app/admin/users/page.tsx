@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import AdminHeader from '@/components/admin/AdminHeader'
 
 interface User {
   id: string
@@ -99,19 +100,14 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Manage Admin Users</h1>
-            <Link
-              href="/admin/users/new"
-              className="bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-[#002244] transition"
-            >
-              New Admin User
-            </Link>
-          </div>
-        </div>
-      </div>
+      <AdminHeader title="Manage Admin Users">
+        <Link
+          href="/admin/users/new"
+          className="bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-[#002244] transition"
+        >
+          New Admin User
+        </Link>
+      </AdminHeader>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {users.length === 0 ? (

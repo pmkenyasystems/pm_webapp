@@ -63,7 +63,7 @@ export default function NewEventPage() {
         throw new Error(data.error || 'Failed to create event')
       }
 
-      router.push('/admin/dashboard')
+      router.push('/admin/events')
     } catch (err: any) {
       setError(err.message)
     } finally {

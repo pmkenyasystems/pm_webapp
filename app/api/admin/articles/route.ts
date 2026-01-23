@@ -5,6 +5,64 @@ import { hasModuleAccess } from '@/lib/permissions'
 
 export const dynamic = 'force-dynamic'
 
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession()
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Check if user has access to news module
+    const hasAccess = await hasModuleAccess('news')
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: 'Forbidden: You do not have access to the News module' },
+        { status: 403 }
+      )
+    }
+
+    const searchParams = request.nextUrl.searchParams
+    const published = searchParams.get('published')
+    const search = searchParams.get('search')
+
+    const where: any = {}
+    if (published !== null && published !== undefined) {
+      where.published = published === 'true'
+    }
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { excerpt: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    const articles = await prisma.article.findMany({
+      where,
+      include: {
+        author: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return NextResponse.json({ articles })
+  } catch (error: any) {
+    console.error('Error fetching articles:', error)
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch articles' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession()

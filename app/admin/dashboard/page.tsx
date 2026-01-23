@@ -4,10 +4,11 @@ import { getSession } from '@/lib/auth'
 import { isSuperAdmin, hasModuleAccess } from '@/lib/permissions'
 import DashboardStats from '@/components/admin/DashboardStats'
 import RecentActivity from '@/components/admin/RecentActivity'
+import AdminHeader from '@/components/admin/AdminHeader'
 import Link from 'next/link'
 
 async function getDashboardData() {
-  const [members, volunteers, donations, articles, events] = await Promise.all([
+  const [members, volunteers, donations, articles, events, aspirants] = await Promise.all([
     prisma.member.count(),
     prisma.volunteer.count(),
     prisma.donation.aggregate({
@@ -16,6 +17,7 @@ async function getDashboardData() {
     }),
     prisma.article.count(),
     prisma.event.count(),
+    prisma.aspirant.count(),
   ])
 
   const totalDonations = donations._sum.amount || 0
@@ -28,6 +30,7 @@ async function getDashboardData() {
     donationCount,
     articles,
     events,
+    aspirants,
   }
 }
 
@@ -51,55 +54,56 @@ export default async function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <div className="flex gap-4 flex-wrap">
-              {hasNewsAccess && (
-                <Link
-                  href="/admin/articles/new"
-                  className="bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-[#002244] transition"
-                >
-                  New Article
-                </Link>
-              )}
-              {hasEventsAccess && (
-                <Link
-                  href="/admin/events/new"
-                  className="bg-primary-red text-white px-4 py-2 rounded-md hover:bg-[#9A162D] transition"
-                >
-                  New Event
-                </Link>
-              )}
-              {hasElectionsAccess && (
-                <Link
-                  href="/admin/elections"
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
-                >
-                  Manage Elections
-                </Link>
-              )}
-              {hasPositionsAccess && (
-                <Link
-                  href="/admin/positions"
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition"
-                >
-                  Manage Positions
-                </Link>
-              )}
-              {superAdmin && (
-                <Link
-                  href="/admin/users"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
-                >
-                  Manage Admins
-                </Link>
-              )}
-            </div>
-          </div>
+      <AdminHeader title="Admin Dashboard">
+        <div className="flex gap-4 flex-wrap">
+          {hasNewsAccess && (
+            <Link
+              href="/admin/articles/new"
+              className="bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-[#002244] transition"
+            >
+              New Article
+            </Link>
+          )}
+          {hasEventsAccess && (
+            <Link
+              href="/admin/events/new"
+              className="bg-primary-red text-white px-4 py-2 rounded-md hover:bg-[#9A162D] transition"
+            >
+              New Event
+            </Link>
+          )}
+          {hasElectionsAccess && (
+            <Link
+              href="/admin/elections"
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+            >
+              Manage Elections
+            </Link>
+          )}
+          {hasPositionsAccess && (
+            <Link
+              href="/admin/positions"
+              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition"
+            >
+              Manage Positions
+            </Link>
+          )}
+          {superAdmin && (
+            <Link
+              href="/admin/users"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
+            >
+              Manage Admins
+            </Link>
+          )}
+          <Link
+            href="/admin/settings"
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition"
+          >
+            Settings
+          </Link>
         </div>
-      </div>
+      </AdminHeader>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <DashboardStats stats={stats} />
