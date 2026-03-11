@@ -2,53 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { committees } from '@/lib/committees'
 
 const AUTO_ADVANCE_MS = 5000
-
-const committees = [
-  {
-    id: 'recruitment',
-    title: 'Recruitment',
-    description: 'Drive membership growth and engagement. Help identify, onboard, and integrate new members into the party structure.',
-    image: '/images/committees/recruitment.jpg',
-  },
-  {
-    id: 'resource-mobilization',
-    title: 'Resource Mobilization',
-    description: 'Support the party\'s financial sustainability through fundraising, partnerships, and strategic resource allocation.',
-    image: '/images/committees/resource-mobilization.jpg',
-  },
-  {
-    id: 'legal-affairs',
-    title: 'Legal Affairs',
-    description: 'Provide legal guidance, compliance oversight, and representation on party matters and electoral processes.',
-    image: '/images/committees/legal-affairs.jpg',
-  },
-  {
-    id: 'policy-formulation-strategy',
-    title: 'Policy Formulation & Strategy',
-    description: 'Develop and refine party policies, manifestos, and long-term strategy for governance and national development.',
-    image: '/images/committees/policy-strategy.jpg',
-  },
-  {
-    id: 'diaspora-affairs',
-    title: 'Diaspora Affairs',
-    description: 'Engage Kenyans abroad, coordinate diaspora contributions, and integrate their voice into party programmes.',
-    image: '/images/committees/diaspora.jpg',
-  },
-  {
-    id: 'human-rights',
-    title: 'Human Rights',
-    description: 'Advance and protect human rights, promote equality, and ensure the party\'s agenda reflects dignity for all.',
-    image: '/images/committees/human-rights.jpg',
-  },
-  {
-    id: 'media-pr-communications',
-    title: 'Media, Public Relations & Communications',
-    description: 'Shape the party\'s public image, manage media relations, and communicate our message clearly and effectively.',
-    image: '/images/committees/media-pr.jpg',
-  },
-]
 
 function useMediaQuery(query: string) {
   // Default to true (desktop) so we show 3 cards until we measure; avoids showing 1 card on desktop
@@ -181,7 +137,7 @@ export default function StandingCommittees({ embedded }: { embedded?: boolean })
                         {committee.description}
                       </p>
                       <Link
-                        href={`/volunteer?committee=${committee.id}`}
+                        href={`/${committee.id}`}
                         className="mt-4 inline-flex items-center text-primary-blue font-semibold text-sm hover:underline"
                       >
                         Read more
