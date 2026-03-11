@@ -1,7 +1,7 @@
 import { getSession } from './auth'
 import { prisma } from './prisma'
 
-export type Module = 'news' | 'events' | 'elections' | 'positions' | 'members' | 'volunteers' | 'donations' | 'admins'
+export type Module = 'news' | 'elections' | 'positions' | 'members' | 'volunteers' | 'donations' | 'admins'
 
 /**
  * Check if the current user has access to a specific module
@@ -54,7 +54,6 @@ export async function isSuperAdmin(): Promise<boolean> {
 export function getAvailableModules(): { value: Module; label: string }[] {
   return [
     { value: 'news', label: 'News/Articles' },
-    { value: 'events', label: 'Events' },
     { value: 'elections', label: 'Elections' },
     { value: 'positions', label: 'Positions' },
     { value: 'members', label: 'Members' },

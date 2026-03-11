@@ -8,7 +8,7 @@ import AdminHeader from '@/components/admin/AdminHeader'
 import Link from 'next/link'
 
 async function getDashboardData() {
-  const [members, volunteers, donations, articles, events, aspirants] = await Promise.all([
+  const [members, volunteers, donations, articles, aspirants] = await Promise.all([
     prisma.member.count(),
     prisma.volunteer.count(),
     prisma.donation.aggregate({
@@ -16,7 +16,6 @@ async function getDashboardData() {
       _count: true,
     }),
     prisma.article.count(),
-    prisma.event.count(),
     prisma.aspirant.count(),
   ])
 
@@ -29,7 +28,6 @@ async function getDashboardData() {
     totalDonations,
     donationCount,
     articles,
-    events,
     aspirants,
   }
 }
@@ -45,9 +43,8 @@ export default async function AdminDashboard() {
   const superAdmin = await isSuperAdmin()
   
   // Check module access
-  const [hasNewsAccess, hasEventsAccess, hasElectionsAccess, hasPositionsAccess] = await Promise.all([
+  const [hasNewsAccess, hasElectionsAccess, hasPositionsAccess] = await Promise.all([
     hasModuleAccess('news'),
-    hasModuleAccess('events'),
     hasModuleAccess('elections'),
     hasModuleAccess('positions'),
   ])
@@ -62,14 +59,6 @@ export default async function AdminDashboard() {
               className="bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-[#002244] transition"
             >
               New Article
-            </Link>
-          )}
-          {hasEventsAccess && (
-            <Link
-              href="/admin/events/new"
-              className="bg-primary-red text-white px-4 py-2 rounded-md hover:bg-[#9A162D] transition"
-            >
-              New Event
             </Link>
           )}
           {hasElectionsAccess && (

@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react'
 
 const AVAILABLE_MODULES = [
   { value: 'news', label: 'News/Articles' },
-  { value: 'events', label: 'Events' },
   { value: 'elections', label: 'Elections' },
   { value: 'positions', label: 'Positions' },
   { value: 'members', label: 'Members' },

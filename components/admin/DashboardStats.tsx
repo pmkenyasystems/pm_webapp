@@ -6,7 +6,6 @@ interface Stats {
   totalDonations: number
   donationCount: number
   articles: number
-  events: number
   aspirants: number
 }
 
@@ -80,23 +79,6 @@ export default function DashboardStats({ stats }: { stats: Stats }) {
           </div>
         </div>
         <Link href="/admin/articles" className="text-primary-blue text-sm mt-4 inline-block hover:underline">
-          View all →
-        </Link>
-      </div>
-
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-gray-600 text-sm">Events</p>
-            <p className="text-3xl font-bold text-gray-900 mt-2">{stats.events}</p>
-          </div>
-          <div className="bg-orange-500 bg-opacity-10 p-3 rounded-full">
-            <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
-        <Link href="/admin/events" className="text-primary-blue text-sm mt-4 inline-block hover:underline">
           View all →
         </Link>
       </div>
