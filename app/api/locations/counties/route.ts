@@ -7,6 +7,13 @@ export async function GET() {
   try {
     const counties = await prisma.county.findMany({
       orderBy: { countyName: 'asc' },
+      include: {
+        _count: {
+          select: {
+            constituencies: true,
+          },
+        },
+      },
     })
 
     console.log(`Fetched ${counties.length} counties from database`)

@@ -124,6 +124,301 @@ const wards = [
   { code: 84, name: 'Garashi', constituencyCode: 17 },
   { code: 85, name: 'Sabaki', constituencyCode: 17 },
   
+  // Constituency 18 - Garsen
+  { code: 86, name: 'Kipini East', constituencyCode: 18 },
+  { code: 87, name: 'Garsen South', constituencyCode: 18 },
+  { code: 88, name: 'Kipini West', constituencyCode: 18 },
+  { code: 89, name: 'Garsen Central', constituencyCode: 18 },
+  { code: 90, name: 'Garsen West', constituencyCode: 18 },
+  { code: 91, name: 'Garsen North', constituencyCode: 18 },
+  
+  // Constituency 19 - Galole
+  { code: 92, name: 'Kinakomba', constituencyCode: 19 },
+  { code: 93, name: 'Mikinduni', constituencyCode: 19 },
+  { code: 94, name: 'Chewani', constituencyCode: 19 },
+  { code: 95, name: 'Wayu', constituencyCode: 19 },
+  
+  // Constituency 20 - Bura
+  { code: 96, name: 'Chewele', constituencyCode: 20 },
+  { code: 97, name: 'Hirimani', constituencyCode: 20 },
+  { code: 98, name: 'Bangale', constituencyCode: 20 },
+  { code: 99, name: 'Sala', constituencyCode: 20 },
+  { code: 100, name: 'Madogo', constituencyCode: 20 },
+  
+  // Constituency 21 - Lamu East
+  { code: 101, name: 'Faza', constituencyCode: 21 },
+  { code: 102, name: 'Kiunga', constituencyCode: 21 },
+  { code: 103, name: 'Basuba', constituencyCode: 21 },
+  
+  // Constituency 22 - Lamu West
+  { code: 104, name: 'Shella', constituencyCode: 22 },
+  { code: 105, name: 'Mkomani', constituencyCode: 22 },
+  { code: 106, name: 'Hindi', constituencyCode: 22 },
+  { code: 107, name: 'Mkunumbi', constituencyCode: 22 },
+  { code: 108, name: 'Hongwe', constituencyCode: 22 },
+  { code: 109, name: 'Witu', constituencyCode: 22 },
+  { code: 110, name: 'Bahari', constituencyCode: 22 },
+  
+  // Constituency 23 - Taveta
+  { code: 111, name: 'Chala', constituencyCode: 23 },
+  { code: 112, name: 'Mahoo', constituencyCode: 23 },
+  { code: 113, name: 'Bomani', constituencyCode: 23 },
+  { code: 114, name: 'Mboghoni', constituencyCode: 23 },
+  { code: 115, name: 'Mata', constituencyCode: 23 },
+  
+  // Constituency 24 - Wundanyi
+  { code: 116, name: 'Wundanyi/Mbale', constituencyCode: 24 },
+  { code: 117, name: 'Werugha', constituencyCode: 24 },
+  { code: 118, name: 'Wumingu/Kishushe', constituencyCode: 24 },
+  { code: 119, name: 'Mwanda/Mgange', constituencyCode: 24 },
+  
+  // Constituency 25 - Mwatate
+  { code: 120, name: 'Ronge', constituencyCode: 25 },
+  { code: 121, name: 'Mwatate', constituencyCode: 25 },
+  { code: 122, name: 'Bura', constituencyCode: 25 },
+  { code: 123, name: 'Chawia', constituencyCode: 25 },
+  { code: 124, name: 'Wusi/Kishamba', constituencyCode: 25 },
+  
+  // Constituency 26 - Voi
+  { code: 125, name: 'Mbololo', constituencyCode: 26 },
+  { code: 126, name: 'Sagalla', constituencyCode: 26 },
+  { code: 127, name: 'Kaloleni', constituencyCode: 26 },
+  { code: 128, name: 'Marungu', constituencyCode: 26 },
+  { code: 129, name: 'Kasigau', constituencyCode: 26 },
+  { code: 130, name: 'Ngolia', constituencyCode: 26 },
+  
+  // Constituency 27 - Garissa Township
+  { code: 131, name: 'Waberi', constituencyCode: 27 },
+  { code: 132, name: 'Galbet', constituencyCode: 27 },
+  { code: 133, name: 'Township', constituencyCode: 27 },
+  { code: 134, name: 'Iftin', constituencyCode: 27 },
+  
+  // Constituency 28 - Balambala
+  { code: 135, name: 'Balambala', constituencyCode: 28 },
+  { code: 136, name: 'Danyere', constituencyCode: 28 },
+  { code: 137, name: 'Jarajara', constituencyCode: 28 },
+  { code: 138, name: 'Saka', constituencyCode: 28 },
+  { code: 139, name: 'Sankuri', constituencyCode: 28 },
+  
+  // Constituency 29 - Lagdera
+  { code: 140, name: 'Modogashe', constituencyCode: 29 },
+  { code: 141, name: 'Benane', constituencyCode: 29 },
+  { code: 142, name: 'Goreale', constituencyCode: 29 },
+  { code: 143, name: 'Maalamin', constituencyCode: 29 },
+  { code: 144, name: 'Sabena', constituencyCode: 29 },
+  { code: 145, name: 'Baraki', constituencyCode: 29 },
+  
+  // Constituency 30 - Dadaab
+  { code: 146, name: 'Dertu', constituencyCode: 30 },
+  { code: 147, name: 'Dadaab', constituencyCode: 30 },
+  { code: 148, name: 'Labisgale', constituencyCode: 30 },
+  { code: 149, name: 'Damajale', constituencyCode: 30 },
+  { code: 150, name: 'Liboi', constituencyCode: 30 },
+  { code: 151, name: 'Abakaile', constituencyCode: 30 },
+  
+  // Constituency 31 - Fafi
+  { code: 152, name: 'Bura', constituencyCode: 31 },
+  { code: 153, name: 'Dekaharia', constituencyCode: 31 },
+  { code: 154, name: 'Jarajila', constituencyCode: 31 },
+  { code: 155, name: 'Fafi', constituencyCode: 31 },
+  { code: 156, name: 'Nanighi', constituencyCode: 31 },
+  
+  // Constituency 32 - Ijara
+  { code: 157, name: 'Hulugho', constituencyCode: 32 },
+  { code: 158, name: 'Sangailu', constituencyCode: 32 },
+  { code: 159, name: 'Ijara', constituencyCode: 32 },
+  { code: 160, name: 'Masalani', constituencyCode: 32 },
+  
+  // Constituency 33 - Wajir North
+  { code: 161, name: 'Gurar', constituencyCode: 33 },
+  { code: 162, name: 'Bute', constituencyCode: 33 },
+  { code: 163, name: 'Korondile', constituencyCode: 33 },
+  { code: 164, name: 'Malkagufu', constituencyCode: 33 },
+  { code: 165, name: 'Batalu', constituencyCode: 33 },
+  { code: 166, name: 'Danaba', constituencyCode: 33 },
+  { code: 167, name: 'Godoma', constituencyCode: 33 },
+  
+  // Constituency 34 - Wajir East
+  { code: 168, name: 'Wagberi', constituencyCode: 34 },
+  { code: 169, name: 'Township', constituencyCode: 34 },
+  { code: 170, name: 'Barwago', constituencyCode: 34 },
+  { code: 171, name: 'Khorof/Harar', constituencyCode: 34 },
+  
+  // Constituency 35 - Tarbaj
+  { code: 172, name: 'Elben', constituencyCode: 35 },
+  { code: 173, name: 'Sarman', constituencyCode: 35 },
+  { code: 174, name: 'Tarbaj', constituencyCode: 35 },
+  { code: 175, name: 'Wargadud', constituencyCode: 35 },
+  
+  // Constituency 36 - Wajir West
+  { code: 176, name: 'Arbajahan', constituencyCode: 36 },
+  { code: 177, name: 'Hadado/Athibohol', constituencyCode: 36 },
+  { code: 178, name: 'Ademasajide', constituencyCode: 36 },
+  { code: 179, name: 'Ganyure', constituencyCode: 36 },
+  { code: 180, name: 'Wagalla', constituencyCode: 36 },
+  
+  // Constituency 37 - Eldas
+  { code: 181, name: 'Eldas', constituencyCode: 37 },
+  { code: 182, name: 'Della', constituencyCode: 37 },
+  { code: 183, name: 'Lakoley South/Basir', constituencyCode: 37 },
+  { code: 184, name: 'Elnur/Tula Tula', constituencyCode: 37 },
+  
+  // Constituency 38 - Wajir South
+  { code: 185, name: 'Benane', constituencyCode: 38 },
+  { code: 186, name: 'Burder', constituencyCode: 38 },
+  { code: 187, name: 'Dadaja Bulla', constituencyCode: 38 },
+  { code: 188, name: 'Habaswein', constituencyCode: 38 },
+  { code: 189, name: 'Lagboghol South', constituencyCode: 38 },
+  { code: 190, name: 'Ibrahim Ure', constituencyCode: 38 },
+  { code: 191, name: 'Diif', constituencyCode: 38 },
+  
+  // Constituency 39 - Mandera West
+  { code: 192, name: 'Takaba South', constituencyCode: 39 },
+  { code: 193, name: 'Takaba', constituencyCode: 39 },
+  { code: 194, name: 'Lagsure', constituencyCode: 39 },
+  { code: 195, name: 'Dandu', constituencyCode: 39 },
+  { code: 196, name: 'Gither', constituencyCode: 39 },
+  
+  // Constituency 40 - Banissa
+  { code: 197, name: 'Banissa', constituencyCode: 40 },
+  { code: 198, name: 'Derkhale', constituencyCode: 40 },
+  { code: 199, name: 'Guba', constituencyCode: 40 },
+  { code: 200, name: 'Malkamari', constituencyCode: 40 },
+  { code: 201, name: 'Kiliwehiri', constituencyCode: 40 },
+  
+  // Constituency 41 - Mandera North
+  { code: 202, name: 'Ashabito', constituencyCode: 41 },
+  { code: 203, name: 'Guticha', constituencyCode: 41 },
+  { code: 204, name: 'Marothile', constituencyCode: 41 },
+  { code: 205, name: 'Rhamu', constituencyCode: 41 },
+  { code: 206, name: 'Rhamu Dimtu', constituencyCode: 41 },
+  
+  // Constituency 42 - Mandera South
+  { code: 207, name: 'Wargadud', constituencyCode: 42 },
+  { code: 208, name: 'Kutulo', constituencyCode: 42 },
+  { code: 209, name: 'Elwak South', constituencyCode: 42 },
+  { code: 210, name: 'Elwak North', constituencyCode: 42 },
+  { code: 211, name: 'Shimbir Fatuma', constituencyCode: 42 },
+  
+  // Constituency 43 - Mandera East
+  { code: 212, name: 'Arabia', constituencyCode: 43 },
+  { code: 213, name: 'Libehia', constituencyCode: 43 },
+  { code: 214, name: 'Khalalio', constituencyCode: 43 },
+  { code: 215, name: 'Neboi', constituencyCode: 43 },
+  { code: 216, name: 'Township', constituencyCode: 43 },
+  
+  // Constituency 44 - Lafey
+  { code: 217, name: 'Sala', constituencyCode: 44 },
+  { code: 218, name: 'Fino', constituencyCode: 44 },
+  { code: 219, name: 'Lafey', constituencyCode: 44 },
+  { code: 220, name: 'Waranqara', constituencyCode: 44 },
+  { code: 221, name: 'Alungo Gof', constituencyCode: 44 },
+  
+  // Constituency 45 - Moyale
+  { code: 222, name: 'Butiye', constituencyCode: 45 },
+  { code: 223, name: 'Sololo', constituencyCode: 45 },
+  { code: 224, name: 'Heillu/Manyatta', constituencyCode: 45 },
+  { code: 225, name: 'Golbo', constituencyCode: 45 },
+  { code: 226, name: 'Moyale Township', constituencyCode: 45 },
+  { code: 227, name: 'Uran', constituencyCode: 45 },
+  { code: 228, name: 'Obbu', constituencyCode: 45 },
+  
+  // Constituency 46 - North Horr
+  { code: 229, name: 'Dukana', constituencyCode: 46 },
+  { code: 230, name: 'Maikona', constituencyCode: 46 },
+  { code: 231, name: 'Turbi', constituencyCode: 46 },
+  { code: 232, name: 'North Horr', constituencyCode: 46 },
+  { code: 233, name: 'Illeret', constituencyCode: 46 },
+  
+  // Constituency 47 - Saku
+  { code: 234, name: 'Sagante/Jaldesa', constituencyCode: 47 },
+  { code: 235, name: 'Karare', constituencyCode: 47 },
+  { code: 236, name: 'Marsabit Central', constituencyCode: 47 },
+  
+  // Constituency 48 - Laisamis
+  { code: 237, name: 'Loiyangalani', constituencyCode: 48 },
+  { code: 238, name: 'Kargi/South Horr', constituencyCode: 48 },
+  { code: 239, name: 'Korr/Ngurunit', constituencyCode: 48 },
+  { code: 240, name: 'Logologo', constituencyCode: 48 },
+  { code: 241, name: 'Laisamis', constituencyCode: 48 },
+  
+  // Constituency 49 - Isiolo North
+  { code: 242, name: 'Wabera', constituencyCode: 49 },
+  { code: 243, name: 'Bulla Pesa', constituencyCode: 49 },
+  { code: 244, name: 'Chari', constituencyCode: 49 },
+  { code: 245, name: 'Cherab', constituencyCode: 49 },
+  { code: 246, name: 'Ngaremara', constituencyCode: 49 },
+  { code: 247, name: 'Burat', constituencyCode: 49 },
+  { code: 248, name: 'Oldonyiro', constituencyCode: 49 },
+  
+  // Constituency 50 - Isiolo South
+  { code: 249, name: 'Kinna', constituencyCode: 50 },
+  { code: 250, name: 'Garbatulla', constituencyCode: 50 },
+  { code: 251, name: 'Sericho', constituencyCode: 50 },
+  
+  // Constituency 51 - Igembe South
+  { code: 252, name: 'Maua', constituencyCode: 51 },
+  { code: 253, name: 'Kegoi/Antubochiu', constituencyCode: 51 },
+  { code: 254, name: 'Athiru Gaiti', constituencyCode: 51 },
+  { code: 255, name: 'Akachiu', constituencyCode: 51 },
+  { code: 256, name: 'Kanuni', constituencyCode: 51 },
+  
+  // Constituency 52 - Igembe Central
+  { code: 257, name: "Akirang'ondu", constituencyCode: 52 },
+  { code: 258, name: 'Athiru Ruujine', constituencyCode: 52 },
+  { code: 259, name: 'Igembe East', constituencyCode: 52 },
+  { code: 260, name: 'Njia', constituencyCode: 52 },
+  { code: 261, name: 'Kangeta', constituencyCode: 52 },
+  
+  // Constituency 53 - Igembe North
+  { code: 262, name: 'Antuambui', constituencyCode: 53 },
+  { code: 263, name: 'Ntunene', constituencyCode: 53 },
+  { code: 264, name: 'Antubetwe Kiongo', constituencyCode: 53 },
+  { code: 265, name: 'Naathu', constituencyCode: 53 },
+  { code: 266, name: 'Amwathi', constituencyCode: 53 },
+  
+  // Constituency 54 - Tigania West
+  { code: 267, name: 'Athwana', constituencyCode: 54 },
+  { code: 268, name: 'Akithi', constituencyCode: 54 },
+  { code: 269, name: 'Kianjai', constituencyCode: 54 },
+  { code: 270, name: 'Nkomo', constituencyCode: 54 },
+  { code: 271, name: 'Mbeu', constituencyCode: 54 },
+  
+  // Constituency 55 - Tigania East
+  { code: 272, name: 'Thangatha', constituencyCode: 55 },
+  { code: 273, name: 'Mikinduri', constituencyCode: 55 },
+  { code: 274, name: 'Kiguchwa', constituencyCode: 55 },
+  { code: 275, name: 'Muthara', constituencyCode: 55 },
+  { code: 276, name: 'Karama', constituencyCode: 55 },
+  
+  // Constituency 56 - North Imenti
+  { code: 277, name: 'Municipality', constituencyCode: 56 },
+  { code: 278, name: 'Ntima East', constituencyCode: 56 },
+  { code: 279, name: 'Ntima West', constituencyCode: 56 },
+  { code: 280, name: 'Nyaki West', constituencyCode: 56 },
+  { code: 281, name: 'Nyaki East', constituencyCode: 56 },
+  
+  // Constituency 57 - Buuri
+  { code: 282, name: 'Timau', constituencyCode: 57 },
+  { code: 283, name: 'Kisima', constituencyCode: 57 },
+  { code: 284, name: 'Kiirua/Naari', constituencyCode: 57 },
+  { code: 285, name: 'Ruiri/Rwarera', constituencyCode: 57 },
+  { code: 286, name: 'Kibirichia', constituencyCode: 57 },
+  
+  // Constituency 58 - Central Imenti
+  { code: 287, name: 'Mwanganthia', constituencyCode: 58 },
+  { code: 288, name: 'Abothuguchi Central', constituencyCode: 58 },
+  { code: 289, name: 'Abothuguchi West', constituencyCode: 58 },
+  { code: 290, name: 'Kiagu', constituencyCode: 58 },
+  
+  // Constituency 59 - South Imenti
+  { code: 291, name: 'Mitunguu', constituencyCode: 59 },
+  { code: 292, name: 'Igoji East', constituencyCode: 59 },
+  { code: 293, name: 'Igoji West', constituencyCode: 59 },
+  { code: 294, name: 'Abogeta East', constituencyCode: 59 },
+  { code: 295, name: 'Abogeta West', constituencyCode: 59 },
+  { code: 296, name: 'Nkuene', constituencyCode: 59 },
+  
   // Constituency 75 - Masinga
   { code: 376, name: 'Kivaa', constituencyCode: 75 },
   { code: 377, name: 'Masinga Central', constituencyCode: 75 },

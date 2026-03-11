@@ -4,131 +4,87 @@ import SocialShare from '@/components/sharing/SocialShare'
 
 async function getFeaturedContent() {
   try {
-    const [articles, events] = await Promise.all([
-      prisma.article.findMany({
-        where: { published: true },
-        orderBy: { createdAt: 'desc' },
-        take: 3,
-        include: { author: { select: { name: true } } }
-      }).catch(() => []),
-      prisma.event.findMany({
-        where: { isPublic: true },
-        orderBy: { startDate: 'asc' },
-        take: 3,
-      }).catch(() => [])
-    ])
-    return { articles: articles || [], events: events || [] }
+    const articles = await prisma.article.findMany({
+      where: { published: true },
+      orderBy: { createdAt: 'desc' },
+      take: 3,
+      include: { author: { select: { name: true } } }
+    }).catch(() => [])
+    return { articles: articles || [] }
   } catch (error) {
-    return { articles: [], events: [] }
+    return { articles: [] }
   }
 }
 
 export default async function FeaturedContent() {
-  const { articles, events } = await getFeaturedContent()
+  const { articles } = await getFeaturedContent()
 
   return (
-    <section className="pt-8 pb-16 bg-gray-50">
+    <section className="pt-6 pb-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Featured Articles */}
-        <div className="mb-16">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-3xl font-bold text-gray-900">News Updates</h2>
-            <Link href="/articles" className="text-primary-blue hover:underline">
+        <div className="rounded-2xl bg-gray-50 p-5 md:p-6 border border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Updates</h2>
+            <Link href="/articles" className="text-primary-blue hover:underline font-medium">
               View All →
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {articles.length > 0 ? (
-              articles.map((article) => (
-                <div
-                  key={article.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
-                >
-                  <Link href={`/articles/${article.slug}`}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {articles.length > 0 ? (
+            articles.map((article) => (
+              <div
+                key={article.id}
+                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100"
+              >
+                <Link href={`/articles/${article.slug}`}>
+                  <div className="relative h-48 bg-gray-200">
                     {article.imageUrl && (
-                      <div className="h-48 bg-gray-200"></div>
+                      <img src={article.imageUrl} alt="" className="w-full h-full object-cover" />
                     )}
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                        {article.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-4">
-                        {article.excerpt || article.content.substring(0, 100)}...
-                      </p>
-                      <div className="text-sm text-gray-500">
-                        {new Date(article.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary-red via-primary-blue to-white" />
+                  </div>
+                </Link>
+                <div className="p-6">
+                  <Link href={`/articles/${article.slug}`}>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900 hover:text-primary-blue transition">
+                      {article.title}
+                    </h3>
                   </Link>
-                  <div className="px-6 pb-4">
-                    <SocialShare
-                      url={`/articles/${article.slug}`}
-                      title={article.title}
-                      description={article.excerpt || article.content.substring(0, 100)}
-                    />
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    {article.excerpt || (article.content || '').replace(/<[^>]*>/g, '').substring(0, 120)}...
+                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {new Date(article.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </div>
+                    <Link
+                      href={`/articles/${article.slug}`}
+                      className="inline-flex items-center gap-1 text-primary-blue font-medium text-sm hover:underline"
+                    >
+                      Read more
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-3 text-center text-gray-500 py-8">
-                No articles available yet. Check back soon!
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Upcoming Events */}
-        <div>
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Upcoming Events</h2>
-            <Link href="/events" className="text-primary-blue hover:underline">
-              View All →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {events.length > 0 ? (
-              events.map((event) => (
-                <div
-                  key={event.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition"
-                >
-                  <Link href={`/events/${event.slug}`}>
-                    {event.imageUrl && (
-                      <div className="h-48 bg-gray-200"></div>
-                    )}
-                    <div className="p-6">
-                      <div className="text-primary-red text-sm font-semibold mb-2">
-                        {new Date(event.startDate).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                        {event.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-4">
-                        {event.description.substring(0, 100)}...
-                      </p>
-                      <div className="text-sm text-gray-500">
-                        📍 {event.location}
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="px-6 pb-4">
-                    <SocialShare
-                      url={`/events/${event.slug}`}
-                      title={event.title}
-                      description={event.description.substring(0, 100)}
-                    />
-                  </div>
+                <div className="px-6 pb-4">
+                  <SocialShare
+                    url={`/articles/${article.slug}`}
+                    title={article.title}
+                    description={article.excerpt || (article.content || '').substring(0, 100)}
+                  />
                 </div>
-              ))
-            ) : (
-              <div className="col-span-3 text-center text-gray-500 py-8">
-                No upcoming events. Check back soon!
               </div>
-            )}
+            ))
+          ) : (
+            <div className="col-span-3 text-center text-gray-500 py-8">
+              No updates yet. Check back soon!
+            </div>
+          )}
           </div>
         </div>
       </div>

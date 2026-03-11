@@ -43,7 +43,7 @@ async function main() {
         <p><strong>The Change We Need, Mabadiliko Ni Sasa!</strong></p>
       `,
       excerpt: 'People\'s Renaissance Movement has been officially registered and received its provisional certificate, marking a significant milestone in our journey.',
-      imageUrl: '/images/news/prov_cert.JPG',
+      imageUrl: '/images/news/prov_cert.png',
       authorId: adminUser.id,
       published: true,
       publishedAt: new Date(),

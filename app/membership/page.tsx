@@ -116,6 +116,8 @@ export default function MembershipPage() {
       localStorage.setItem('memberSession', JSON.stringify(data.member))
       setSuccess(true)
       setError('')
+      // Redirect to profile page
+      window.location.href = '/membership/profile'
     } catch (err: any) {
       setError(err.message)
       setLoggedInMember(null)

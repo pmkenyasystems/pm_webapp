@@ -1,3 +1,47 @@
+function Connector() {
+  return (
+    <div className="flex justify-center py-1">
+      <div className="w-0.5 h-4 bg-primary-blue/50" aria-hidden />
+    </div>
+  )
+}
+
+function GovernanceTier({
+  level,
+  roles,
+  isFirst,
+  isLast,
+}: {
+  level: string
+  roles: string[]
+  isFirst?: boolean
+  isLast?: boolean
+}) {
+  return (
+    <div
+      className={`
+        border-2 border-primary-blue/30 rounded-lg overflow-hidden
+        ${isFirst ? 'bg-primary-blue/10' : 'bg-white'}
+        ${isLast ? 'shadow-md' : ''}
+      `}
+    >
+      <div className="bg-primary-blue text-white px-3 py-1.5 font-semibold text-center text-sm">
+        {level}
+      </div>
+      <div className="p-3 flex flex-wrap gap-1.5 justify-center">
+        {roles.map((role) => (
+          <span
+            key={role}
+            className="inline-block px-3 py-1.5 bg-gray-100 text-gray-800 rounded-full text-sm font-medium border border-gray-200"
+          >
+            {role}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function AboutPage() {
   const missionItems = [
     {
@@ -100,18 +144,115 @@ export default function AboutPage() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
           About People&apos;s Renaissance Movement
         </h1>
-        <div className="w-32 h-1 bg-primary-red mx-auto"></div>
+        <div className="w-24 h-0.5 bg-primary-red mx-auto"></div>
       </div>
 
       <div className="prose prose-lg max-w-4xl mx-auto">
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-primary-blue mb-4">Our Vision</h2>
-          <p className="text-gray-700 text-lg leading-relaxed">
+        {/* Section 1: Brief introduction */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-primary-blue mb-3">Who We Are</h2>
+          <p className="text-gray-700 text-base leading-relaxed mb-3">
+            The People&apos;s Renaissance Movement (PRM) is a political party built on the belief that 
+            every Kenyan deserves a fair chance—in education, health, jobs, and justice. We stand for 
+            transparent governance, people-centered development, and a Kenya where opportunity is shared 
+            by all, not reserved for a few.
+          </p>
+          <p className="text-gray-700 text-base leading-relaxed">
+            We are committed to integrity in public life, unity across our diversity, and progress that 
+            lifts families and communities. PRM exists to be the voice and the vehicle for that change—rooted 
+            in service, accountable to the people, and focused on a renaissance that puts the nation first.
+          </p>
+        </section>
+
+        {/* Section 2: Party governance structure */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-primary-blue mb-4">Party Governance Structure</h2>
+          <p className="text-gray-600 text-sm mb-6">
+            Our party is organised from the national level down to the polling station. The structure below shows leadership roles at each tier.
+          </p>
+
+          <div className="space-y-0">
+            {/* National */}
+            <GovernanceTier
+              level="National Leadership"
+              roles={[
+                'Party Leader',
+                'Deputy Party Leader',
+                'Secretary General',
+                'Chairman',
+                'Deputy Chairman',
+                'Deputy Secretary General',
+                'Treasurer',
+                'Deputy Treasurer',
+                'Organising Secretary',
+                'Deputy Organising Secretary',
+              ]}
+              isFirst
+            />
+            <Connector />
+            <GovernanceTier
+              level="County"
+              roles={[
+                'Chairman',
+                'Secretary General',
+                'Treasurer',
+                'Organising Secretary',
+                'Youth Representative',
+                'Women Representative',
+                'PWD Representative',
+              ]}
+            />
+            <Connector />
+            <GovernanceTier
+              level="Constituency"
+              roles={[
+                'Chairman',
+                'Secretary General',
+                'Treasurer',
+                'Organising Secretary',
+                'Youth Representative',
+                'Women Representative',
+                'PWD Representative',
+              ]}
+            />
+            <Connector />
+            <GovernanceTier
+              level="Ward"
+              roles={[
+                'Chairman',
+                'Secretary General',
+                'Treasurer',
+                'Organising Secretary',
+                'Youth Representative',
+                'Women Representative',
+                'PWD Representative',
+              ]}
+            />
+            <Connector />
+            <GovernanceTier
+              level="Polling Station"
+              roles={[
+                'Chairman',
+                'Secretary General',
+                'Treasurer',
+                'Organising Secretary',
+                'Youth Representative',
+                'Women Representative',
+                'PWD Representative',
+              ]}
+              isLast
+            />
+          </div>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-primary-blue mb-3">Our Vision</h2>
+          <p className="text-gray-700 text-base leading-relaxed">
             People&apos;s Renaissance Movement envisions a Kenya where every citizen has equal 
             opportunities, where governance is transparent and accountable, and where the 
             nation&apos;s resources serve the common good. We believe in a Kenya that works 
@@ -119,14 +260,14 @@ export default function AboutPage() {
           </p>
         </section>
 
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-primary-blue mb-4">Our Mission</h2>
-          <p className="text-gray-700 text-lg leading-relaxed mb-6">
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-primary-blue mb-3">Our Mission</h2>
+          <p className="text-gray-700 text-base mb-4">
             Our mission is to transform Kenya through:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {missionItems.map((item, index) => (
-              <div key={index} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+              <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                 <div className="flex-shrink-0 text-primary-blue mt-1">
                   {item.icon}
                 </div>
@@ -138,18 +279,18 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-primary-blue mb-4">Our Values</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-primary-blue mb-3">Our Values</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {values.map((value, index) => (
-              <div key={index} className="bg-primary-light p-6 rounded-lg hover:shadow-lg transition">
-                <div className="flex items-start space-x-4">
+              <div key={index} className="bg-primary-light p-4 rounded-lg hover:shadow-md transition">
+                <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 text-primary-blue">
                     {value.icon}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-primary-blue mb-2">{value.title}</h3>
-                    <p className="text-gray-700">
+                    <h3 className="text-lg font-semibold text-primary-blue mb-1.5">{value.title}</h3>
+                    <p className="text-gray-700 text-sm">
                       {value.description}
                     </p>
                   </div>
@@ -159,21 +300,21 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-primary-blue mb-4">Why We Exist</h2>
-          <p className="text-gray-700 text-lg leading-relaxed">
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-primary-blue mb-3">Why We Exist</h2>
+          <p className="text-gray-700 text-base leading-relaxed">
             Kenya needs a new kind of leadership—one that puts people first, values integrity 
             over personal gain, and works tirelessly to create opportunities for all. People&apos;s 
             Renaissance Movement was founded to be that voice, that movement, and that change.
           </p>
         </section>
 
-        <section className="text-center">
-          <h2 className="text-3xl font-bold text-primary-blue mb-4">Join Us</h2>
-          <p className="text-gray-700 text-lg mb-6">
+        <section className="text-center mb-0">
+          <h2 className="text-2xl font-bold text-primary-blue mb-2">Join Us</h2>
+          <p className="text-gray-700 text-base mb-4">
             Be part of the change. Together, we can build the Kenya we all deserve.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
               href="/membership"
               className="bg-primary-red text-white px-8 py-3 rounded-md font-semibold hover:bg-[#9A162D] transition"

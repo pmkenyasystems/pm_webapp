@@ -16,7 +16,7 @@ model User {
   password  String
   name      String?
   role      String   @default("admin") // super_admin, admin
-  modules   String?  // JSON array of modules: ["news", "events", "elections", "positions", "members", "volunteers", "donations"]
+  modules   String? // JSON array of modules: ["news", "events", "elections", "positions", "members", "volunteers", "donations"]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -24,34 +24,68 @@ model User {
 }
 
 model Member {
-  id               String    @id @default(cuid())
-  ippmsId          String    @unique
-  membershipNo     String?   @unique // Membership_No from IPPMS
-  firstName        String
-  lastName         String
-  email            String?
-  phone            String?
-  idNumber         String    @unique
-  dateOfBirth      DateTime?
-  gender           String?
-  religion         String?
-  ethnicity        String?
-  address          String?
-  county           String?
-  constituency     String?
-  ward             String?
-  youth            Boolean?  @default(false) // Youth (yes/no)
-  pwd              Boolean?  @default(false) // PWD (yes/no)
-  membershipDate   DateTime  @default(now())
-  status           String    @default("active") // active, inactive, suspended
-  password         String?   // Hashed password for member login
-  profileCreatedAt DateTime  @default(now())
-  ippmsDataSyncedAt DateTime? // Date/time when IPPMS data was last synced/updated
-  updatedAt        DateTime  @updatedAt
+  id                   String    @id @default(cuid())
+  ippmsId              String    @unique
+  membershipNo         String?   @unique // Membership_No from IPPMS
+  firstName            String
+  lastName             String
+  email                String?
+  phone                String?
+  idNumber             String    @unique
+  dateOfBirth          DateTime?
+  gender               String?
+  religion             String?
+  ethnicity            String?
+  address              String?
+  county               String?
+  constituency         String?
+  ward                 String?
+  youth                Boolean?  @default(false) // Youth (yes/no)
+  pwd                  Boolean?  @default(false) // PWD (yes/no)
+  membershipDate       DateTime  @default(now())
+  status               String    @default("active") // active, inactive, suspended
+  password             String? // Hashed password for member login
+  membershipCategoryId String? // Reference to membership category
+  profileCreatedAt     DateTime  @default(now())
+  ippmsDataSyncedAt    DateTime? // Date/time when IPPMS data was last synced/updated
+  updatedAt            DateTime  @updatedAt
 
-  volunteers Volunteer[]
+  membershipCategory MembershipCategory?      @relation(fields: [membershipCategoryId], references: [id])
+  volunteers         Volunteer[]
+  subscriptions      MembershipSubscription[]
 
   @@map("member")
+}
+
+model MembershipCategory {
+  id        String   @id @default(cuid())
+  title     String   @unique
+  fee       Float
+  timeline  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members Member[]
+
+  @@map("membership_category")
+}
+
+model MembershipSubscription {
+  id            String   @id @default(cuid())
+  idNumber      String // ID_Number of the member
+  amount        Float
+  currency      String   @default("KES")
+  paymentMethod String // mpesa, card, paypal
+  transactionId String? // Transaction ID from payment provider
+  status        String   @default("pending") // pending, completed, failed
+  periodStart   DateTime // Start date of the 5-year subscription period
+  periodEnd     DateTime // End date of the 5-year subscription period (5 years from start)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  member Member @relation(fields: [idNumber], references: [idNumber])
+
+  @@index([idNumber])
 }
 
 model Volunteer {
@@ -110,7 +144,6 @@ model Article {
 model Event {
   id           String    @id @default(cuid())
   title        String
-  slug         String    @unique
   description  String
   imageUrl     String?
   location     String
@@ -123,41 +156,41 @@ model Event {
 }
 
 model County {
-  id          String         @id @default(cuid())
-  countyCode  Int            @unique
-  countyName  String         @unique
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id         String   @id @default(cuid())
+  countyCode Int      @unique
+  countyName String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   constituencies Constituency[]
   aspirants      Aspirant[]
 }
 
 model Constituency {
-  id              String   @id @default(cuid())
-  constituencyCode Int     @unique
+  id               String   @id @default(cuid())
+  constituencyCode Int      @unique
   constituencyName String
-  countyCode      Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  countyCode       Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  county County @relation(fields: [countyCode], references: [countyCode])
-  wards  Ward[]
+  county    County     @relation(fields: [countyCode], references: [countyCode])
+  wards     Ward[]
   aspirants Aspirant[]
 
   @@unique([constituencyCode, countyCode])
 }
 
 model Ward {
-  id              String   @id @default(cuid())
-  wardCode        Int      @unique
-  wardName        String
+  id               String   @id @default(cuid())
+  wardCode         Int      @unique
+  wardName         String
   constituencyCode Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   constituency Constituency @relation(fields: [constituencyCode], references: [constituencyCode])
-  aspirants     Aspirant[]
+  aspirants    Aspirant[]
 
   @@unique([wardCode, constituencyCode])
 }
@@ -165,7 +198,7 @@ model Ward {
 model Position {
   id            Int      @id @default(autoincrement())
   positionTitle String
-  positionLevel String   // e.g., "National", "County", "Constituency", "Ward"
+  positionLevel String // e.g., "National", "County", "Constituency", "Ward"
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -173,35 +206,35 @@ model Position {
 }
 
 model Election {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
   electionDate DateTime
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   aspirants Aspirant[]
 }
 
 model Aspirant {
-  id              String    @id @default(cuid())
-  idNumber        String    // ID_Number of the logged-in member
-  electionId      String
-  positionId      Int
-  country         String    @default("Kenya")
-  countyCode      Int?
+  id               String   @id @default(cuid())
+  idNumber         String // ID_Number of the logged-in member
+  electionId       String
+  positionId       Int
+  country          String   @default("Kenya")
+  countyCode       Int?
   constituencyCode Int?
-  wardCode        Int?
-  status          String    @default("pending") // pending, approved, rejected
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  wardCode         Int?
+  status           String   @default("pending") // pending, approved, rejected
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  election      Election      @relation(fields: [electionId], references: [id], onDelete: Cascade)
-  position      Position      @relation(fields: [positionId], references: [id])
-  county        County?       @relation(fields: [countyCode], references: [countyCode])
-  constituency  Constituency? @relation(fields: [constituencyCode], references: [constituencyCode])
-  ward          Ward?         @relation(fields: [wardCode], references: [wardCode])
+  election     Election      @relation(fields: [electionId], references: [id], onDelete: Cascade)
+  position     Position      @relation(fields: [positionId], references: [id])
+  county       County?       @relation(fields: [countyCode], references: [countyCode])
+  constituency Constituency? @relation(fields: [constituencyCode], references: [constituencyCode])
+  ward         Ward?         @relation(fields: [wardCode], references: [wardCode])
 
   @@unique([idNumber, electionId, positionId])
 }
