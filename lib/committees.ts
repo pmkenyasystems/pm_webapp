@@ -66,7 +66,9 @@ export const committees: Committee[] = [
       {
         name: 'Austine Wambingwa',
         role: 'Member',
-        bio: 'Member of the Legal & International Affairs Committee.',
+        bio: 'With a strong commitment to advancing legal reforms and fostering international partnerships, he contributes expertise in policy advocacy and diplomatic engagement to drive Kenya\'s renaissance agenda. Austine has a background in International Relations from the United States International University (USIU-Africa).',
+        profileImage: '/images/profile/wambingwa.jpeg',
+        linkedinUrl: 'https://www.linkedin.com/in/austine-wambingwa-hsc',
       },
     ],
   },
