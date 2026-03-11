@@ -1,0 +1,81 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth'
+import { hasModuleAccess } from '@/lib/permissions'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getSession()
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Check if user has access to members module
+    const hasAccess = await hasModuleAccess('members')
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: 'Forbidden: You do not have access to the Members module' },
+        { status: 403 }
+      )
+    }
+
+    const searchParams = request.nextUrl.searchParams
+    const status = searchParams.get('status')
+    const county = searchParams.get('county')
+    const category = searchParams.get('category')
+    const search = searchParams.get('search')
+
+    const where: any = {}
+    
+    if (status) {
+      where.status = status
+    }
+    
+    if (county) {
+      where.county = county
+    }
+    
+    if (category) {
+      where.membershipCategoryId = category
+    }
+    
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { idNumber: { contains: search, mode: 'insensitive' } },
+        { membershipNo: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    const members = await prisma.member.findMany({
+      where,
+      include: {
+        membershipCategory: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return NextResponse.json({ members })
+  } catch (error: any) {
+    console.error('Error fetching members:', error)
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch members' },
+      { status: 500 }
+    )
+  }
+}
+

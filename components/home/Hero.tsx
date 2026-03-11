@@ -2,42 +2,36 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
-import { Caveat, Playfair_Display } from 'next/font/google'
-
-const caveat = Caveat({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-caveat',
-})
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-playfair',
-})
+import { useState, useEffect, useRef } from 'react'
 
 const sliderImages = [
-  '/images/slider/slide1.png',
-  '/images/slider/slide2.png',
-  '/images/slider/slide3.jpeg',
-  '/images/slider/slider5.png',
+  '/images/slider/renaisance.png',
+  '/images/slider/cert.png',
+  '/images/slider/kenya_mt.png',
+  '/images/slider/pm.jpg',
 ]
+
+const SLIDE_INTERVAL_MS = 5000
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
-    }, 5000) // Change slide every 5 seconds
-
-    return () => clearInterval(interval)
+    }, SLIDE_INTERVAL_MS)
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
   }, [])
 
   return (
-    <section className="relative h-[75vh] overflow-hidden">
-      {/* Background Image Slider */}
+    <section className="relative flex-1 min-h-0 flex flex-col mb-0">
+      {/* Background slider */}
       <div className="absolute inset-0">
         {sliderImages.map((image, index) => (
           <div
@@ -48,86 +42,60 @@ export default function Hero() {
           >
             <Image
               src={image}
-              alt={`Slide ${index + 1}`}
+              alt=""
               fill
               className="object-cover"
               priority={index === 0}
-              quality={100}
               sizes="100vw"
             />
-            {/* Dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-blue/30 via-[#004080]/30 to-primary-blue/30"></div>
+            {/* Whitish to clear gradient: light left for text, image shows through on the right */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to right, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.6) 35%, rgba(255,255,255,0.15) 65%, transparent 100%)',
+              }}
+            />
           </div>
         ))}
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex items-center">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="text-center space-y-1.5">
-            {/* Welcome Text - Stylish and Elegant */}
-            <h1 className={`${playfair.className} text-2xl md:text-3xl lg:text-4xl font-semibold text-white tracking-wide drop-shadow-lg italic`}>
-              Welcome to the PM Party.
+      {/* Hero content - always left-aligned, fade-in */}
+      <div className="relative z-10 flex-1 flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="max-w-2xl text-left animate-fade-in">
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+              <span className="text-primary-blue">Kenya Needs</span>{' '}
+              <span className="text-primary-red text-4xl md:text-5xl lg:text-[3.5rem] xl:text-6xl">A Renaissance.</span>
             </h1>
-
-            {/* Decorative Divider */}
-            <div className="flex items-center justify-center gap-2 py-1">
-              <div className="h-px w-10 bg-primary-red"></div>
-              <div className="w-1 h-1 bg-primary-red rounded-full"></div>
-              <div className="h-px w-10 bg-primary-red"></div>
-            </div>
-
-            {/* Mission Statement - Prominent */}
-            <p className="text-xs md:text-sm lg:text-base text-[#E6F2FF] leading-tight max-w-2xl mx-auto font-normal drop-shadow-md px-4">
-              Join us in building a better Kenya through progressive policies, transparent governance, and people-centered development
+            <p className="mt-4 text-base md:text-lg text-gray-800 max-w-xl">
+              Welcome to the Movement.
             </p>
-
-            {/* Tagline - Bold and Memorable */}
-            <p className="text-base md:text-lg lg:text-xl font-semibold tracking-tight drop-shadow-md">
-              <span className={`${caveat.className} text-white font-semibold text-lg md:text-xl lg:text-2xl`}>The Change We Need,</span> <span className={`text-primary-red ${caveat.className} font-semibold text-lg md:text-xl lg:text-2xl`}>Mabadiliko Ni Sasa!</span>
-            </p>
-
-            {/* Call to Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+            <div className="mt-10 flex flex-wrap items-center gap-3">
               <Link
                 href="/membership"
-                className="bg-primary-red hover:bg-[#9A162D] text-white px-8 py-3 rounded-md font-semibold transition shadow-lg transform hover:scale-105"
+                className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-medium text-white bg-primary-red/90 hover:bg-primary-red border border-primary-red/20 transition-all duration-200 hover:scale-105"
               >
                 Become a Member
+                <svg className="w-3.5 h-3.5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </Link>
               <Link
                 href="/volunteer"
-                className="bg-white text-primary-blue hover:bg-gray-100 px-8 py-3 rounded-md font-semibold transition shadow-lg transform hover:scale-105"
+                className="inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white/90 hover:bg-white border border-gray-200 transition-all duration-200 hover:scale-105"
               >
-                Volunteer With Us
+                Volunteer
               </Link>
               <Link
                 href="/donate"
-                className="border-2 border-white text-white hover:bg-white hover:text-primary-blue px-8 py-3 rounded-md font-semibold transition shadow-lg transform hover:scale-105"
+                className="inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-medium text-white bg-primary-blue/85 hover:bg-primary-blue border border-primary-blue/30 transition-all duration-200 hover:scale-105"
               >
-                Make a Donation
+                Donate
               </Link>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Slider Indicators */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-        {sliderImages.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentSlide(index)}
-            className={`h-2 rounded-full transition-all ${
-              index === currentSlide
-                ? 'bg-primary-red w-8'
-                : 'bg-white/50 w-2 hover:bg-white/75'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
     </section>
   )
 }
-

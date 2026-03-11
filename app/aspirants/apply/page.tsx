@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface Election {
@@ -36,15 +35,22 @@ interface Ward {
   constituencyCode: number
 }
 
+type Step = 1 | 2
+
+interface VerifiedMember {
+  firstName: string
+  lastName: string
+  idNumber: string
+  membershipCategory: string | null
+}
+
 export default function AspirantApplicationPage() {
-  const router = useRouter()
-  const [loggedInMember, setLoggedInMember] = useState<any>(null)
-  const [elections, setElections] = useState<Election[]>([])
-  const [positions, setPositions] = useState<Position[]>([])
-  const [counties, setCounties] = useState<County[]>([])
-  const [constituencies, setConstituencies] = useState<Constituency[]>([])
-  const [wards, setWards] = useState<Ward[]>([])
+  const [step, setStep] = useState<Step>(1)
+  const [idNumberInput, setIdNumberInput] = useState('')
+  const [verifiedMember, setVerifiedMember] = useState<VerifiedMember | null>(null)
+  const [verifying, setVerifying] = useState(false)
   const [formData, setFormData] = useState({
+    idNumber: '',
     electionId: '',
     positionId: '',
     country: 'Kenya',
@@ -52,31 +58,72 @@ export default function AspirantApplicationPage() {
     constituencyCode: '',
     wardCode: '',
   })
+  const [elections, setElections] = useState<Election[]>([])
+  const [positions, setPositions] = useState<Position[]>([])
+  const [counties, setCounties] = useState<County[]>([])
+  const [constituencies, setConstituencies] = useState<Constituency[]>([])
+  const [wards, setWards] = useState<Ward[]>([])
   const [loading, setLoading] = useState(false)
-  const [loadingData, setLoadingData] = useState(true)
+  const [loadingData, setLoadingData] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [showNotMemberDialog, setShowNotMemberDialog] = useState(false)
+  const [showMinCategoryDialog, setShowMinCategoryDialog] = useState(false)
 
+  // Position level → minimum membership category (update as per party policy)
+  const positionMinCategories = [
+    { level: 'National', minCategory: 'Life Membership' },
+    { level: 'County', minCategory: 'Life Membership' },
+    { level: 'Constituency', minCategory: 'Life Membership' },
+    { level: 'Ward', minCategory: 'Ordinary Membership' },
+    { level: 'Polling Station', minCategory: 'Ordinary Membership' },
+  ]
+
+  // Pre-fill ID from session if logged in (step 1 only)
   useEffect(() => {
-    // Check if member is logged in
     const memberData = localStorage.getItem('memberSession')
     if (memberData) {
       try {
         const member = JSON.parse(memberData)
-        // Redirect logged-in members to profile page where the form is now located
-        router.push('/membership/profile?section=aspirant')
-        return
-      } catch (e) {
-        console.error('Error parsing member session:', e)
+        if (member.idNumber) setIdNumberInput(member.idNumber)
+      } catch {
         localStorage.removeItem('memberSession')
-        router.push('/membership')
-        return
       }
-    } else {
-      router.push('/membership')
+    }
+  }, [])
+
+  const handleProceed = async () => {
+    const id = idNumberInput.trim()
+    if (!id) {
+      setError('Please enter your ID number.')
       return
     }
-  }, [router])
+    setVerifying(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/aspirants/verify-member?idNumber=${encodeURIComponent(id)}`)
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Failed to verify member.')
+        setVerifying(false)
+        return
+      }
+      if (!data.found) {
+        setShowNotMemberDialog(true)
+        setVerifying(false)
+        return
+      }
+      setVerifiedMember(data.member)
+      setFormData(prev => ({ ...prev, idNumber: data.member.idNumber }))
+      setStep(2)
+      setLoadingData(true)
+      fetchInitialData()
+    } catch {
+      setError('Failed to verify member. Please try again.')
+    } finally {
+      setVerifying(false)
+    }
+  }
 
   const fetchInitialData = async () => {
     try {
@@ -167,9 +214,9 @@ export default function AspirantApplicationPage() {
     setError('')
     setSuccess(false)
 
-    if (!loggedInMember) {
-      setError('Please log in to apply')
-      router.push('/membership')
+    if (!formData.idNumber?.trim()) {
+      setError('ID Number is required to apply.')
+      setLoading(false)
       return
     }
 
@@ -178,7 +225,7 @@ export default function AspirantApplicationPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idNumber: loggedInMember.idNumber,
+          idNumber: formData.idNumber.trim(),
           electionId: formData.electionId,
           positionId: parseInt(formData.positionId),
           country: formData.country,
@@ -195,14 +242,15 @@ export default function AspirantApplicationPage() {
       }
 
       setSuccess(true)
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         electionId: '',
         positionId: '',
         country: 'Kenya',
         countyCode: '',
         constituencyCode: '',
         wardCode: '',
-      })
+      }))
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -210,12 +258,88 @@ export default function AspirantApplicationPage() {
     }
   }
 
-  if (loadingData) {
-    return <div className="p-8">Loading...</div>
+  // Step 1: Enter ID number and proceed
+  if (step === 1) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Aspirant Application</h1>
+            <p className="text-gray-600 mb-8">
+              Apply to be an aspirant in an upcoming election. First, enter your ID number to verify your membership.
+            </p>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+                {error}
+              </div>
+            )}
+
+            {showNotMemberDialog && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowNotMemberDialog(false)}>
+                <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+                  <h3 className="text-lg font-semibold text-gray-900">Not registered as a member</h3>
+                  <p className="text-gray-600">
+                    You must first be a member of the party in order to apply as an aspirant.
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Register through the Integrated Political Party Management System (IPPMS), then return here to apply.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <a
+                      href="https://ippms.ke"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 text-center bg-primary-blue text-white px-4 py-2 rounded-md font-semibold hover:bg-[#002244] transition"
+                    >
+                      Go to IPPMS to register
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setShowNotMemberDialog(false)}
+                      className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-semibold hover:bg-gray-300 transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                ID Number *
+              </label>
+              <input
+                type="text"
+                id="idNumber"
+                value={idNumberInput}
+                onChange={(e) => setIdNumberInput(e.target.value)}
+                placeholder="Enter your national ID number"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                disabled={verifying}
+              />
+              <p className="text-sm text-gray-500">
+                You must be a registered party member. Not yet a member? <Link href="/membership" className="text-primary-blue hover:underline">Join here</Link>.
+              </p>
+              <button
+                type="button"
+                onClick={handleProceed}
+                disabled={verifying}
+                className="bg-primary-blue text-white px-6 py-2 rounded-md font-semibold hover:bg-[#002244] transition disabled:opacity-50"
+              >
+                {verifying ? 'Verifying...' : 'Proceed'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  if (!loggedInMember) {
-    return null // Will redirect
+  // Step 2: Application form (member verified)
+  if (loadingData) {
+    return <div className="p-8">Loading...</div>
   }
 
   return (
@@ -223,9 +347,79 @@ export default function AspirantApplicationPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Aspirant Application</h1>
+          {verifiedMember && (
+            <div className="text-gray-600 mb-2 space-y-0.5">
+              <p>
+                Applying as <strong>{verifiedMember.firstName} {verifiedMember.lastName}</strong> (ID: {verifiedMember.idNumber})
+              </p>
+              {verifiedMember.membershipCategory && (
+                <p className="text-sm text-gray-500">
+                  Membership category: <strong>{verifiedMember.membershipCategory}</strong>
+                </p>
+              )}
+            </div>
+          )}
           <p className="text-gray-600 mb-8">
-            Apply to be an aspirant in an upcoming election. Please fill in all required details.
+            Fill in the details below to apply for a position in an upcoming election.
           </p>
+          <button
+            type="button"
+            onClick={() => { setStep(1); setVerifiedMember(null); setError(''); setIdNumberInput(''); }}
+            className="text-sm text-primary-blue hover:underline mb-4"
+          >
+            ← Use a different ID number
+          </button>
+
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-amber-900 text-sm">
+              Different positions require different minimum membership categories.{' '}
+              <button
+                type="button"
+                onClick={() => setShowMinCategoryDialog(true)}
+                className="text-primary-blue font-semibold hover:underline underline-offset-2"
+              >
+                Click here to view the minimum categories for the various positions.
+              </button>
+            </p>
+          </div>
+
+          {showMinCategoryDialog && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowMinCategoryDialog(false)}>
+              <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="p-6 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Minimum membership categories by position level</h3>
+                  <p className="text-sm text-gray-500 mt-1">You must meet the minimum category for the position you are applying for.</p>
+                </div>
+                <div className="p-6 overflow-auto flex-1">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="py-2 pr-4 font-semibold text-gray-900">Position level</th>
+                        <th className="py-2 font-semibold text-gray-900">Minimum membership category</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {positionMinCategories.map((row) => (
+                        <tr key={row.level} className="border-b border-gray-100">
+                          <td className="py-3 pr-4 text-gray-800">{row.level}</td>
+                          <td className="py-3 text-gray-700">{row.minCategory}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="p-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowMinCategoryDialog(false)}
+                    className="w-full bg-primary-blue text-white px-4 py-2 rounded-md font-semibold hover:bg-[#002244] transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {success && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">

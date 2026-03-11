@@ -18,126 +18,82 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
-     
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-16 h-16 relative">
-                <Image
-                  src="/logo.png"
-                  alt="People's Renaissance Movement Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                />
+        <div className="flex justify-between items-center h-16">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-12 h-12 md:w-14 md:h-14 relative flex-shrink-0 rounded-full overflow-hidden border-2 border-primary-blue/20">
+              <Image
+                src="/logo.png"
+                alt="People's Renaissance Movement Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div>
+              <div className="text-primary-blue font-bold text-xs md:text-base uppercase tracking-tight leading-tight">
+                People&apos;s Renaissance Movement
               </div>
-              <div className="block">
-                <div className="text-primary-blue font-bold text-sm md:text-lg uppercase">
-                  People&apos;s Renaissance Movement
-                </div>
-                <div className="text-primary-red text-[10px] md:text-xs uppercase">
-                  The Change We Need
-                </div>
+              <div className="text-primary-red text-[10px] md:text-xs uppercase font-medium">
+                The Change We Need
               </div>
-            </Link>
-          </div>
+            </div>
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link 
-              href="/" 
+          <div className="hidden md:flex items-center gap-6">
+            <Link
+              href="/"
               className={`transition ${
-                isActive('/')
-                  ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1'
-                  : 'text-gray-700 hover:text-primary-blue'
+                isActive('/') ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1' : 'text-gray-700 hover:text-primary-blue'
               }`}
             >
               Home
             </Link>
-            <Link 
-              href="/about" 
+            <Link
+              href="/about"
               className={`transition ${
-                isActive('/about')
-                  ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1'
-                  : 'text-gray-700 hover:text-primary-blue'
+                isActive('/about') ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1' : 'text-gray-700 hover:text-primary-blue'
               }`}
             >
               About Us
             </Link>
-            <Link 
-              href="/membership" 
+            <Link
+              href="/membership"
               className={`transition ${
-                isActive('/membership')
-                  ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1'
-                  : 'text-gray-700 hover:text-primary-blue'
+                isActive('/membership') ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1' : 'text-gray-700 hover:text-primary-blue'
               }`}
             >
               Membership
             </Link>
-            <Link 
-              href="/volunteer" 
+            <Link
+              href="/volunteer"
               className={`transition ${
-                isActive('/volunteer')
-                  ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1'
-                  : 'text-gray-700 hover:text-primary-blue'
+                isActive('/volunteer') ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1' : 'text-gray-700 hover:text-primary-blue'
               }`}
             >
               Volunteer
             </Link>
-            <Link 
-              href="/donate" 
-              className={`px-4 py-2 rounded-md transition ${
-                isActive('/donate')
-                  ? 'bg-primary-red text-white hover:bg-[#9A162D] font-semibold'
-                  : 'bg-primary-red text-white hover:bg-[#9A162D]'
-              }`}
+            <Link
+              href="/donate"
+              className="bg-primary-red text-white px-5 py-2.5 rounded font-semibold hover:bg-[#9A162D] transition"
             >
               Donate
             </Link>
-            <Link 
-              href="/articles" 
-              className={`transition ${
-                isActive('/articles')
-                  ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1'
-                  : 'text-gray-700 hover:text-primary-blue'
-              }`}
-            >
-              News
-            </Link>
-            <Link 
-              href="/events" 
-              className={`transition ${
-                isActive('/events')
-                  ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1'
-                  : 'text-gray-700 hover:text-primary-blue'
-              }`}
-            >
-              Events
-            </Link>
-            <Link 
-              href="/contact" 
-              className={`transition ${
-                isActive('/contact')
-                  ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1'
-                  : 'text-gray-700 hover:text-primary-blue'
-              }`}
-            >
-              Contact
-            </Link>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile menu button - red square with white lines */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-primary-blue focus:outline-none"
+              className="bg-primary-red text-white p-2.5 rounded focus:outline-none hover:bg-[#9A162D] transition"
+              aria-label="Toggle menu"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 {isOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                 )}
               </svg>
             </button>
@@ -147,88 +103,15 @@ export default function Navbar() {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
-            <Link 
-              href="/" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/')
-                  ? 'bg-primary-blue text-white font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              href="/about" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/about')
-                  ? 'bg-primary-blue text-white font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              About Us
-            </Link>
-            <Link 
-              href="/membership" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/membership')
-                  ? 'bg-primary-blue text-white font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Membership
-            </Link>
-            <Link 
-              href="/volunteer" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/volunteer')
-                  ? 'bg-primary-blue text-white font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Volunteer
-            </Link>
-            <Link 
-              href="/donate" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/donate')
-                  ? 'bg-primary-red text-white font-semibold'
-                  : 'bg-primary-red text-white hover:bg-[#9A162D]'
-              }`}
-            >
-              Donate
-            </Link>
-            <Link 
-              href="/articles" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/articles')
-                  ? 'bg-primary-blue text-white font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              News
-            </Link>
-            <Link 
-              href="/events" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/events')
-                  ? 'bg-primary-blue text-white font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Events
-            </Link>
-            <Link 
-              href="/contact" 
-              className={`block px-3 py-2 rounded-md transition ${
-                isActive('/contact')
-                  ? 'bg-primary-blue text-white font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Contact
-            </Link>
+        <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="px-4 py-3 space-y-1">
+            <Link href="/" className={`block px-3 py-2.5 rounded ${isActive('/') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>Home</Link>
+            <Link href="/about" className={`block px-3 py-2.5 rounded ${isActive('/about') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>About Us</Link>
+            <Link href="/membership" className={`block px-3 py-2.5 rounded ${isActive('/membership') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>Membership</Link>
+            <Link href="/volunteer" className={`block px-3 py-2.5 rounded ${isActive('/volunteer') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>Volunteer</Link>
+            <Link href="/donate" className="block px-3 py-2.5 rounded bg-primary-red text-white font-semibold hover:bg-[#9A162D]" onClick={() => setIsOpen(false)}>Donate</Link>
+            <Link href="/articles" className="block px-3 py-2.5 rounded text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>Updates</Link>
+            <Link href="/contact" className="block px-3 py-2.5 rounded text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>Contact</Link>
           </div>
         </div>
       )}
