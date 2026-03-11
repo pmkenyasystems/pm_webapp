@@ -39,7 +39,7 @@ async function main() {
   console.log(`  Password: ${defaultPassword}`)
 
   // Create regular admin with specific modules
-  const adminModules = JSON.stringify(['news', 'events', 'members'])
+  const adminModules = JSON.stringify(['news', 'members'])
   const admin = await prisma.user.upsert({
     where: { email: 'admin@pmkenya.org' },
     update: {
