@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    const idNumbers = [...new Set(aspirants.map((a) => a.idNumber))]
+    const idNumbers = Array.from(new Set(aspirants.map((a) => a.idNumber)))
     const members = await prisma.member.findMany({
       where: { idNumber: { in: idNumbers } },
       select: { idNumber: true, surname: true, otherNames: true },
@@ -71,8 +71,8 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const elections = [...new Map(aspirants.map((a) => [a.election.id, { id: a.election.id, title: a.election.title }])).values()]
-    const positions = [...new Map(aspirants.map((a) => [a.position.id, { id: a.position.id, positionTitle: a.position.positionTitle, positionLevel: a.position.positionLevel }])).values()]
+    const elections = Array.from(new Map(aspirants.map((a) => [a.election.id, { id: a.election.id, title: a.election.title }])).values())
+    const positions = Array.from(new Map(aspirants.map((a) => [a.position.id, { id: a.position.id, positionTitle: a.position.positionTitle, positionLevel: a.position.positionLevel }])).values())
 
     return NextResponse.json({ aspirants: list, elections, positions })
   } catch (error: unknown) {
