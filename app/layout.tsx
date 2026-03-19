@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { Providers } from './providers'
+import DisableInspect from '@/components/security/DisableInspect'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-poppins' })
@@ -43,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable} ${montserrat.variable}`}>
       <body className="font-sans antialiased">
+        <DisableInspect />
         <Providers>
           <Navbar />
           <main className="min-h-screen">
