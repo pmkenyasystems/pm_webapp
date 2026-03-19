@@ -5,7 +5,7 @@ import { hasModuleAccess } from '@/lib/permissions'
 
 export const dynamic = 'force-dynamic'
 
-export const COUNTY_OFFICIAL_ROLES = [
+const COUNTY_OFFICIAL_ROLES = [
   'Chairperson',
   'Secretary',
   'Treasurer',
