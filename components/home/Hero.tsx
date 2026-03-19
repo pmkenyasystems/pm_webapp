@@ -8,7 +8,7 @@ const sliderImages = [
   '/images/slider/renaisance.png',
   '/images/slider/kenya_mt.png',
   '/images/slider/cert.png',
-  '/images/slider/cert2.jpeg',
+  '/images/slider/cert2.png',
 ]
 
 const SLIDE_INTERVAL_MS = 5000
