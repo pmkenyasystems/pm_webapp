@@ -22,24 +22,22 @@ async function main() {
 
   // Create sample member
   const member = await prisma.member.upsert({
-    where: { idNumber: '12345678' }, // Using ID number as unique identifier
+    where: { idNumber: '12345678' },
     update: {
-      // Update existing member if found
-      firstName: 'John',
-      lastName: 'Doe',
+      surname: 'Doe',
+      otherNames: 'John',
       email: 'john.doe@example.com',
       phone: '+254712345678',
       password: hashedPassword,
       membershipCategoryId: lifeMembership.id,
     },
     create: {
+      idNumber: '12345678',
       ippmsId: 'IPPMS001',
-      membershipNo: 'PM-001',
-      firstName: 'John',
-      lastName: 'Doe',
+      surname: 'Doe',
+      otherNames: 'John',
       email: 'john.doe@example.com',
       phone: '+254712345678',
-      idNumber: '12345678',
       dateOfBirth: new Date('1990-01-15'),
       gender: 'Male',
       religion: 'Christian',
@@ -58,11 +56,10 @@ async function main() {
 
   console.log('✅ Sample member created successfully!')
   console.log('\nMember Details:')
-  console.log(`  Name: ${member.firstName} ${member.lastName}`)
+  console.log(`  Name: ${member.surname} ${member.otherNames}`)
   console.log(`  ID Number: ${member.idNumber}`)
   console.log(`  Email: ${member.email}`)
   console.log(`  Phone: ${member.phone}`)
-  console.log(`  Membership No: ${member.membershipNo}`)
   console.log(`  Membership Category: Life Membership`)
   console.log(`\nLogin Credentials:`)
   console.log(`  ID Number: ${member.idNumber}`)

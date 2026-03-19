@@ -24,14 +24,13 @@ model User {
 }
 
 model Member {
-  id                   String    @id @default(cuid())
-  ippmsId              String    @unique
-  membershipNo         String?   @unique // Membership_No from IPPMS
-  firstName            String
-  lastName             String
+  id                   Int       @id @default(autoincrement())
+  idNumber             String    @unique
+  ippmsId              String?   @unique
+  surname              String
+  otherNames           String
   email                String?
   phone                String?
-  idNumber             String    @unique
   dateOfBirth          DateTime?
   gender               String?
   religion             String?
@@ -53,6 +52,7 @@ model Member {
   membershipCategory MembershipCategory?      @relation(fields: [membershipCategoryId], references: [id])
   volunteers         Volunteer[]
   subscriptions      MembershipSubscription[]
+  countyOfficials    CountyOfficial[]
 
   @@map("member")
 }
@@ -101,7 +101,7 @@ model Volunteer {
   availability String? // full-time, part-time, weekends, etc.
   motivation   String? // Why they want to volunteer
   isMember     Boolean  @default(false)
-  memberId     String?
+  memberId     Int?
   status       String   @default("pending") // pending, approved, rejected
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -122,6 +122,19 @@ model Donation {
   metadata      String? // JSON string for additional data
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model MaterialDonation {
+  id          String   @id @default(cuid())
+  donorName   String
+  donorEmail  String?
+  donorPhone  String?
+  description String  // Item or description of donation
+  quantity    String? // e.g. "10 bags", "5 boxes"
+  status      String   @default("pending") // pending, received
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Article {
@@ -150,6 +163,24 @@ model County {
 
   constituencies Constituency[]
   aspirants      Aspirant[]
+  countyOfficials CountyOfficial[]
+}
+
+model CountyOfficial {
+  id         String   @id @default(cuid())
+  countyCode Int
+  role       String   // Chairperson, Secretary, Treasurer, Youth Representative, Women Representative, PWD Representative
+  memberId   Int?
+  name       String?  // display name when not linked to member
+  email      String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  county County @relation(fields: [countyCode], references: [countyCode], onDelete: Cascade)
+  member Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@unique([countyCode, role])
 }
 
 model Constituency {
@@ -172,6 +203,7 @@ model Ward {
   wardCode         Int      @unique
   wardName         String
   constituencyCode Int
+  registeredVoters Int?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

@@ -37,36 +37,27 @@ export async function POST(request: NextRequest) {
     const ippmsData = response.data
 
     // Map IPPMS API response fields to our database format
-    const membershipNo = ippmsData.Membership_No || ippmsData.membership_No || ippmsData.membershipNo || null
-    const ippmsId = ippmsData.ippmsId || membershipNo || `IPPMS-${nationalId}`
+    const ippmsId = ippmsData.ippmsId || ippmsData.Membership_No || ippmsData.membership_No || ippmsData.membershipNo || null
     const idNumber = ippmsData.ID_Passport_No || ippmsData.id_Passport_No || ippmsData.idNumber || nationalId
-    const lastName = ippmsData.Surname || ippmsData.surname || ''
-    const firstName = ippmsData.OtherNames || ippmsData.otherNames || ''
+    const surname = ippmsData.Surname || ippmsData.surname || ''
+    const otherNames = ippmsData.OtherNames || ippmsData.otherNames || ''
     const dob = ippmsData.DOB || ippmsData.dob || ippmsData.dateOfBirth || null
     const youth = ippmsData.Youth === 'yes' || ippmsData.Youth === true || ippmsData.youth === 'yes' || ippmsData.youth === true || false
     const pwd = ippmsData.PWD === 'yes' || ippmsData.PWD === true || ippmsData.pwd === 'yes' || ippmsData.pwd === true || false
 
-    // Check if member already exists by ippmsId, membershipNo, or idNumber
-    const orConditions: any[] = [
-      { ippmsId },
-      { idNumber },
-    ]
-    
-    if (membershipNo) {
-      orConditions.push({ membershipNo })
-    }
-    
+    // Check if member already exists by idNumber or ippmsId
+    const orConditions: any[] = [{ idNumber }]
+    if (ippmsId) orConditions.push({ ippmsId })
+
     const existingMember = await prisma.member.findFirst({
-      where: {
-        OR: orConditions,
-      },
+      where: { OR: orConditions },
     })
 
     // Create or update member profile with all IPPMS data
     const memberData: any = {
-      ippmsId,
-      firstName,
-      lastName,
+      ...(ippmsId && { ippmsId }),
+      surname,
+      otherNames,
       email: ippmsData.email || ippmsData.Email || null,
       phone: ippmsData.phone || ippmsData.Phone || null,
       idNumber,
@@ -82,11 +73,6 @@ export async function POST(request: NextRequest) {
       pwd,
       membershipDate: ippmsData.membershipDate ? new Date(ippmsData.membershipDate) : new Date(),
       ippmsDataSyncedAt: new Date(), // Track when IPPMS data was synced/updated
-    }
-
-    // Only include membershipNo if it exists
-    if (membershipNo) {
-      memberData.membershipNo = membershipNo
     }
 
     let member

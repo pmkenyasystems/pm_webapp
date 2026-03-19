@@ -28,8 +28,12 @@ export async function GET(
       )
     }
 
+    const id = parseInt(params.id, 10)
+    if (Number.isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid member ID' }, { status: 400 })
+    }
     const member = await prisma.member.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         membershipCategory: true,
       },

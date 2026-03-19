@@ -81,7 +81,7 @@ export default async function RecentActivity() {
             recentMembers.map((member) => (
               <div key={member.id} className="text-sm">
                 <p className="font-medium text-gray-900">
-                  {member.firstName} {member.lastName}
+                  {member.surname} {member.otherNames}
                 </p>
                 <p className="text-gray-500">{member.county || 'N/A'}</p>
                 <span className={`inline-block mt-1 px-2 py-1 rounded text-xs ${

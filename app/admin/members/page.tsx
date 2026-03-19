@@ -6,14 +6,13 @@ import AdminHeader from '@/components/admin/AdminHeader'
 import Link from 'next/link'
 
 interface Member {
-  id: string
-  ippmsId: string
-  membershipNo: string | null
-  firstName: string
-  lastName: string
+  id: number
+  idNumber: string
+  ippmsId: string | null
+  surname: string
+  otherNames: string
   email: string | null
   phone: string | null
-  idNumber: string
   county: string | null
   constituency: string | null
   ward: string | null
@@ -258,13 +257,8 @@ export default function MembersPage() {
                     <tr key={member.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {member.firstName} {member.lastName}
+                          {member.surname} {member.otherNames}
                         </div>
-                        {member.membershipNo && (
-                          <div className="text-sm text-gray-500">
-                            #{member.membershipNo}
-                          </div>
-                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">

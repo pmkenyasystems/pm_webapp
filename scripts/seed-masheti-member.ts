@@ -21,8 +21,8 @@ async function main() {
   const member = await prisma.member.upsert({
     where: { idNumber: '28499602' },
     update: {
-      firstName: 'Neville Muchalwa',
-      lastName: 'Masheti',
+      surname: 'Masheti',
+      otherNames: 'Neville Muchalwa',
       phone: '0713976532',
       county: 'Kakamega',
       constituency: 'Ikolomani',
@@ -32,11 +32,10 @@ async function main() {
       status: 'active',
     },
     create: {
-      ippmsId: `IPPMS-28499602`,
-      membershipNo: `PM-28499602`,
-      firstName: 'Neville Muchalwa',
-      lastName: 'Masheti',
       idNumber: '28499602',
+      ippmsId: 'IPPMS-28499602',
+      surname: 'Masheti',
+      otherNames: 'Neville Muchalwa',
       phone: '0713976532',
       county: 'Kakamega',
       constituency: 'Ikolomani',
@@ -49,7 +48,7 @@ async function main() {
 
   console.log('✅ Sample member created successfully!')
   console.log('\nMember Details:')
-  console.log(`  Name: ${member.firstName} ${member.lastName}`)
+  console.log(`  Name: ${member.surname} ${member.otherNames}`)
   console.log(`  ID Number: ${member.idNumber}`)
   console.log(`  Phone: ${member.phone}`)
   console.log(`  County: ${member.county} | Constituency: ${member.constituency} | Ward: ${member.ward}`)

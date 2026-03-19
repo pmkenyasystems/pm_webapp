@@ -38,8 +38,8 @@ interface Ward {
 type Step = 1 | 2
 
 interface VerifiedMember {
-  firstName: string
-  lastName: string
+  surname: string
+  otherNames: string
   idNumber: string
   membershipCategory: string | null
 }
@@ -350,7 +350,7 @@ export default function AspirantApplicationPage() {
           {verifiedMember && (
             <div className="text-gray-600 mb-2 space-y-0.5">
               <p>
-                Applying as <strong>{verifiedMember.firstName} {verifiedMember.lastName}</strong> (ID: {verifiedMember.idNumber})
+                Applying as <strong>{verifiedMember.surname} {verifiedMember.otherNames}</strong> (ID: {verifiedMember.idNumber})
               </p>
               {verifiedMember.membershipCategory && (
                 <p className="text-sm text-gray-500">

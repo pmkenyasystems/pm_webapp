@@ -116,8 +116,6 @@ export default function MembershipPage() {
       localStorage.setItem('memberSession', JSON.stringify(data.member))
       setSuccess(true)
       setError('')
-      // Redirect to profile page
-      window.location.href = '/membership/profile'
     } catch (err: any) {
       setError(err.message)
       setLoggedInMember(null)
@@ -323,9 +321,8 @@ export default function MembershipPage() {
                 <div className="bg-gray-50 p-6 rounded-md">
                   <h3 className="font-semibold mb-4">Member Information:</h3>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Name:</strong> {memberData.firstName} {memberData.lastName}</p>
+                    <p><strong>Name:</strong> {memberData.surname} {memberData.otherNames}</p>
                     <p><strong>ID Number:</strong> {memberData.idNumber}</p>
-                    {memberData.membershipNo && <p><strong>Membership No:</strong> {memberData.membershipNo}</p>}
                     {memberData.dateOfBirth && <p><strong>Date of Birth:</strong> {new Date(memberData.dateOfBirth).toLocaleDateString()}</p>}
                     {memberData.gender && <p><strong>Gender:</strong> {memberData.gender}</p>}
                     {memberData.religion && <p><strong>Religion:</strong> {memberData.religion}</p>}
@@ -412,14 +409,36 @@ export default function MembershipPage() {
             ) : (
               <div className="space-y-4">
                 <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                  Login successful! Welcome back, {loggedInMember.firstName} {loggedInMember.lastName}
+                  Login successful! Welcome back, {loggedInMember.surname} {loggedInMember.otherNames}
                 </div>
+
+                <div className="bg-white border border-gray-200 rounded-md p-4">
+                  <h3 className="font-semibold text-gray-900 mb-2">My Account</h3>
+                  <ul className="space-y-1">
+                    <li>
+                      <Link
+                        href="/membership/profile"
+                        className="text-primary-blue hover:underline"
+                      >
+                        My Profile
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/membership/profile?section=payments"
+                        className="text-primary-blue hover:underline"
+                      >
+                        Payments
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+
                 <div className="bg-gray-50 p-6 rounded-md">
                   <h3 className="font-semibold mb-4">Your Profile:</h3>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Name:</strong> {loggedInMember.firstName} {loggedInMember.lastName}</p>
+                    <p><strong>Name:</strong> {loggedInMember.surname} {loggedInMember.otherNames}</p>
                     <p><strong>ID Number:</strong> {loggedInMember.idNumber}</p>
-                    {loggedInMember.membershipNo && <p><strong>Membership No:</strong> {loggedInMember.membershipNo}</p>}
                     {loggedInMember.dateOfBirth && <p><strong>Date of Birth:</strong> {new Date(loggedInMember.dateOfBirth).toLocaleDateString()}</p>}
                     {loggedInMember.gender && <p><strong>Gender:</strong> {loggedInMember.gender}</p>}
                     {loggedInMember.county && <p><strong>County:</strong> {loggedInMember.county}</p>}

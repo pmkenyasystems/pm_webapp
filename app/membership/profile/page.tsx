@@ -5,11 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface Member {
-  id: string
-  firstName: string
-  lastName: string
+  id: number
   idNumber: string
-  membershipNo?: string
+  surname: string
+  otherNames: string
   email?: string
   phone?: string
   dateOfBirth?: string
@@ -95,6 +94,8 @@ export default function MemberProfilePage() {
         const section = urlParams.get('section')
         if (section === 'aspirant') {
           setActiveSection('aspirant')
+        } else if (section === 'payments') {
+          setActiveSection('payments')
         }
       }
     } catch (e) {
@@ -332,7 +333,7 @@ export default function MemberProfilePage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Member Profile</h1>
               <p className="text-sm text-gray-600 mt-1">
-                Welcome, {member.firstName} {member.lastName}
+                Welcome, {member.surname} {member.otherNames}
               </p>
             </div>
             <button
@@ -412,18 +413,12 @@ export default function MemberProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <p className="text-gray-900">{member.firstName} {member.lastName}</p>
+                <p className="text-gray-900">{member.surname} {member.otherNames}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
                 <p className="text-gray-900">{member.idNumber}</p>
               </div>
-              {member.membershipNo && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Membership Number</label>
-                  <p className="text-gray-900">{member.membershipNo}</p>
-                </div>
-              )}
               {member.membershipCategory && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Membership Category</label>

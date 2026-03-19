@@ -1,4 +1,4 @@
-const PHONE = '+254 700 000 000'
+const PHONE = '+254 119 165 87'
 const EMAIL = 'info@pmkenya.ke'
 const HQ_ADDRESS = 'Riara Lane, Nairobi'
 const GOOGLE_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Riara+Lane+Nairobi+Kenya'
