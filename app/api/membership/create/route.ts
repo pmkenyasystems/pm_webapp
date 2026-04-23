@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { resolveMemberLocationFromStrings } from '@/lib/member-location'
+import { serializeMemberForApi } from '@/lib/serialize-member'
 import axios from 'axios'
 import bcrypt from 'bcryptjs'
 
@@ -36,6 +38,13 @@ export async function POST(request: NextRequest) {
 
     const ippmsData = response.data
 
+    const loc = await resolveMemberLocationFromStrings(
+      prisma,
+      ippmsData.County || ippmsData.county,
+      ippmsData.Constituency || ippmsData.constituency,
+      ippmsData.Ward || ippmsData.ward
+    )
+
     // Map IPPMS API response fields to our database format
     const ippmsId = ippmsData.ippmsId || ippmsData.Membership_No || ippmsData.membership_No || ippmsData.membershipNo || null
     const idNumber = ippmsData.ID_Passport_No || ippmsData.id_Passport_No || ippmsData.idNumber || nationalId
@@ -66,9 +75,9 @@ export async function POST(request: NextRequest) {
       religion: ippmsData.Religion || ippmsData.religion || null,
       ethnicity: ippmsData.Ethnicity || ippmsData.ethnicity || null,
       address: ippmsData.address || ippmsData.Address || null,
-      county: ippmsData.County || ippmsData.county || null,
-      constituency: ippmsData.Constituency || ippmsData.constituency || null,
-      ward: ippmsData.Ward || ippmsData.ward || null,
+      countyCode: loc.countyCode,
+      constituencyCode: loc.constituencyCode,
+      wardCode: loc.wardCode,
       youth,
       pwd,
       membershipDate: ippmsData.membershipDate ? new Date(ippmsData.membershipDate) : new Date(),
@@ -83,12 +92,13 @@ export async function POST(request: NextRequest) {
         data: memberData,
       })
       
-      // Return member without password
-      const memberResponse: any = { ...member }
-      delete memberResponse.password
-      return NextResponse.json({ 
-        member: memberResponse,
-        message: 'Member profile updated successfully with latest IPPMS data'
+      const memberWithLoc = await prisma.member.findUnique({
+        where: { id: member.id },
+        include: { county: true, constituency: true, ward: true },
+      })
+      return NextResponse.json({
+        member: memberWithLoc ? serializeMemberForApi(memberWithLoc) : serializeMemberForApi(member as any),
+        message: 'Member profile updated successfully with latest IPPMS data',
       })
     } else {
       // Generate a temporary password for new members
@@ -110,15 +120,15 @@ export async function POST(request: NextRequest) {
         console.log(`SMS to ${member.phone}: ${smsMessage}`)
       }
       
-      // Return member without password
-      const memberResponse: any = { ...member }
-      delete memberResponse.password
-      return NextResponse.json({ 
-        member: memberResponse,
-        message: member.phone 
+      const memberWithLoc = await prisma.member.findUnique({
+        where: { id: member.id },
+        include: { county: true, constituency: true, ward: true },
+      })
+      return NextResponse.json({
+        member: memberWithLoc ? serializeMemberForApi(memberWithLoc) : serializeMemberForApi(member as any),
+        message: member.phone
           ? 'Profile created successfully. A temporary password has been sent to your phone.'
           : 'Profile created successfully. Please contact support to set your password.',
-        // Include tempPassword only if no phone number (for manual setup)
         ...(member.phone ? {} : { tempPassword }),
       })
     }

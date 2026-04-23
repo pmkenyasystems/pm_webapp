@@ -24,9 +24,9 @@ async function main() {
       surname: 'Masheti',
       otherNames: 'Neville Muchalwa',
       phone: '0713976532',
-      county: 'Kakamega',
-      constituency: 'Ikolomani',
-      ward: 'Idakho South',
+      countyCode: 37,
+      constituencyCode: 210,
+      wardCode: 1047,
       password: hashedPassword,
       membershipCategoryId: lifeMembership.id,
       status: 'active',
@@ -37,9 +37,9 @@ async function main() {
       surname: 'Masheti',
       otherNames: 'Neville Muchalwa',
       phone: '0713976532',
-      county: 'Kakamega',
-      constituency: 'Ikolomani',
-      ward: 'Idakho South',
+      countyCode: 37,
+      constituencyCode: 210,
+      wardCode: 1047,
       status: 'active',
       password: hashedPassword,
       membershipCategoryId: lifeMembership.id,
@@ -51,7 +51,9 @@ async function main() {
   console.log(`  Name: ${member.surname} ${member.otherNames}`)
   console.log(`  ID Number: ${member.idNumber}`)
   console.log(`  Phone: ${member.phone}`)
-  console.log(`  County: ${member.county} | Constituency: ${member.constituency} | Ward: ${member.ward}`)
+  console.log(
+    `  countyCode: ${member.countyCode} | constituencyCode: ${member.constituencyCode} | wardCode: ${member.wardCode}`
+  )
   console.log(`  Membership Category: Life Membership`)
   console.log('\nLogin Credentials (membership portal):')
   console.log(`  ID Number: ${member.idNumber}`)

@@ -36,9 +36,9 @@ model Member {
   religion             String?
   ethnicity            String?
   address              String?
-  county               String?
-  constituency         String?
-  ward                 String?
+  countyCode           Int?
+  constituencyCode     Int?
+  wardCode             Int?
   youth                Boolean?  @default(false) // Youth (yes/no)
   pwd                  Boolean?  @default(false) // PWD (yes/no)
   membershipDate       DateTime  @default(now())
@@ -53,7 +53,11 @@ model Member {
   volunteers         Volunteer[]
   subscriptions      MembershipSubscription[]
   countyOfficials    CountyOfficial[]
+  county             County?       @relation(fields: [countyCode], references: [countyCode], onDelete: SetNull)
+  constituency       Constituency? @relation(fields: [constituencyCode], references: [constituencyCode], onDelete: SetNull)
+  ward               Ward?         @relation(fields: [wardCode], references: [wardCode], onDelete: SetNull)
 
+  @@index([countyCode])
   @@map("member")
 }
 
@@ -164,6 +168,7 @@ model County {
   constituencies Constituency[]
   aspirants      Aspirant[]
   countyOfficials CountyOfficial[]
+  members        Member[]
 }
 
 model CountyOfficial {
@@ -194,6 +199,7 @@ model Constituency {
   county    County     @relation(fields: [countyCode], references: [countyCode])
   wards     Ward[]
   aspirants Aspirant[]
+  members   Member[]
 
   @@unique([constituencyCode, countyCode])
 }
@@ -209,6 +215,7 @@ model Ward {
 
   constituency Constituency @relation(fields: [constituencyCode], references: [constituencyCode])
   aspirants    Aspirant[]
+  members      Member[]
 
   @@unique([wardCode, constituencyCode])
 }

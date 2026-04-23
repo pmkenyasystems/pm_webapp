@@ -40,8 +40,8 @@ export async function GET() {
         },
       }),
       prisma.member.findMany({
-        where: { county: { not: null } },
-        select: { county: true },
+        where: { countyCode: { not: null } },
+        select: { countyCode: true },
       }),
     ])
 
@@ -51,23 +51,17 @@ export async function GET() {
       votersByCounty[code] = (votersByCounty[code] ?? 0) + (w.registeredVoters ?? 0)
     }
 
-    const normalize = (s: string | null) =>
-      s
-        ?.trim()
-        .toLowerCase()
-        .replace(/\s+/g, ' ') ?? ''
-    const memberCountByCounty: Record<string, number> = {}
+    const memberCountByCountyCode: Record<number, number> = {}
     for (const m of membersByCounty) {
-      const key = normalize(m.county)
-      if (!key) continue
-      memberCountByCounty[key] = (memberCountByCounty[key] ?? 0) + 1
+      if (m.countyCode == null) continue
+      memberCountByCountyCode[m.countyCode] = (memberCountByCountyCode[m.countyCode] ?? 0) + 1
     }
 
     const stats: CountyStat[] = counties.map((c) => ({
       countyCode: c.countyCode,
       countyName: c.countyName,
       registeredVoters: votersByCounty[c.countyCode] ?? 0,
-      memberCount: memberCountByCounty[normalize(c.countyName)] ?? 0,
+      memberCount: memberCountByCountyCode[c.countyCode] ?? 0,
     }))
 
     return NextResponse.json({ stats })

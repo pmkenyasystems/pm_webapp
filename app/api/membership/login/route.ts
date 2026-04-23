@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { serializeMemberForApi } from '@/lib/serialize-member'
 import bcrypt from 'bcryptjs'
 
 export const dynamic = 'force-dynamic'
@@ -20,6 +21,9 @@ export async function POST(request: NextRequest) {
       where: { idNumber },
       include: {
         membershipCategory: true,
+        county: true,
+        constituency: true,
+        ward: true,
       },
     })
 
@@ -47,11 +51,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Return member data (excluding password)
+    // Return member data (excluding password); flatten location to string names
     const { password: _, ...memberWithoutPassword } = member
 
     return NextResponse.json({
-      member: memberWithoutPassword,
+      member: serializeMemberForApi(memberWithoutPassword),
       message: 'Login successful',
     })
   } catch (error: any) {

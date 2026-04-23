@@ -13,6 +13,7 @@ async function getRecentActivity() {
     prisma.member.findMany({
       orderBy: { profileCreatedAt: 'desc' },
       take: 5,
+      include: { county: true },
     }),
   ])
 
@@ -83,7 +84,7 @@ export default async function RecentActivity() {
                 <p className="font-medium text-gray-900">
                   {member.surname} {member.otherNames}
                 </p>
-                <p className="text-gray-500">{member.county || 'N/A'}</p>
+                <p className="text-gray-500">{member.county?.countyName || 'N/A'}</p>
                 <span className={`inline-block mt-1 px-2 py-1 rounded text-xs ${
                   member.status === 'active' ? 'bg-green-100 text-green-800' :
                   'bg-gray-100 text-gray-800'

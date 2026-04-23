@@ -8,9 +8,9 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-const KAKAMEGA_COUNTY = '37'
-const IKOLOMANI_CONSTITUENCY = '210'
-const IDAKHO_SOUTH_WARD = '1047'
+const KAKAMEGA_COUNTY_CODE = 37
+const IKOLOMANI_CONSTITUENCY_CODE = 210
+const IDAKHO_SOUTH_WARD_CODE = 1047
 
 async function main() {
   // Date 05/04/1991 as DD/MM/YYYY => 5 April 1991
@@ -30,9 +30,9 @@ async function main() {
       religion: 'Christianity',
       email: 'mashetin.91@gmail.com',
       phone: '0713976532',
-      county: KAKAMEGA_COUNTY,
-      constituency: IKOLOMANI_CONSTITUENCY,
-      ward: IDAKHO_SOUTH_WARD,
+      countyCode: KAKAMEGA_COUNTY_CODE,
+      constituencyCode: IKOLOMANI_CONSTITUENCY_CODE,
+      wardCode: IDAKHO_SOUTH_WARD_CODE,
     },
     create: {
       idNumber: '28499602',
@@ -44,9 +44,9 @@ async function main() {
       religion: 'Christianity',
       email: 'mashetin.91@gmail.com',
       phone: '0713976532',
-      county: KAKAMEGA_COUNTY,
-      constituency: IKOLOMANI_CONSTITUENCY,
-      ward: IDAKHO_SOUTH_WARD,
+      countyCode: KAKAMEGA_COUNTY_CODE,
+      constituencyCode: IKOLOMANI_CONSTITUENCY_CODE,
+      wardCode: IDAKHO_SOUTH_WARD_CODE,
       status: 'active',
       password: hashedPassword,
     },
@@ -57,7 +57,14 @@ async function main() {
   console.log('  Name:', member.surname, member.otherNames)
   console.log('  Email:', member.email)
   console.log('  Phone:', member.phone)
-  console.log('  County:', member.county, '| Constituency:', member.constituency, '| Ward:', member.ward)
+  console.log(
+    '  Location codes — county:',
+    member.countyCode,
+    'constituency:',
+    member.constituencyCode,
+    'ward:',
+    member.wardCode
+  )
   console.log('  DOB:', member.dateOfBirth?.toISOString().slice(0, 10))
   console.log('  Youth:', member.youth, '| PWD:', member.pwd, '| Religion:', member.religion)
 }

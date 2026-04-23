@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { serializeMemberForApi } from '@/lib/serialize-member'
 import { getSession } from '@/lib/auth'
 import { hasModuleAccess } from '@/lib/permissions'
 
@@ -36,6 +37,9 @@ export async function GET(
       where: { id },
       include: {
         membershipCategory: true,
+        county: true,
+        constituency: true,
+        ward: true,
       },
     })
 
@@ -46,7 +50,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ member })
+    return NextResponse.json({ member: serializeMemberForApi(member) })
   } catch (error: any) {
     console.error('Error fetching member:', error)
     return NextResponse.json(
