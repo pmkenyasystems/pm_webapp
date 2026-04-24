@@ -3,6 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+const POSITION_LEVEL_LABELS: Record<string, string> = {
+  '1': 'National',
+  '2': 'County',
+  '3': 'Constituency',
+  '4': 'Ward',
+}
+const positionLevelLabel = (level: string) => POSITION_LEVEL_LABELS[level] ?? level
+
 interface Election {
   id: string
   title: string
@@ -35,176 +43,111 @@ interface Ward {
   constituencyCode: number
 }
 
-type Step = 1 | 2
-
-interface VerifiedMember {
-  surname: string
-  otherNames: string
-  idNumber: string
-  membershipCategory: string | null
-}
-
 export default function AspirantApplicationPage() {
-  const [step, setStep] = useState<Step>(1)
-  const [idNumberInput, setIdNumberInput] = useState('')
-  const [verifiedMember, setVerifiedMember] = useState<VerifiedMember | null>(null)
-  const [verifying, setVerifying] = useState(false)
   const [formData, setFormData] = useState({
+    fullName: '',
     idNumber: '',
+    phone: '',
+    email: '',
     electionId: '',
     positionId: '',
-    country: 'Kenya',
     countyCode: '',
     constituencyCode: '',
     wardCode: '',
+    pollingStation: '',
   })
+
   const [elections, setElections] = useState<Election[]>([])
   const [positions, setPositions] = useState<Position[]>([])
   const [counties, setCounties] = useState<County[]>([])
   const [constituencies, setConstituencies] = useState<Constituency[]>([])
   const [wards, setWards] = useState<Ward[]>([])
+  const [loadingData, setLoadingData] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [loadingData, setLoadingData] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [showNotMemberDialog, setShowNotMemberDialog] = useState(false)
   const [showMinCategoryDialog, setShowMinCategoryDialog] = useState(false)
 
-  // Position level → minimum membership category (update as per party policy)
   const positionMinCategories = [
-    { level: 'National', minCategory: 'Life Membership' },
-    { level: 'County', minCategory: 'Life Membership' },
-    { level: 'Constituency', minCategory: 'Life Membership' },
-    { level: 'Ward', minCategory: 'Ordinary Membership' },
-    { level: 'Polling Station', minCategory: 'Ordinary Membership' },
+    { level: 'National (1)', minCategory: 'Life Membership' },
+    { level: 'County (2)', minCategory: 'Life Membership' },
+    { level: 'Constituency (3)', minCategory: 'Life Membership' },
+    { level: 'Ward (4)', minCategory: 'Ordinary Membership' },
   ]
 
-  // Pre-fill ID from session if logged in (step 1 only)
   useEffect(() => {
+    // Pre-fill ID from session if logged in
     const memberData = localStorage.getItem('memberSession')
     if (memberData) {
       try {
         const member = JSON.parse(memberData)
-        if (member.idNumber) setIdNumberInput(member.idNumber)
+        if (member.idNumber) {
+          setFormData(prev => ({
+            ...prev,
+            idNumber: member.idNumber,
+            fullName: member.surname && member.otherNames
+              ? `${member.surname} ${member.otherNames}`
+              : prev.fullName,
+            phone: member.phone || prev.phone,
+            email: member.email || prev.email,
+          }))
+        }
       } catch {
         localStorage.removeItem('memberSession')
       }
     }
+
+    // Load elections, positions and counties in parallel
+    Promise.all([
+      fetch('/api/aspirants/elections'),
+      fetch('/api/aspirants/positions'),
+      fetch('/api/locations/counties'),
+    ])
+      .then(([eRes, pRes, cRes]) => Promise.all([eRes.json(), pRes.json(), cRes.json()]))
+      .then(([eData, pData, cData]) => {
+        setElections(eData.elections || [])
+        setPositions(pData.positions || [])
+        setCounties(cData.counties || [])
+      })
+      .catch(() => setError('Failed to load form data. Please refresh the page.'))
+      .finally(() => setLoadingData(false))
   }, [])
-
-  const handleProceed = async () => {
-    const id = idNumberInput.trim()
-    if (!id) {
-      setError('Please enter your ID number.')
-      return
-    }
-    setVerifying(true)
-    setError('')
-    try {
-      const res = await fetch(`/api/aspirants/verify-member?idNumber=${encodeURIComponent(id)}`)
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || 'Failed to verify member.')
-        setVerifying(false)
-        return
-      }
-      if (!data.found) {
-        setShowNotMemberDialog(true)
-        setVerifying(false)
-        return
-      }
-      setVerifiedMember(data.member)
-      setFormData(prev => ({ ...prev, idNumber: data.member.idNumber }))
-      setStep(2)
-      setLoadingData(true)
-      fetchInitialData()
-    } catch {
-      setError('Failed to verify member. Please try again.')
-    } finally {
-      setVerifying(false)
-    }
-  }
-
-  const fetchInitialData = async () => {
-    try {
-      const [electionsRes, positionsRes, countiesRes] = await Promise.all([
-        fetch('/api/aspirants/elections'),
-        fetch('/api/aspirants/positions'),
-        fetch('/api/locations/counties'),
-      ])
-
-      const [electionsData, positionsData, countiesData] = await Promise.all([
-        electionsRes.json(),
-        positionsRes.json(),
-        countiesRes.json(),
-      ])
-
-      if (electionsRes.ok) setElections(electionsData.elections || [])
-      if (positionsRes.ok) setPositions(positionsData.positions || [])
-      if (countiesRes.ok) setCounties(countiesData.counties || [])
-    } catch (err: any) {
-      setError('Failed to load application data')
-    } finally {
-      setLoadingData(false)
-    }
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => {
-      const newData = { ...prev, [name]: value }
-
-      // Reset dependent fields when parent changes
+      const next = { ...prev, [name]: value }
       if (name === 'countyCode') {
-        newData.constituencyCode = ''
-        newData.wardCode = ''
+        next.constituencyCode = ''
+        next.wardCode = ''
         fetchConstituencies(value)
       } else if (name === 'constituencyCode') {
-        newData.wardCode = ''
+        next.wardCode = ''
         fetchWards(value)
-      } else if (name === 'positionId') {
-        // Filter positions based on selected position level if needed
-        const selectedPosition = positions.find(p => p.id.toString() === value)
-        if (selectedPosition) {
-          // You can add logic here to filter counties/constituencies/wards based on position level
-        }
       }
-
-      return newData
+      return next
     })
   }
 
   const fetchConstituencies = async (countyCode: string) => {
-    if (!countyCode) {
-      setConstituencies([])
-      return
-    }
-
+    if (!countyCode) { setConstituencies([]); return }
     try {
-      const response = await fetch(`/api/locations/constituencies?countyCode=${countyCode}`)
-      const data = await response.json()
-      if (response.ok) {
-        setConstituencies(data.constituencies || [])
-      }
-    } catch (err) {
-      console.error('Error fetching constituencies:', err)
+      const res = await fetch(`/api/locations/constituencies?countyCode=${countyCode}`)
+      const data = await res.json()
+      if (res.ok) setConstituencies(data.constituencies || [])
+    } catch {
+      console.error('Error fetching constituencies')
     }
   }
 
   const fetchWards = async (constituencyCode: string) => {
-    if (!constituencyCode) {
-      setWards([])
-      return
-    }
-
+    if (!constituencyCode) { setWards([]); return }
     try {
-      const response = await fetch(`/api/locations/wards?constituencyCode=${constituencyCode}`)
-      const data = await response.json()
-      if (response.ok) {
-        setWards(data.wards || [])
-      }
-    } catch (err) {
-      console.error('Error fetching wards:', err)
+      const res = await fetch(`/api/locations/wards?constituencyCode=${constituencyCode}`)
+      const data = await res.json()
+      if (res.ok) setWards(data.wards || [])
+    } catch {
+      console.error('Error fetching wards')
     }
   }
 
@@ -214,43 +157,42 @@ export default function AspirantApplicationPage() {
     setError('')
     setSuccess(false)
 
-    if (!formData.idNumber?.trim()) {
-      setError('ID Number is required to apply.')
-      setLoading(false)
-      return
-    }
-
     try {
-      const response = await fetch('/api/aspirants/apply', {
+      const res = await fetch('/api/aspirants/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           idNumber: formData.idNumber.trim(),
+          fullName: formData.fullName.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim() || null,
           electionId: formData.electionId,
           positionId: parseInt(formData.positionId),
-          country: formData.country,
           countyCode: formData.countyCode ? parseInt(formData.countyCode) : null,
           constituencyCode: formData.constituencyCode ? parseInt(formData.constituencyCode) : null,
           wardCode: formData.wardCode ? parseInt(formData.wardCode) : null,
+          pollingStation: formData.pollingStation.trim() || null,
         }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit application')
-      }
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to submit application')
 
       setSuccess(true)
-      setFormData(prev => ({
-        ...prev,
+      setFormData({
+        fullName: '',
+        idNumber: '',
+        phone: '',
+        email: '',
         electionId: '',
         positionId: '',
-        country: 'Kenya',
         countyCode: '',
         constituencyCode: '',
         wardCode: '',
-      }))
+        pollingStation: '',
+      })
+      setConstituencies([])
+      setWards([])
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -258,117 +200,17 @@ export default function AspirantApplicationPage() {
     }
   }
 
-  // Step 1: Enter ID number and proceed
-  if (step === 1) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Aspirant Application</h1>
-            <p className="text-gray-600 mb-8">
-              Apply to be an aspirant in an upcoming election. First, enter your ID number to verify your membership.
-            </p>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-                {error}
-              </div>
-            )}
-
-            {showNotMemberDialog && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowNotMemberDialog(false)}>
-                <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
-                  <h3 className="text-lg font-semibold text-gray-900">Not registered as a member</h3>
-                  <p className="text-gray-600">
-                    You must first be a member of the party in order to apply as an aspirant.
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Register through the Integrated Political Party Management System (IPPMS), then return here to apply.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <a
-                      href="https://ippms.ke"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 text-center bg-primary-blue text-white px-4 py-2 rounded-md font-semibold hover:bg-[#002244] transition"
-                    >
-                      Go to IPPMS to register
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => setShowNotMemberDialog(false)}
-                      className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-semibold hover:bg-gray-300 transition"
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                ID Number *
-              </label>
-              <input
-                type="text"
-                id="idNumber"
-                value={idNumberInput}
-                onChange={(e) => setIdNumberInput(e.target.value)}
-                placeholder="Enter your national ID number"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                disabled={verifying}
-              />
-              <p className="text-sm text-gray-500">
-                You must be a registered party member. Not yet a member? <Link href="/membership" className="text-primary-blue hover:underline">Join here</Link>.
-              </p>
-              <button
-                type="button"
-                onClick={handleProceed}
-                disabled={verifying}
-                className="bg-primary-blue text-white px-6 py-2 rounded-md font-semibold hover:bg-[#002244] transition disabled:opacity-50"
-              >
-                {verifying ? 'Verifying...' : 'Proceed'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Step 2: Application form (member verified)
-  if (loadingData) {
-    return <div className="p-8">Loading...</div>
-  }
+  const inputClass = 'w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent'
+  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Aspirant Application</h1>
-          {verifiedMember && (
-            <div className="text-gray-600 mb-2 space-y-0.5">
-              <p>
-                Applying as <strong>{verifiedMember.surname} {verifiedMember.otherNames}</strong> (ID: {verifiedMember.idNumber})
-              </p>
-              {verifiedMember.membershipCategory && (
-                <p className="text-sm text-gray-500">
-                  Membership category: <strong>{verifiedMember.membershipCategory}</strong>
-                </p>
-              )}
-            </div>
-          )}
-          <p className="text-gray-600 mb-8">
+          <p className="text-gray-600 mb-6">
             Fill in the details below to apply for a position in an upcoming election.
           </p>
-          <button
-            type="button"
-            onClick={() => { setStep(1); setVerifiedMember(null); setError(''); setIdNumberInput(''); }}
-            className="text-sm text-primary-blue hover:underline mb-4"
-          >
-            ← Use a different ID number
-          </button>
 
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-amber-900 text-sm">
@@ -378,14 +220,20 @@ export default function AspirantApplicationPage() {
                 onClick={() => setShowMinCategoryDialog(true)}
                 className="text-primary-blue font-semibold hover:underline underline-offset-2"
               >
-                Click here to view the minimum categories for the various positions.
+                View minimum categories by position.
               </button>
             </p>
           </div>
 
           {showMinCategoryDialog && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowMinCategoryDialog(false)}>
-              <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+              onClick={() => setShowMinCategoryDialog(false)}
+            >
+              <div
+                className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="p-6 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">Minimum membership categories by position level</h3>
                   <p className="text-sm text-gray-500 mt-1">You must meet the minimum category for the position you are applying for.</p>
@@ -433,147 +281,192 @@ export default function AspirantApplicationPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="electionId" className="block text-sm font-medium text-gray-700 mb-2">
-                Election *
-              </label>
-              <select
-                id="electionId"
-                name="electionId"
-                value={formData.electionId}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              >
-                <option value="">Select an election</option>
-                {elections.map((election) => (
-                  <option key={election.id} value={election.id}>
-                    {election.title} - {new Date(election.electionDate).toLocaleDateString()}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {loadingData ? (
+            <div className="py-8 text-center text-gray-500">Loading form data...</div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
 
-            <div>
-              <label htmlFor="positionId" className="block text-sm font-medium text-gray-700 mb-2">
-                Position *
-              </label>
-              <select
-                id="positionId"
-                name="positionId"
-                value={formData.positionId}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              >
-                <option value="">Select a position</option>
-                {positions.map((position) => (
-                  <option key={position.id} value={position.id}>
-                    {position.positionTitle} ({position.positionLevel})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
-                Country *
-              </label>
-              <input
-                type="text"
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="countyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                County
-              </label>
-              <select
-                id="countyCode"
-                name="countyCode"
-                value={formData.countyCode}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-              >
-                <option value="">Select a county</option>
-                {counties.map((county) => (
-                  <option key={county.id} value={county.countyCode}>
-                    {county.countyName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {formData.countyCode && (
-              <div>
-                <label htmlFor="constituencyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                  Constituency
-                </label>
-                <select
-                  id="constituencyCode"
-                  name="constituencyCode"
-                  value={formData.constituencyCode}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                >
-                  <option value="">Select a constituency</option>
-                  {constituencies.map((constituency) => (
-                    <option key={constituency.id} value={constituency.constituencyCode}>
-                      {constituency.constituencyName}
-                    </option>
-                  ))}
-                </select>
+              {/* Personal Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="fullName" className={labelClass}>Full Name *</label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    placeholder="Enter your full name"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="idNumber" className={labelClass}>ID Number *</label>
+                  <input
+                    type="text"
+                    id="idNumber"
+                    name="idNumber"
+                    value={formData.idNumber}
+                    onChange={handleChange}
+                    placeholder="National ID number"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="phone" className={labelClass}>Phone Number *</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="e.g. 0712 345 678"
+                    required
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className={labelClass}>Email Address</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    className={inputClass}
+                  />
+                </div>
               </div>
-            )}
 
-            {formData.constituencyCode && (
-              <div>
-                <label htmlFor="wardCode" className="block text-sm font-medium text-gray-700 mb-2">
-                  Ward
-                </label>
-                <select
-                  id="wardCode"
-                  name="wardCode"
-                  value={formData.wardCode}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                >
-                  <option value="">Select a ward</option>
-                  {wards.map((ward) => (
-                    <option key={ward.id} value={ward.wardCode}>
-                      {ward.wardName}
-                    </option>
-                  ))}
-                </select>
+              {/* Election & Position */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="electionId" className={labelClass}>Election *</label>
+                  <select
+                    id="electionId"
+                    name="electionId"
+                    value={formData.electionId}
+                    onChange={handleChange}
+                    required
+                    className={inputClass}
+                  >
+                    <option value="">Select an election</option>
+                    {elections.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.title} — {new Date(e.electionDate).toLocaleDateString()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="positionId" className={labelClass}>Position Vying For *</label>
+                  <select
+                    id="positionId"
+                    name="positionId"
+                    value={formData.positionId}
+                    onChange={handleChange}
+                    required
+                    className={inputClass}
+                  >
+                    <option value="">Select a position</option>
+                    {positions.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.positionTitle} ({positionLevelLabel(p.positionLevel)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            )}
 
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-primary-blue text-white px-6 py-2 rounded-md font-semibold hover:bg-[#002244] transition disabled:opacity-50"
-              >
-                {loading ? 'Submitting...' : 'Submit Application'}
-              </button>
-              <Link
-                href="/membership"
-                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md font-semibold hover:bg-gray-300 transition inline-block"
-              >
-                Cancel
-              </Link>
-            </div>
-          </form>
+              {/* Location */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="countyCode" className={labelClass}>County</label>
+                  <select
+                    id="countyCode"
+                    name="countyCode"
+                    value={formData.countyCode}
+                    onChange={handleChange}
+                    className={inputClass}
+                  >
+                    <option value="">Select a county</option>
+                    {counties.map((c) => (
+                      <option key={c.id} value={c.countyCode}>{c.countyName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="constituencyCode" className={labelClass}>Constituency</label>
+                  <select
+                    id="constituencyCode"
+                    name="constituencyCode"
+                    value={formData.constituencyCode}
+                    onChange={handleChange}
+                    disabled={!formData.countyCode}
+                    className={inputClass}
+                  >
+                    <option value="">
+                      {formData.countyCode ? 'Select a constituency' : 'Select a county first'}
+                    </option>
+                    {constituencies.map((c) => (
+                      <option key={c.id} value={c.constituencyCode}>{c.constituencyName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="wardCode" className={labelClass}>Ward</label>
+                  <select
+                    id="wardCode"
+                    name="wardCode"
+                    value={formData.wardCode}
+                    onChange={handleChange}
+                    disabled={!formData.constituencyCode}
+                    className={inputClass}
+                  >
+                    <option value="">
+                      {formData.constituencyCode ? 'Select a ward' : 'Select a constituency first'}
+                    </option>
+                    {wards.map((w) => (
+                      <option key={w.id} value={w.wardCode}>{w.wardName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="pollingStation" className={labelClass}>Polling Station</label>
+                  <input
+                    type="text"
+                    id="pollingStation"
+                    name="pollingStation"
+                    value={formData.pollingStation}
+                    onChange={handleChange}
+                    placeholder="Enter polling station name"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-primary-blue text-white px-6 py-2 rounded-md font-semibold hover:bg-[#002244] transition disabled:opacity-50"
+                >
+                  {loading ? 'Submitting...' : 'Submit Application'}
+                </button>
+                <Link
+                  href="/membership"
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md font-semibold hover:bg-gray-300 transition inline-block"
+                >
+                  Cancel
+                </Link>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>
   )
 }
-

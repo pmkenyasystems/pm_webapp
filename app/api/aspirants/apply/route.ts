@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendAspirantNotification } from '@/lib/mailer'
 
 export const dynamic = 'force-dynamic'
 
 // POST apply as aspirant
 export async function POST(request: NextRequest) {
   try {
-    const { idNumber, electionId, positionId, country, countyCode, constituencyCode, wardCode } = await request.json()
+    const { idNumber, fullName, phone, email, electionId, positionId, country, countyCode, constituencyCode, wardCode, pollingStation } = await request.json()
 
     if (!idNumber || !electionId || !positionId) {
       return NextResponse.json(
@@ -80,12 +81,16 @@ export async function POST(request: NextRequest) {
     const aspirant = await prisma.aspirant.create({
       data: {
         idNumber,
+        fullName: fullName?.trim() || null,
+        phone: phone?.trim() || null,
+        email: email?.trim() || null,
         electionId,
         positionId,
         country: country || 'Kenya',
         countyCode: countyCode || null,
         constituencyCode: constituencyCode || null,
         wardCode: wardCode || null,
+        pollingStation: pollingStation?.trim() || null,
       },
       include: {
         election: true,
@@ -95,6 +100,21 @@ export async function POST(request: NextRequest) {
         ward: true,
       },
     })
+
+    // Send email notification to NEB (non-blocking)
+    sendAspirantNotification({
+      fullName,
+      idNumber,
+      phone,
+      email,
+      electionTitle: aspirant.election.title,
+      positionTitle: aspirant.position.positionTitle,
+      positionLevel: aspirant.position.positionLevel,
+      county: aspirant.county?.countyName ?? null,
+      constituency: aspirant.constituency?.constituencyName ?? null,
+      ward: aspirant.ward?.wardName ?? null,
+      pollingStation,
+    }).catch((err) => console.error('Failed to send NEB email:', err))
 
     return NextResponse.json(
       { aspirant, message: 'Application submitted successfully' },

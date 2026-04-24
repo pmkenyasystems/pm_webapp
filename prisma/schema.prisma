@@ -222,12 +222,14 @@ model Ward {
 
 model Position {
   id            Int      @id @default(autoincrement())
-  positionTitle String
-  positionLevel String // e.g., "National", "County", "Constituency", "Ward"
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  positionTitle String   @map("position_title")
+  positionLevel String   @map("position_level") // e.g., "National", "County", "Constituency", "Ward"
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   aspirants Aspirant[]
+
+  @@map("position")
 }
 
 model Election {
@@ -244,16 +246,20 @@ model Election {
 
 model Aspirant {
   id               String   @id @default(cuid())
-  idNumber         String // ID_Number of the logged-in member
-  electionId       String
-  positionId       Int
+  idNumber         String   @map("id_number") // ID_Number of the logged-in member
+  fullName         String?  @map("full_name")
+  phone            String?
+  email            String?
+  electionId       String   @map("election_id")
+  positionId       Int      @map("position_id")
   country          String   @default("Kenya")
-  countyCode       Int?
-  constituencyCode Int?
-  wardCode         Int?
-  status           String   @default("pending") // pending, approved, rejected
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  countyCode       Int?     @map("county_code")
+  constituencyCode Int?     @map("constituency_code")
+  wardCode         Int?     @map("ward_code")
+  pollingStation   String?  @map("polling_station")
+  status           Int      @default(0) // 0 = pending, 1 = approved, 2 = rejected
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   election     Election      @relation(fields: [electionId], references: [id], onDelete: Cascade)
   position     Position      @relation(fields: [positionId], references: [id])
@@ -262,4 +268,5 @@ model Aspirant {
   ward         Ward?         @relation(fields: [wardCode], references: [wardCode])
 
   @@unique([idNumber, electionId, positionId])
+  @@map("aspirant")
 }

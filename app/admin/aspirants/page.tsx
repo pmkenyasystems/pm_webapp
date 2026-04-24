@@ -12,10 +12,16 @@ interface AspirantItem {
   county: string | null
   constituency: string | null
   ward: string | null
-  status: string
+  status: number
   country: string
   createdAt: string
   updatedAt: string
+}
+
+const ASPIRANT_STATUS: Record<number, { label: string; className: string }> = {
+  0: { label: 'Pending',  className: 'bg-amber-100 text-amber-800' },
+  1: { label: 'Approved', className: 'bg-green-100 text-green-800' },
+  2: { label: 'Rejected', className: 'bg-red-100 text-red-800' },
 }
 
 interface ElectionOption {
@@ -28,6 +34,14 @@ interface PositionOption {
   positionTitle: string
   positionLevel: string
 }
+
+const POSITION_LEVEL_LABELS: Record<string, string> = {
+  '1': 'National',
+  '2': 'County',
+  '3': 'Constituency',
+  '4': 'Ward',
+}
+const positionLevelLabel = (level: string) => POSITION_LEVEL_LABELS[level] ?? level
 
 export default function AdminAspirantsPage() {
   const [aspirants, setAspirants] = useState<AspirantItem[]>([])
@@ -106,9 +120,9 @@ export default function AdminAspirantsPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
               >
                 <option value="">All</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
+                <option value="0">Pending</option>
+                <option value="1">Approved</option>
+                <option value="2">Rejected</option>
               </select>
             </div>
             <div>
@@ -136,7 +150,7 @@ export default function AdminAspirantsPage() {
                 <option value="">All positions</option>
                 {positions.map((p) => (
                   <option key={p.id} value={String(p.id)}>
-                    {p.positionTitle} ({p.positionLevel})
+                    {p.positionTitle} ({positionLevelLabel(p.positionLevel)})
                   </option>
                 ))}
               </select>
@@ -210,7 +224,7 @@ export default function AdminAspirantsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">{a.position.positionTitle}</div>
-                        <div className="text-xs text-gray-500">{a.position.positionLevel}</div>
+                        <div className="text-xs text-gray-500">{positionLevelLabel(a.position.positionLevel)}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
@@ -220,14 +234,10 @@ export default function AdminAspirantsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            a.status === 'approved'
-                              ? 'bg-green-100 text-green-800'
-                              : a.status === 'rejected'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-amber-100 text-amber-800'
+                            (ASPIRANT_STATUS[a.status] ?? ASPIRANT_STATUS[0]).className
                           }`}
                         >
-                          {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
+                          {(ASPIRANT_STATUS[a.status] ?? ASPIRANT_STATUS[0]).label}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
     const electionId = searchParams.get('electionId')
     const positionId = searchParams.get('positionId')
 
-    const where: { status?: string; electionId?: string; positionId?: number } = {}
-    if (status) where.status = status
+    const where: { status?: number; electionId?: string; positionId?: number } = {}
+    if (status !== null && status !== '') where.status = parseInt(status, 10)
     if (electionId) where.electionId = electionId
     if (positionId) where.positionId = parseInt(positionId, 10)
 
