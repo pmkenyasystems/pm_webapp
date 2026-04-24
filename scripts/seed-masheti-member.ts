@@ -21,26 +21,25 @@ async function main() {
   const member = await prisma.member.upsert({
     where: { idNumber: '28499602' },
     update: {
-      firstName: 'Neville Muchalwa',
-      lastName: 'Masheti',
+      surname: 'Masheti',
+      otherNames: 'Neville Muchalwa',
       phone: '0713976532',
-      county: 'Kakamega',
-      constituency: 'Ikolomani',
-      ward: 'Idakho South',
+      countyCode: 37,
+      constituencyCode: 210,
+      wardCode: 1047,
       password: hashedPassword,
       membershipCategoryId: lifeMembership.id,
       status: 'active',
     },
     create: {
-      ippmsId: `IPPMS-28499602`,
-      membershipNo: `PM-28499602`,
-      firstName: 'Neville Muchalwa',
-      lastName: 'Masheti',
       idNumber: '28499602',
+      ippmsId: 'IPPMS-28499602',
+      surname: 'Masheti',
+      otherNames: 'Neville Muchalwa',
       phone: '0713976532',
-      county: 'Kakamega',
-      constituency: 'Ikolomani',
-      ward: 'Idakho South',
+      countyCode: 37,
+      constituencyCode: 210,
+      wardCode: 1047,
       status: 'active',
       password: hashedPassword,
       membershipCategoryId: lifeMembership.id,
@@ -49,10 +48,12 @@ async function main() {
 
   console.log('✅ Sample member created successfully!')
   console.log('\nMember Details:')
-  console.log(`  Name: ${member.firstName} ${member.lastName}`)
+  console.log(`  Name: ${member.surname} ${member.otherNames}`)
   console.log(`  ID Number: ${member.idNumber}`)
   console.log(`  Phone: ${member.phone}`)
-  console.log(`  County: ${member.county} | Constituency: ${member.constituency} | Ward: ${member.ward}`)
+  console.log(
+    `  countyCode: ${member.countyCode} | constituencyCode: ${member.constituencyCode} | wardCode: ${member.wardCode}`
+  )
   console.log(`  Membership Category: Life Membership`)
   console.log('\nLogin Credentials (membership portal):')
   console.log(`  ID Number: ${member.idNumber}`)

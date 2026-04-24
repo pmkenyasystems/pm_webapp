@@ -21,7 +21,7 @@ export default function AdminPage() {
       return
     }
 
-    // If admin is logged in, redirect to dashboard
+    // If admin is logged in, redirect to personal profile
     if (session) {
       router.push('/admin/dashboard')
       return

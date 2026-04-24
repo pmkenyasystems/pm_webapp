@@ -15,6 +15,14 @@ interface Position {
   }
 }
 
+const POSITION_LEVEL_LABELS: Record<string, string> = {
+  '1': 'National',
+  '2': 'County',
+  '3': 'Constituency',
+  '4': 'Ward',
+}
+const positionLevelLabel = (level: string) => POSITION_LEVEL_LABELS[level] ?? level
+
 export default function PositionsPage() {
   const router = useRouter()
   const [positions, setPositions] = useState<Position[]>([])
@@ -122,7 +130,7 @@ export default function PositionsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {position.positionLevel}
+                        {positionLevelLabel(position.positionLevel)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

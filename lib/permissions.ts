@@ -1,10 +1,12 @@
 import { getSession } from './auth'
 import { prisma } from './prisma'
 
-export type Module = 'news' | 'elections' | 'positions' | 'members' | 'volunteers' | 'donations' | 'admins'
+export type Module = 'news' | 'elections' | 'positions' | 'members' | 'volunteers' | 'donations' | 'admins' | 'aspirants'
 
 /**
- * Check if the current user has access to a specific module
+ * Check if the current user has access to a specific module.
+ * All authenticated users can access admin routes; this determines which modules they can use.
+ * Super admins have access to all modules; other users are restricted by their assigned modules.
  */
 export async function hasModuleAccess(module: Module): Promise<boolean> {
   const session = await getSession()
@@ -59,6 +61,7 @@ export function getAvailableModules(): { value: Module; label: string }[] {
     { value: 'members', label: 'Members' },
     { value: 'volunteers', label: 'Volunteers' },
     { value: 'donations', label: 'Donations' },
+    { value: 'aspirants', label: 'Aspirants' },
     { value: 'admins', label: 'Admin Management' },
   ]
 }

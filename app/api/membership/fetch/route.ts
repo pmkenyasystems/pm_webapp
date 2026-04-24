@@ -35,10 +35,9 @@ export async function POST(request: NextRequest) {
     // Map IPPMS API response to our format
     const ippmsData = response.data
     const member = {
-      lastName: ippmsData.Surname || ippmsData.surname || '',
-      firstName: ippmsData.OtherNames || ippmsData.otherNames || '',
+      surname: ippmsData.Surname || ippmsData.surname || '',
+      otherNames: ippmsData.OtherNames || ippmsData.otherNames || '',
       idNumber: ippmsData.ID_Passport_No || ippmsData.id_Passport_No || ippmsData.idNumber || nationalId,
-      membershipNo: ippmsData.Membership_No || ippmsData.membership_No || ippmsData.membershipNo || null,
       dateOfBirth: ippmsData.DOB || ippmsData.dob || ippmsData.dateOfBirth || null,
       gender: ippmsData.Gender || ippmsData.gender || null,
       religion: ippmsData.Religion || ippmsData.religion || null,
@@ -48,7 +47,6 @@ export async function POST(request: NextRequest) {
       ward: ippmsData.Ward || ippmsData.ward || null,
       youth: ippmsData.Youth === 'yes' || ippmsData.Youth === true || ippmsData.youth === 'yes' || ippmsData.youth === true || false,
       pwd: ippmsData.PWD === 'yes' || ippmsData.PWD === true || ippmsData.pwd === 'yes' || ippmsData.pwd === true || false,
-      // Include original IPPMS ID if available
       ippmsId: ippmsData.ippmsId || ippmsData.Membership_No || ippmsData.membership_No || ippmsData.membershipNo || null,
     }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { serializeMemberForApi } from '@/lib/serialize-member'
 import { getSession } from '@/lib/auth'
 import { hasModuleAccess } from '@/lib/permissions'
 
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (county) {
-      where.county = county
+      where.county = { countyName: county }
     }
     
     if (category) {
@@ -47,16 +48,15 @@ export async function GET(request: NextRequest) {
     
     if (search) {
       where.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } },
+        { surname: { contains: search, mode: 'insensitive' } },
+        { otherNames: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
         { idNumber: { contains: search, mode: 'insensitive' } },
-        { membershipNo: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search, mode: 'insensitive' } },
       ]
     }
 
-    const members = await prisma.member.findMany({
+    const membersRaw = await prisma.member.findMany({
       where,
       include: {
         membershipCategory: {
@@ -65,9 +65,14 @@ export async function GET(request: NextRequest) {
             title: true,
           },
         },
+        county: true,
+        constituency: true,
+        ward: true,
       },
       orderBy: { updatedAt: 'desc' },
     })
+
+    const members = membersRaw.map((m) => serializeMemberForApi(m))
 
     return NextResponse.json({ members })
   } catch (error: any) {

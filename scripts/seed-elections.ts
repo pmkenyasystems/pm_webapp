@@ -22,6 +22,24 @@ const elections = [
     electionDate: new Date('2026-05-07'),
     isActive: true,
   },
+  {
+    title: 'Porro Ward By Election',
+    description: 'MCA',
+    electionDate: new Date('2026-05-14'),
+    isActive: true,
+  },
+  {
+    title: 'Endo Ward By Election',
+    description: 'MCA',
+    electionDate: new Date('2026-05-14'),
+    isActive: true,
+  },
+  {
+    title: 'Emurua Dikirr Constituency By Election',
+    description: 'MP',
+    electionDate: new Date('2026-05-14'),
+    isActive: true,
+  },
 ]
 
 async function main() {

@@ -6,14 +6,13 @@ import AdminHeader from '@/components/admin/AdminHeader'
 import Link from 'next/link'
 
 interface Member {
-  id: string
-  ippmsId: string
-  membershipNo: string | null
-  firstName: string
-  lastName: string
+  id: number
+  idNumber: string
+  ippmsId: string | null
+  surname: string
+  otherNames: string
   email: string | null
   phone: string | null
-  idNumber: string
   dateOfBirth: string | null
   gender: string | null
   religion: string | null
@@ -115,9 +114,9 @@ export default function MemberDetailPage() {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h2 className="text-xl font-semibold text-gray-900">
-              {member.firstName} {member.lastName}
+              {member.surname} {member.otherNames}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Member ID: {member.id}</p>
+            <p className="text-sm text-gray-500 mt-1">ID Number: {member.idNumber}</p>
           </div>
 
           <div className="px-6 py-6">
@@ -128,19 +127,13 @@ export default function MemberDetailPage() {
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Full Name</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {member.firstName} {member.lastName}
+                      {member.surname} {member.otherNames}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">ID Number</dt>
                     <dd className="mt-1 text-sm text-gray-900">{member.idNumber}</dd>
                   </div>
-                  {member.membershipNo && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">Membership Number</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{member.membershipNo}</dd>
-                    </div>
-                  )}
                   {member.dateOfBirth && (
                     <div>
                       <dt className="text-sm font-medium text-gray-500">Date of Birth</dt>
@@ -276,10 +269,12 @@ export default function MemberDetailPage() {
                       </dd>
                     </div>
                   )}
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">IPPMS ID</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{member.ippmsId}</dd>
-                  </div>
+                  {member.ippmsId && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">IPPMS ID</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{member.ippmsId}</dd>
+                    </div>
+                  )}
                 </dl>
               </div>
             </div>

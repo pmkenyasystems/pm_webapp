@@ -17,20 +17,31 @@
     "create:article": "tsx scripts/create-article.ts",
     "seed:counties": "tsx scripts/seed-counties.ts",
     "seed:constituencies": "tsx scripts/seed-constituencies.ts",
-    "seed:wards": "tsx scripts/seed-wards.ts"
+    "seed:wards": "tsx scripts/seed-wards.ts",
+    "import:members-xlsx": "tsx scripts/import-members-xlsx.ts",
+    "import:transnzoia-xlsx": "tsx scripts/import-members-xlsx.ts public/docs/transnzoia.xlsx",
+    "import:nairobi-xlsx": "tsx scripts/import-members-xlsx.ts public/docs/Nairobi.xlsx",
+    "import:nandi-xlsx": "tsx scripts/import-members-xlsx.ts public/docs/nandi.xlsx",
+    "import:westpokot-xlsx": "tsx scripts/import-members-xlsx.ts public/docs/westpokot.xlsx",
+    "import:vihiga-xlsx": "tsx scripts/import-members-xlsx.ts public/docs/vihiga.xlsx"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
     "@tanstack/react-query": "^5.17.0",
+    "@types/nodemailer": "^8.0.0",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "date-fns": "^3.0.6",
+    "kenyacounties": "^2.0.11",
     "next": "14.0.4",
     "next-auth": "^4.24.5",
+    "nodemailer": "^7.0.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.49.2",
+    "react-simple-maps": "^3.0.0",
     "stripe": "^14.7.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -38,9 +49,11 @@
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
+    "@types/react-simple-maps": "^3.0.6",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.0.4",
+    "pdf-parse": "^2.4.5",
     "postcss": "^8.4.32",
     "prisma": "^5.7.1",
     "tailwindcss": "^3.4.0",
@@ -48,4 +61,3 @@
     "typescript": "^5.3.3"
   }
 }
-

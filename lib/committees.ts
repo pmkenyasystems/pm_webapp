@@ -113,9 +113,11 @@ export const committees: Committee[] = [
     image: '/images/committees/human-rights.jpg',
     members: [
       {
-        name: 'Martha Selina Nerima Wako',
+        name: 'Nerima Wako',
         role: 'Chairperson',
-        bio: 'Chairperson of the Human Rights & Gender Compliance Committee, advancing and protecting human rights and promoting equality in the party agenda.',
+        bio: 'Social Accountability Champion, Keynote Speaker, Political & Governance Expert.',
+        profileImage: '/images/profile/nerima.png',
+        linkedinUrl: 'https://ke.linkedin.com/in/nerimawako',
       },
     ],
   },

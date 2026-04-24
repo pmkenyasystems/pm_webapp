@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
       where: { idNumber },
       select: {
         id: true,
-        firstName: true,
-        lastName: true,
+        surname: true,
+        otherNames: true,
         idNumber: true,
         status: true,
         membershipCategory: {
@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       found: true,
       member: {
-        firstName: member.firstName,
-        lastName: member.lastName,
+        surname: member.surname,
+        otherNames: member.otherNames,
         idNumber: member.idNumber,
         membershipCategory: member.membershipCategory?.title ?? null,
       },
