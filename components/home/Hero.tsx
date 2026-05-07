@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 const sliderImages = [
   '/images/slider/renaisance.png',
   '/images/slider/kenya_mt.png',
+  '/images/slider/roadshow.jpeg',
   '/images/slider/cert.png',
   '/images/slider/cert2.png',
 ]

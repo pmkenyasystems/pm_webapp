@@ -50,8 +50,12 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         </div>
 
         {article.imageUrl && (
-          <div className="mb-8">
-            <div className="h-96 bg-gray-200 rounded-lg"></div>
+          <div className="mb-8 rounded-lg overflow-hidden">
+            <img
+              src={article.imageUrl}
+              alt={article.title}
+              className="w-full h-96 object-cover"
+            />
           </div>
         )}
 
