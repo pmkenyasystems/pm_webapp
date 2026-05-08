@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { getCommitteeBySlug, committees, sortMembersByRole } from '@/lib/committees'
+import { getCommitteeBySlug, allOrganisations, sortMembersByRole } from '@/lib/committees'
+import CommitteePDFButton from '@/components/committee/CommitteePDFButton'
+import { headers } from 'next/headers'
 
 export function generateStaticParams() {
-  return committees.map((c) => ({ slug: c.id }))
+  return allOrganisations.map((c) => ({ slug: c.id }))
 }
 
 export default async function CommitteePage({
@@ -22,6 +24,17 @@ export default async function CommitteePage({
   const sortedMembers = committee.members?.length
     ? sortMembersByRole(committee.members)
     : []
+
+  // Build absolute base URL for PDF image resolution
+  const headersList = await headers()
+  const host = headersList.get('host') ?? 'localhost:3000'
+  const protocol = host.startsWith('localhost') ? 'http' : 'https'
+  const baseUrl = `${protocol}://${host}`
+
+  const pdfMembers = sortedMembers.map((m) => ({
+    ...m,
+    profileImage: m.profileImage ? `${baseUrl}${m.profileImage}` : undefined,
+  }))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -52,15 +65,22 @@ export default async function CommitteePage({
             <p className="text-gray-600 text-base leading-relaxed mb-8">
               Each standing committee has a maximum of <strong>9 members</strong>. Volunteers are also welcome to assist the committee in running its activities and programmes. If you would like to contribute your time and skills, please get in touch via the volunteer form.
             </p>
-            <Link
-              href="/volunteer"
-              className="inline-flex items-center gap-2 bg-primary-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#9A162D] transition"
-            >
-              Volunteer with this committee
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/volunteer"
+                className="inline-flex items-center gap-2 bg-primary-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#9A162D] transition"
+              >
+                Volunteer with this committee
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <CommitteePDFButton
+                title={committee.title}
+                description={committee.description}
+                members={pdfMembers}
+              />
+            </div>
           </div>
         </article>
 

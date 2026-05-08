@@ -37,6 +37,26 @@ export const committees: Committee[] = [
         role: 'Chairperson',
         bio: 'Chairperson of the Recruitment & Membership Drive Committee, leading membership growth and engagement efforts across the party.',
       },
+      {
+        name: 'Gideon Simiyu',
+        role: 'Member',
+        bio: 'Member of the Recruitment & Membership Drive Committee.',
+      },
+      {
+        name: 'Elizabeth Nekesa',
+        role: 'Member',
+        bio: 'Member of the Recruitment & Membership Drive Committee.',
+      },
+      {
+        name: 'Godfrey Okeyo',
+        role: 'Member',
+        bio: 'Member of the Recruitment & Membership Drive Committee.',
+      },
+      {
+        name: 'Dan Korir',
+        role: 'Member',
+        bio: 'Member of the Recruitment & Membership Drive Committee.',
+      },
     ],
   },
   {
@@ -49,6 +69,16 @@ export const committees: Committee[] = [
         name: 'Caroline Muhila',
         role: 'Chairperson',
         bio: 'Chairperson of the Resource Mobilization Committee, overseeing fundraising and strategic resource allocation for the party.',
+      },
+      {
+        name: 'Noella Olukere',
+        role: 'Member',
+        bio: 'Member of the Resource Mobilization Committee.',
+      },
+      {
+        name: 'Dennis Ajega',
+        role: 'Member',
+        bio: 'Member of the Resource Mobilization Committee.',
       },
     ],
   },
@@ -64,11 +94,19 @@ export const committees: Committee[] = [
         bio: 'Chairperson of the Legal & International Affairs Committee, providing legal guidance and compliance oversight on party and electoral matters.',
       },
       {
-        name: 'Austine Wambingwa',
+        name: 'Caroline Thiong\'o',
         role: 'Member',
-        bio: 'With a strong commitment to advancing legal reforms and fostering international partnerships, he contributes expertise in policy advocacy and diplomatic engagement to drive Kenya\'s renaissance agenda. Austine has a background in International Relations from the United States International University (USIU-Africa).',
-        profileImage: '/images/profile/wambingwa.jpeg',
-        linkedinUrl: 'https://www.linkedin.com/in/austine-wambingwa-hsc',
+        bio: 'Member of the Legal & International Affairs Committee.',
+      },
+      {
+        name: 'Judethedeus Ong\'ondo',
+        role: 'Member',
+        bio: 'Member of the Legal & International Affairs Committee.',
+      },
+      {
+        name: 'Zulekha Godana',
+        role: 'Member',
+        bio: 'Member of the Legal & International Affairs Committee.',
       },
     ],
   },
@@ -82,6 +120,22 @@ export const committees: Committee[] = [
         name: 'Carren Moga',
         role: 'Chairperson',
         bio: 'Chairperson of the National Elections Board, overseeing party internal elections and electoral compliance at national level.',
+        profileImage: '/images/profile/carren.PNG',
+      },
+      {
+        name: 'John Simiyu',
+        role: 'Member',
+        bio: 'Member of the National Elections Board.',
+      },
+      {
+        name: 'Catherine Chemiat',
+        role: 'Member',
+        bio: 'Member of the National Elections Board.',
+      },
+      {
+        name: 'Vincent Mukabwa',
+        role: 'Member',
+        bio: 'Member of the National Elections Board.',
       },
     ],
   },
@@ -92,10 +146,24 @@ export const committees: Committee[] = [
     image: '/images/committees/policy-strategy.jpg',
     members: [
       {
-        name: 'Buluma Antony Samba',
-        role: 'Chairperson',
-        bio: 'Public management professional with over ten years\' experience in the public, private and civil society. Established credentials in public policy development, program implementation and youth empowerment initiatives. Proven ability to identify and leverage international donor networks for local public service initiatives. A strong communicator who is able to articulate complex policy initiatives to the wider public and a holder of Masters Degree in International Relations at the United States International University.',
-        profileImage: '/images/profile/buluma.png',
+        name: 'Michael Orwa',
+        role: 'Member',
+        bio: 'Member of the Policy & Strategy Committee.',
+      },
+      {
+        name: 'France Mukuranya',
+        role: 'Member',
+        bio: 'Member of the Policy & Strategy Committee.',
+      },
+      {
+        name: 'Manoah Esinamutu',
+        role: 'Member',
+        bio: 'Member of the Policy & Strategy Committee.',
+      },
+      {
+        name: 'Munyi Elijah',
+        role: 'Member',
+        bio: 'Member of the Policy & Strategy Committee.',
       },
     ],
   },
@@ -104,7 +172,23 @@ export const committees: Committee[] = [
     title: 'Diaspora Affairs',
     description: 'Engage Kenyans abroad, coordinate diaspora contributions, and integrate their voice into party programmes.',
     image: '/images/committees/diaspora.jpg',
-    members: [],
+    members: [
+      {
+        name: 'Dr. Emmaculate Tatu',
+        role: 'Member',
+        bio: 'Member of the Diaspora Affairs Committee.',
+      },
+      {
+        name: 'Mohammed Adam',
+        role: 'Member',
+        bio: 'Member of the Diaspora Affairs Committee.',
+      },
+      {
+        name: 'Dennis Olsson',
+        role: 'Member',
+        bio: 'Member of the Diaspora Affairs Committee.',
+      },
+    ],
   },
   {
     id: 'human-rights',
@@ -119,6 +203,16 @@ export const committees: Committee[] = [
         profileImage: '/images/profile/nerima.png',
         linkedinUrl: 'https://ke.linkedin.com/in/nerimawako',
       },
+      {
+        name: 'Lydia Nanjeko',
+        role: 'Member',
+        bio: 'Member of the Human Rights & Gender Compliance Committee.',
+      },
+      {
+        name: 'Whitney Mwenje',
+        role: 'Member',
+        bio: 'Member of the Human Rights & Gender Compliance Committee.',
+      },
     ],
   },
   {
@@ -128,19 +222,98 @@ export const committees: Committee[] = [
     image: '/images/committees/media-pr.jpg',
     members: [
       {
-        name: 'Jomo Alex',
+        name: 'Amb. Yvonne Khamati',
         role: 'Chairperson',
         bio: 'Chairperson of the Media, Relations, Publicity & Communications Committee, leading the party\'s public image and communications.',
       },
       {
-        name: 'Edwin A. Makori',
+        name: 'Jomo Alex',
         role: 'Vice Chairperson',
         bio: 'Vice Chairperson of the Media, Relations, Publicity & Communications Committee.',
+        profileImage: '/images/profile/jomo.png',
+      },
+      {
+        name: 'Maxwell Okoth',
+        role: 'Member',
+        bio: 'Member of the Media, Relations, Publicity & Communications Committee.',
+      },
+      {
+        name: 'Dennis Kanyeki',
+        role: 'Member',
+        bio: 'Member of the Media, Relations, Publicity & Communications Committee.',
+      },
+      {
+        name: 'Miriam Obara',
+        role: 'Member',
+        bio: 'Member of the Media, Relations, Publicity & Communications Committee.',
+      },
+      {
+        name: 'Daniel Wabwire',
+        role: 'Member',
+        bio: 'Member of the Media, Relations, Publicity & Communications Committee.',
       },
     ],
   },
 ]
 
+export const partyOrgans: Committee[] = [
+  {
+    id: 'national-youth-league',
+    title: 'National Youth League',
+    description: 'The National Youth League mobilises and organises young Kenyans to actively participate in political processes, civic education, and the party\'s programmes for national renewal.',
+    image: '/images/committees/youth-league.jpg',
+    members: [
+      {
+        name: 'Sophie Mugure',
+        role: 'Chairperson',
+        bio: 'Chairperson of the National Youth League, leading the mobilisation and organisation of young Kenyans in the party\'s programmes for national renewal.',
+      },
+    ],
+  },
+  {
+    id: 'national-women-league',
+    title: 'National Women League',
+    description: 'The National Women League champions the political, economic, and social empowerment of women within the party and across Kenya, ensuring women\'s voices are central to the Kenyan Renaissance.',
+    image: '/images/committees/women-league.jpg',
+    members: [
+      {
+        name: 'Riziki Juliet',
+        role: 'Chairperson',
+        bio: 'Chairperson of the National Women League, championing the political, economic, and social empowerment of women within the party and across Kenya.',
+      },
+    ],
+  },
+  {
+    id: 'national-pwd-league',
+    title: 'National PWD League',
+    description: 'The National Persons with Disabilities League advocates for the rights, inclusion, and meaningful participation of persons with disabilities in all party structures and national governance.',
+    image: '/images/committees/pwd-league.jpg',
+    members: [
+      {
+        name: 'Catherine Wangari',
+        role: 'Chairperson',
+        bio: 'Chairperson of the National PWD League, advocating for the rights, inclusion, and meaningful participation of persons with disabilities in party structures and national governance.',
+      },
+    ],
+  },
+  {
+    id: 'advisory-council',
+    title: 'The Advisory Council',
+    description: 'The Advisory Council comprises distinguished Kenyans who provide strategic counsel, institutional memory, and expert guidance to the party leadership on matters of governance and national policy.',
+    image: '/images/committees/advisory-council.jpg',
+    members: [],
+  },
+  {
+    id: 'university-comrades',
+    title: 'University Comrades',
+    description: 'University Comrades is the party\'s campus wing, engaging students across Kenyan universities and colleges to build the next generation of civic leaders committed to the Kenyan Renaissance.',
+    image: '/images/committees/university-comrades.jpg',
+    members: [],
+  },
+]
+
+export const allOrganisations = [...committees, ...partyOrgans]
+
 export function getCommitteeBySlug(slug: string): Committee | undefined {
-  return committees.find((c) => c.id === slug)
+  return allOrganisations.find((c) => c.id === slug)
 }

@@ -1,8 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+  },
   images: {
-    domains: ['localhost', 'img.youtube.com'],
+    remotePatterns: [
+      { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'img.youtube.com' },
+    ],
   },
   async headers() {
     return [
