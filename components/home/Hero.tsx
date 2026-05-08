@@ -1,15 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 
 const sliderImages = [
   '/images/slider/renaisance.png',
-  '/images/slider/kenya_mt.png',
+  '/images/slider/presser.png',
   '/images/slider/roadshow.jpeg',
-  '/images/slider/cert.png',
-  '/images/slider/cert2.png',
+  '/images/slider/streets.png',
 ]
 
 const SLIDE_INTERVAL_MS = 5000
@@ -41,13 +39,11 @@ export default function Hero() {
               index === currentSlide ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            <Image
+            <img
               src={image}
               alt=""
-              fill
-              className="object-cover"
-              priority={index === 0}
-              sizes="100vw"
+              loading="eager"
+              className="absolute inset-0 w-full h-full object-cover"
             />
             {/* Whitish to clear gradient: light left for text, image shows through on the right */}
             <div

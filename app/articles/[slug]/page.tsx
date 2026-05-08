@@ -49,7 +49,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           <span>{article.views} views</span>
         </div>
 
-        {article.imageUrl && (
+        {article.imageUrl && !article.content.trimStart().startsWith('<div style="position:relative;padding-bottom:56.25%') && (
           <div className="mb-8 rounded-lg overflow-hidden">
             <img
               src={article.imageUrl}
