@@ -222,7 +222,46 @@ export default function MembershipPage() {
         </p>
       </div>
 
+      {/* How to Join */}
+      <div className="mb-8">
+        <h2 className="text-lg font-bold text-gray-800 text-center mb-0.5">How to Join</h2>
+        <p className="text-center text-gray-500 text-xs mb-4">Choose the method that works best for you</p>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Dial *509# */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-primary-blue/10 flex items-center justify-center mb-3">
+              <svg className="w-6 h-6 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-bold text-gray-900 mb-1">Dial <span className="font-mono">*509#</span></h3>
+            <p className="text-gray-500 text-xs mb-3">Quick registration using your mobile phone</p>
+            <span className="inline-block bg-primary-blue/10 text-primary-blue font-mono font-semibold px-3 py-1 rounded-full text-xs">*509#</span>
+          </div>
+
+          {/* ORPP Website */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-primary-red/10 flex items-center justify-center mb-3">
+              <svg className="w-6 h-6 text-primary-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-bold text-gray-900 mb-1">ORPP Website</h3>
+            <p className="text-gray-500 text-xs mb-3">Register through the official ORPP membership portal</p>
+            <a
+              href="https://ippms.orpp.or.ke"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-red font-semibold hover:underline text-xs"
+            >
+              ippms.orpp.or.ke
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Tab Navigation */}
+      <h2 className="text-xl font-bold text-gray-800 text-center mb-4">Already a Member?</h2>
       <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
         <div className="flex border-b border-gray-200 mb-6">
           <button
