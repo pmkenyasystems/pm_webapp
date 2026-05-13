@@ -101,8 +101,9 @@ model Volunteer {
   phone        String
   idNumber     String?
   address      String?
-  county       String?
-  skills       String? // JSON string of skills
+  county           String?
+  diasporaLocation String? // Only populated when county = 'Diaspora'
+  skills           String? // JSON string of skills
   availability String? // full-time, part-time, weekends, etc.
   motivation   String? // Why they want to volunteer
   isMember     Boolean  @default(false)
