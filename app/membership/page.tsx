@@ -1,43 +1,115 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
-export default function MembershipPage() {
-  const [activeTab, setActiveTab] = useState<'create' | 'login'>('create')
-  const [nationalId, setNationalId] = useState('')
-  const [loginIdNumber, setLoginIdNumber] = useState('')
-  const [loginPassword, setLoginPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [memberData, setMemberData] = useState<any>(null)
-  const [loggedInMember, setLoggedInMember] = useState<any>(null)
-  const [showChangePassword, setShowChangePassword] = useState(false)
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+type Step =
+  | 'idle'                // initial: show ID input
+  | 'fetching'            // checking local ORPP records
+  | 'found'               // ORPP record found, no profile yet — add phone/email
+  | 'already-registered'  // profile already exists — redirect to login
+  | 'not-found'           // ID not in ORPP records — offer manual entry
+  | 'manual-entry'        // filling manual form
+  | 'creating'            // submitting profile
+  | 'done'                // profile created
 
-  // Load member session from localStorage on page load
+interface OrppData {
+  surname: string
+  otherNames: string
+  idNumber: string
+  dateOfBirth?: string
+  gender?: string
+  religion?: string
+  ethnicity?: string
+  county?: string
+  constituency?: string
+  ward?: string
+  youth?: boolean
+  pwd?: boolean
+  ippmsId?: string
+}
+
+export default function MembershipPage() {
+  const [nationalId, setNationalId] = useState('')
+  const [step, setStep] = useState<Step>('idle')
+  const [orppData, setOrppData] = useState<OrppData | null>(null)
+  const [fetchError, setFetchError] = useState('')
+  const [createError, setCreateError] = useState('')
+  const [createResult, setCreateResult] = useState<{ tempPassword?: string; message?: string } | null>(null)
+
+  // Contact fields (used in both found + manual paths)
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+
+  // Manual-entry fields
+  const [manualSurname, setManualSurname] = useState('')
+  const [manualOtherNames, setManualOtherNames] = useState('')
+  const [manualDob, setManualDob] = useState('')
+  const [manualGender, setManualGender] = useState('')
+  const [manualReligion, setManualReligion] = useState('')
+  const [manualEthnicity, setManualEthnicity] = useState('')
+  const [manualAddress, setManualAddress] = useState('')
+  const [manualCounty, setManualCounty] = useState('')
+  const [manualConstituency, setManualConstituency] = useState('')
+  const [manualWard, setManualWard] = useState('')
+  const [manualYouth, setManualYouth] = useState(false)
+  const [manualPwd, setManualPwd] = useState(false)
+
+  // Shared membership category
+  const [membershipCategoryId, setMembershipCategoryId] = useState('')
+  const [categories, setCategories] = useState<any[]>([])
+
+  // Geo dropdowns for manual entry
+  const [counties, setCounties] = useState<any[]>([])
+  const [constituencies, setConstituencies] = useState<any[]>([])
+  const [wards, setWards] = useState<any[]>([])
+
+  const shareRef = useRef<HTMLDivElement>(null)
+
+  // Fetch categories and counties once
   useEffect(() => {
-    const memberData = localStorage.getItem('memberSession')
-    if (memberData) {
-      try {
-        const member = JSON.parse(memberData)
-        setLoggedInMember(member)
-        setActiveTab('login')
-      } catch (e) {
-        console.error('Error parsing member session:', e)
-        localStorage.removeItem('memberSession')
-      }
-    }
+    fetch('/api/membership/categories')
+      .then((r) => r.json())
+      .then((d) => setCategories(d.categories || []))
+      .catch(() => {})
   }, [])
 
-  const handleFetchMember = async (e: React.FormEvent) => {
+  // Fetch counties once (for manual entry)
+  useEffect(() => {
+    fetch('/api/locations/counties')
+      .then((r) => r.json())
+      .then((d) => setCounties(d.counties || []))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (!manualCounty) { setConstituencies([]); setManualConstituency(''); return }
+    const county = counties.find((c) => c.countyName === manualCounty)
+    if (!county) return
+    fetch(`/api/locations/constituencies?countyCode=${county.countyCode}`)
+      .then((r) => r.json())
+      .then((d) => setConstituencies(d.constituencies || []))
+      .catch(() => {})
+    setManualConstituency('')
+    setManualWard('')
+  }, [manualCounty, counties])
+
+  useEffect(() => {
+    if (!manualConstituency) { setWards([]); setManualWard(''); return }
+    const c = constituencies.find((c) => c.constituencyName === manualConstituency)
+    if (!c) return
+    fetch(`/api/locations/wards?constituencyCode=${c.constituencyCode}`)
+      .then((r) => r.json())
+      .then((d) => setWards(d.wards || []))
+      .catch(() => {})
+    setManualWard('')
+  }, [manualConstituency, constituencies])
+
+  const handleCheckId = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-    setSuccess(false)
+    setStep('fetching')
+    setFetchError('')
+    setOrppData(null)
 
     try {
       const response = await fetch('/api/membership/fetch', {
@@ -45,614 +117,651 @@ export default function MembershipPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nationalId }),
       })
-
       const data = await response.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch member data')
+      if (response.ok && data.alreadyHasProfile) {
+        setStep('already-registered')
+      } else if (response.ok && data.member) {
+        setOrppData(data.member)
+        setStep('found')
+      } else {
+        setStep('not-found')
+        setFetchError(data.error || '')
       }
-
-      setMemberData(data.member)
-      setSuccess(true)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+    } catch {
+      setStep('not-found')
     }
   }
 
-  const handleCreateProfile = async (e: React.FormEvent) => {
+  const handleCreateFromOrpp = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-
+    setStep('creating')
+    setCreateError('')
     try {
       const response = await fetch('/api/membership/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nationalId }),
+        body: JSON.stringify({ nationalId, phone, email, membershipCategoryId: membershipCategoryId || null }),
       })
-
       const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create profile')
-      }
-
-      setSuccess(true)
-      if (data.tempPassword) {
-        alert(`Profile created successfully! Your temporary password is: ${data.tempPassword}\n\nPlease change it after logging in.`)
-      } else {
-        alert('Profile created successfully!')
-      }
-      window.location.reload()
+      if (!response.ok) throw new Error(data.error || 'Failed to create profile')
+      setCreateResult({ tempPassword: data.tempPassword, message: data.message })
+      setStep('done')
     } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+      setCreateError(err.message)
+      setStep('found')
     }
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleCreateManual = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-
+    setStep('creating')
+    setCreateError('')
     try {
-      const response = await fetch('/api/membership/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idNumber: loginIdNumber, password: loginPassword }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to login')
-      }
-
-      setLoggedInMember(data.member)
-      // Store member session in localStorage
-      localStorage.setItem('memberSession', JSON.stringify(data.member))
-      setSuccess(true)
-      setError('')
-    } catch (err: any) {
-      setError(err.message)
-      setLoggedInMember(null)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleResetPassword = async () => {
-    if (!loginIdNumber) {
-      setError('Please enter your ID Number first')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      const response = await fetch('/api/membership/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idNumber: loginIdNumber }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to reset password')
-      }
-
-      alert('A temporary password has been sent to your registered phone number.')
-      setError('')
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match')
-      return
-    }
-
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      const response = await fetch('/api/membership/change-password', {
+      const response = await fetch('/api/membership/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idNumber: loggedInMember.idNumber,
-          currentPassword,
-          newPassword,
+          nationalId,
+          phone,
+          email,
+          membershipCategoryId: membershipCategoryId || null,
+          manualData: {
+            surname: manualSurname,
+            otherNames: manualOtherNames,
+            dateOfBirth: manualDob || null,
+            gender: manualGender || null,
+            religion: manualReligion || null,
+            ethnicity: manualEthnicity || null,
+            address: manualAddress || null,
+            county: manualCounty || null,
+            constituency: manualConstituency || null,
+            ward: manualWard || null,
+            youth: manualYouth,
+            pwd: manualPwd,
+          },
         }),
       })
-
       const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to change password')
-      }
-
-      alert('Password changed successfully!')
-      setShowChangePassword(false)
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-      setError('')
+      if (!response.ok) throw new Error(data.error || 'Failed to create profile')
+      setCreateResult({ tempPassword: data.tempPassword, message: data.message })
+      setStep('done')
     } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+      setCreateError(err.message)
+      setStep('manual-entry')
     }
   }
 
-  const handleLogout = () => {
-    setLoggedInMember(null)
-    setLoginIdNumber('')
-    setLoginPassword('')
-    setSuccess(false)
-    setShowChangePassword(false)
-    localStorage.removeItem('memberSession')
+  const handleShare = async () => {
+    const text = `🇰🇪 Join People's Renaissance Movement (PM)!\n\nBecome a registered party member via ORPP:\n\n📱 Dial *509# on your phone\n   → Select "Register as Party Member"\n   → Enter Party Code: 105\n\n🌐 Or visit: ippms.orpp.or.ke\n   → Create an account & register\n   → Enter Party Code: 105\n\nOnce registered, create your PM membership profile at our website.\n\n#PeoplesRenaissanceMovement #PMKenya #JoinPM`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Join People's Renaissance Movement", text })
+        return
+      } catch {}
+    }
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Instructions copied to clipboard! Paste and share on your socials.')
+    })
   }
 
+  const shareToWhatsApp = () => {
+    const text = encodeURIComponent(`🇰🇪 Join People's Renaissance Movement (PM)!\n\nBecome a registered party member via ORPP:\n\n📱 Dial *509# → Enter Party Code 105\n🌐 Visit ippms.orpp.or.ke → Enter Party Code 105\n\nThen create your PM profile online!\n\n#PMKenya`)
+    window.open(`https://wa.me/?text=${text}`, '_blank')
+  }
+
+  const shareToX = () => {
+    const text = encodeURIComponent(`Join People's Renaissance Movement! Register via ORPP:\n📱 Dial *509# (Party Code: 105)\n🌐 ippms.orpp.or.ke (Party Code: 105)\n\nThen create your membership profile. #PMKenya #PeoplesRenaissanceMovement`)
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
+  }
+
+  const shareToFacebook = () => {
+    const url = encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank')
+  }
+
+  const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-blue focus:border-transparent text-gray-900 placeholder-gray-400 text-sm'
+  const labelCls = 'block text-sm font-medium text-gray-700 mb-1.5'
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          Membership
-        </h1>
-        <div className="w-32 h-1 bg-primary-red mx-auto"></div>
-        <p className="text-lg text-gray-600 mt-6">
-          Join People&apos;s Renaissance Movement and be part of the change
-        </p>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+
+      {/* Page header */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">Membership</h1>
+        <div className="w-24 h-1 bg-primary-red mx-auto mb-4"></div>
+        <p className="text-gray-500 text-lg">Join People&apos;s Renaissance Movement and be part of the change</p>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-        <div className="flex border-b border-gray-200 mb-6">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('create')
-              setError('')
-              setSuccess(false)
-              setMemberData(null)
-            }}
-            className={`flex-1 py-3 px-4 text-center font-semibold transition ${
-              activeTab === 'create'
-                ? 'text-primary-blue border-b-2 border-primary-blue'
-                : 'text-gray-600 hover:text-primary-blue'
-            }`}
-          >
-            Create Profile
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('login')
-              setError('')
-              setSuccess(false)
-              setMemberData(null)
-            }}
-            className={`flex-1 py-3 px-4 text-center font-semibold transition ${
-              activeTab === 'login'
-                ? 'text-primary-blue border-b-2 border-primary-blue'
-                : 'text-gray-600 hover:text-primary-blue'
-            }`}
-          >
-            Login
-          </button>
+      {/* ── How to Join (shareable) ── */}
+      <div ref={shareRef} className="bg-gradient-to-br from-primary-blue to-[#002244] text-white rounded-2xl p-7 mb-8 shadow-lg">
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div>
+            <span className="text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full uppercase tracking-wider">Step 1 of 2</span>
+            <h2 className="text-2xl font-bold mt-2">How to Become a PM Member</h2>
+            <p className="text-blue-100 text-sm mt-1">First register via ORPP, then create your profile here</p>
+          </div>
         </div>
 
-        {activeTab === 'create' ? (
-          <>
-            <h2 className="text-2xl font-bold text-primary-blue mb-6">
-              Create Your Member Profile
-            </h2>
-            <p className="text-gray-700 mb-6">
-              If you&apos;ve already registered with IPPMS (Integrated Political Party Management System), 
-              enter your National ID below to fetch your details and create your profile on our platform.
-            </p>
-          </>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-primary-blue mb-6">
-              Member Login
-            </h2>
-            <p className="text-gray-700 mb-6">
-              If you&apos;ve already created your profile, login using your ID Number and password.
-            </p>
-          </>
-        )}
+        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+          {/* Dial option */}
+          <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-sm">Option A — Dial USSD</h3>
+            </div>
+            <ol className="text-blue-100 text-xs space-y-1 list-decimal list-inside">
+              <li>Dial <span className="font-mono font-bold text-white">*509#</span> on your phone</li>
+              <li>Select &ldquo;Register as Party Member&rdquo;</li>
+              <li>Enter Party Code: <span className="font-bold text-white">105</span></li>
+              <li>Follow the on-screen prompts</li>
+            </ol>
+          </div>
 
-        {activeTab === 'create' ? (
-          <>
-            {!success ? (
-              <form onSubmit={handleFetchMember} className="space-y-4">
+          {/* Website option */}
+          <div className="bg-white/10 rounded-xl p-4 border border-white/20">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-sm">Option B — ORPP Website</h3>
+            </div>
+            <ol className="text-blue-100 text-xs space-y-1 list-decimal list-inside">
+              <li>Visit <span className="font-semibold text-white">ippms.orpp.or.ke</span></li>
+              <li>Create an account or log in</li>
+              <li>Complete the registration form</li>
+              <li>Enter Party Code: <span className="font-bold text-white">105</span></li>
+            </ol>
+          </div>
+        </div>
+
+        <div className="bg-white/10 rounded-xl px-4 py-3 border border-white/20 mb-5 text-xs text-blue-100">
+          <strong className="text-white">Important:</strong> ORPP registration is required by law for all political party members in Kenya (Political Parties Act). Your party code is <strong className="text-white">105</strong>.
+        </div>
+
+        {/* Share buttons */}
+        <div className="flex flex-wrap gap-2">
+          <p className="w-full text-xs text-blue-200 mb-1">Share these instructions:</p>
+          <button
+            onClick={shareToWhatsApp}
+            className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp
+          </button>
+          <button
+            onClick={shareToX}
+            className="flex items-center gap-1.5 bg-black hover:bg-gray-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            X (Twitter)
+          </button>
+          <button
+            onClick={shareToFacebook}
+            className="flex items-center gap-1.5 bg-[#1877F2] hover:bg-[#166fe5] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Facebook
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Copy / Share
+          </button>
+        </div>
+      </div>
+
+      {/* ── Step 2: Create or Login ── */}
+      <div id="create-profile" className="mb-8">
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-xs font-semibold bg-primary-red/10 text-primary-red px-2 py-0.5 rounded-full uppercase tracking-wider">Step 2 of 2</span>
+          <h2 className="text-xl font-bold text-gray-900">Create Your Membership Profile</h2>
+        </div>
+
+        {/* Already have a profile? */}
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between mb-6">
+          <p className="text-sm text-gray-600">Already have a membership profile?</p>
+          <Link
+            href="/membership/login"
+            className="bg-primary-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#002244] transition"
+          >
+            Login →
+          </Link>
+        </div>
+
+        {/* ── Create profile flow ── */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+          {/* Step: idle — enter national ID */}
+          {(step === 'idle' || step === 'fetching') && (
+            <div className="p-7">
+              <h3 className="font-bold text-gray-900 mb-1">Enter your National ID</h3>
+              <p className="text-sm text-gray-500 mb-5">
+                We&apos;ll check if your details are already in our system via ORPP.
+              </p>
+              <form onSubmit={handleCheckId} className="space-y-4">
                 <div>
-                  <label htmlFor="nationalId" className="block text-sm font-medium text-gray-700 mb-2">
-                    National ID
-                  </label>
+                  <label htmlFor="nationalId" className={labelCls}>National ID Number</label>
                   <input
                     type="text"
                     id="nationalId"
                     value={nationalId}
                     onChange={(e) => setNationalId(e.target.value)}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                    placeholder="Enter your National ID"
+                    className={inputCls}
+                    placeholder="e.g. 12345678"
                   />
                 </div>
-
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-                    {error}
-                  </div>
-                )}
-
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full bg-primary-blue text-white px-6 py-3 rounded-md font-semibold hover:bg-[#002244] transition disabled:opacity-50"
+                  disabled={step === 'fetching'}
+                  className="w-full bg-primary-blue text-white py-3 rounded-xl font-semibold hover:bg-[#002244] transition disabled:opacity-50"
                 >
-                  {loading ? 'Fetching...' : 'Fetch Member Details'}
+                  {step === 'fetching' ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                      </svg>
+                      Checking ORPP records…
+                    </span>
+                  ) : 'Check My Details'}
                 </button>
               </form>
-            ) : memberData ? (
-              <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                  Member details fetched successfully!
-                </div>
-                <div className="bg-gray-50 p-6 rounded-md">
-                  <h3 className="font-semibold mb-4">Member Information:</h3>
-                  <div className="space-y-2 text-sm">
-                    <p><strong>Name:</strong> {memberData.surname} {memberData.otherNames}</p>
-                    <p><strong>ID Number:</strong> {memberData.idNumber}</p>
-                    {memberData.dateOfBirth && <p><strong>Date of Birth:</strong> {new Date(memberData.dateOfBirth).toLocaleDateString()}</p>}
-                    {memberData.gender && <p><strong>Gender:</strong> {memberData.gender}</p>}
-                    {memberData.religion && <p><strong>Religion:</strong> {memberData.religion}</p>}
-                    {memberData.ethnicity && <p><strong>Ethnicity:</strong> {memberData.ethnicity}</p>}
-                    {memberData.county && <p><strong>County:</strong> {memberData.county}</p>}
-                    {memberData.constituency && <p><strong>Constituency:</strong> {memberData.constituency}</p>}
-                    {memberData.ward && <p><strong>Ward:</strong> {memberData.ward}</p>}
-                    <p><strong>Youth:</strong> {memberData.youth ? 'Yes' : 'No'}</p>
-                    <p><strong>PWD:</strong> {memberData.pwd ? 'Yes' : 'No'}</p>
-                    {memberData.email && <p><strong>Email:</strong> {memberData.email}</p>}
-                    {memberData.phone && <p><strong>Phone:</strong> {memberData.phone}</p>}
-                  </div>
-                </div>
-                <form onSubmit={handleCreateProfile}>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-primary-red text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9A162D] transition disabled:opacity-50"
-                  >
-                    {loading ? 'Creating Profile...' : 'Create Profile'}
-                  </button>
-                </form>
+            </div>
+          )}
+
+          {/* Step: already-registered — profile exists, go to login */}
+          {step === 'already-registered' && (
+            <div className="p-7 text-center">
+              <div className="w-12 h-12 bg-primary-blue/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </div>
-            ) : null}
-          </>
-        ) : (
-          <>
-            {!loggedInMember ? (
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label htmlFor="loginIdNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    ID Number
-                  </label>
-                  <input
-                    type="text"
-                    id="loginIdNumber"
-                    value={loginIdNumber}
-                    onChange={(e) => setLoginIdNumber(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                    placeholder="Enter your ID Number"
-                  />
-                </div>
+              <h3 className="font-bold text-gray-900 mb-2">Profile already exists</h3>
+              <p className="text-sm text-gray-600 mb-5">
+                A membership profile already exists for ID <span className="font-mono font-semibold">{nationalId}</span>. Please log in to access your account.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link
+                  href="/membership/login"
+                  className="bg-primary-blue text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#002244] transition text-sm"
+                >
+                  Go to Login
+                </Link>
+                <button
+                  onClick={() => setStep('idle')}
+                  className="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition text-sm"
+                >
+                  Try a Different ID
+                </button>
+              </div>
+            </div>
+          )}
 
-                <div>
-                  <label htmlFor="loginPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="loginPassword"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                    placeholder="Enter your password"
-                  />
+          {/* Step: found — confirm ORPP data + add contact info */}
+          {(step === 'found' || step === 'creating') && orppData && (
+            <div className="p-7">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">Record found in ORPP</h3>
+                  <p className="text-xs text-gray-500">Confirm your details below then create your profile</p>
+                </div>
+              </div>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-                    {error}
+              {/* Member details preview */}
+              <div className="bg-gray-50 rounded-xl p-4 mb-5 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                <div>
+                  <span className="text-xs text-gray-500 block">Full Name</span>
+                  <span className="font-semibold text-gray-900">{orppData.surname} {orppData.otherNames}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500 block">ID Number</span>
+                  <span className="font-semibold text-gray-900">{orppData.idNumber}</span>
+                </div>
+                {orppData.dateOfBirth && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Date of Birth</span>
+                    <span className="text-gray-900">{new Date(orppData.dateOfBirth).toLocaleDateString()}</span>
                   </div>
                 )}
+                {orppData.gender && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Gender</span>
+                    <span className="text-gray-900">{orppData.gender}</span>
+                  </div>
+                )}
+                {orppData.county && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">County</span>
+                    <span className="text-gray-900">{orppData.county}</span>
+                  </div>
+                )}
+                {orppData.constituency && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Constituency</span>
+                    <span className="text-gray-900">{orppData.constituency}</span>
+                  </div>
+                )}
+                {orppData.ward && (
+                  <div>
+                    <span className="text-xs text-gray-500 block">Ward</span>
+                    <span className="text-gray-900">{orppData.ward}</span>
+                  </div>
+                )}
+              </div>
 
-                <div className="flex items-center justify-between">
+              <form onSubmit={handleCreateFromOrpp} className="space-y-4">
+                <div>
+                  <label htmlFor="phone-found" className={labelCls}>Phone Number <span className="text-red-500">*</span></label>
+                  <input type="tel" id="phone-found" value={phone} onChange={(e) => setPhone(e.target.value)} required className={inputCls} placeholder="07XX XXX XXX" />
+                </div>
+                <div>
+                  <label htmlFor="email-found" className={labelCls}>Email Address <span className="text-red-500">*</span></label>
+                  <input type="email" id="email-found" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputCls} placeholder="your@email.com" />
+                  <p className="text-xs text-gray-400 mt-1">Your temporary password will be sent to this email.</p>
+                </div>
+                <div>
+                  <label htmlFor="category-found" className={labelCls}>Membership Category</label>
+                  <select id="category-found" value={membershipCategoryId} onChange={(e) => setMembershipCategoryId(e.target.value)} className={inputCls}>
+                    <option value="">Select a category (optional)</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.title} — KShs {Number(c.fee).toLocaleString('en-KE', { minimumFractionDigits: 2 })} {c.timeline === 0 ? '(One-Off)' : `(${c.timeline}-yr)`}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {createError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{createError}</div>
+                )}
+
+                <div className="flex gap-3 pt-1">
                   <button
                     type="button"
-                    onClick={handleResetPassword}
-                    className="text-sm text-primary-blue hover:underline"
+                    onClick={() => { setStep('idle'); setOrppData(null); setPhone(''); setEmail('') }}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition text-sm"
                   >
-                    Forgot Password?
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={step === 'creating'}
+                    className="flex-1 bg-primary-red text-white py-3 rounded-xl font-semibold hover:bg-[#9A162D] transition disabled:opacity-50 text-sm"
+                  >
+                    {step === 'creating' ? 'Creating Profile…' : 'Create My Profile'}
                   </button>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-primary-blue text-white px-6 py-3 rounded-md font-semibold hover:bg-[#002244] transition disabled:opacity-50"
-                >
-                  {loading ? 'Logging in...' : 'Login'}
-                </button>
               </form>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
-                  Login successful! Welcome back, {loggedInMember.surname} {loggedInMember.otherNames}
-                </div>
+            </div>
+          )}
 
-                <div className="bg-white border border-gray-200 rounded-md p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">My Account</h3>
-                  <ul className="space-y-1">
-                    <li>
-                      <Link
-                        href="/membership/profile"
-                        className="text-primary-blue hover:underline"
-                      >
-                        My Profile
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/membership/profile?section=payments"
-                        className="text-primary-blue hover:underline"
-                      >
-                        Payments
-                      </Link>
-                    </li>
-                  </ul>
+          {/* Step: not-found — ID not in ORPP yet */}
+          {step === 'not-found' && (
+            <div className="p-7">
+              <div className="flex items-start gap-3 mb-5">
+                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
-
-                <div className="bg-gray-50 p-6 rounded-md">
-                  <h3 className="font-semibold mb-4">Your Profile:</h3>
-                  <div className="space-y-2 text-sm">
-                    <p><strong>Name:</strong> {loggedInMember.surname} {loggedInMember.otherNames}</p>
-                    <p><strong>ID Number:</strong> {loggedInMember.idNumber}</p>
-                    {loggedInMember.dateOfBirth && <p><strong>Date of Birth:</strong> {new Date(loggedInMember.dateOfBirth).toLocaleDateString()}</p>}
-                    {loggedInMember.gender && <p><strong>Gender:</strong> {loggedInMember.gender}</p>}
-                    {loggedInMember.county && <p><strong>County:</strong> {loggedInMember.county}</p>}
-                    {loggedInMember.constituency && <p><strong>Constituency:</strong> {loggedInMember.constituency}</p>}
-                    {loggedInMember.ward && <p><strong>Ward:</strong> {loggedInMember.ward}</p>}
-                    {loggedInMember.email && <p><strong>Email:</strong> {loggedInMember.email}</p>}
-                    {loggedInMember.phone && <p><strong>Phone:</strong> {loggedInMember.phone}</p>}
-                    {loggedInMember.ippmsDataSyncedAt && (
-                      <p><strong>Last Updated:</strong> {new Date(loggedInMember.ippmsDataSyncedAt).toLocaleString()}</p>
-                    )}
-                  </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">ID not yet found in ORPP</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Your ID <span className="font-mono font-semibold">{nationalId}</span> has not been synced from ORPP yet.
+                    This usually means you haven&apos;t registered via ORPP, or your data is still being processed.
+                  </p>
                 </div>
-
-                {!showChangePassword ? (
-                  <div className="space-y-3">
-                    <Link
-                      href="/aspirants/apply"
-                      className="block w-full bg-primary-blue text-white px-6 py-3 rounded-md font-semibold hover:bg-[#002244] transition text-center"
-                    >
-                      Apply as Aspirant
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setShowChangePassword(true)}
-                      className="w-full bg-primary-red text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9A162D] transition"
-                    >
-                      Change Password
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full bg-gray-500 text-white px-6 py-3 rounded-md font-semibold hover:bg-gray-600 transition"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleChangePassword} className="space-y-4">
-                    <h4 className="font-semibold text-gray-900">Change Password</h4>
-                    <div>
-                      <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                        Current Password
-                      </label>
-                      <input
-                        type="password"
-                        id="currentPassword"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        id="newPassword"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                        Confirm New Password
-                      </label>
-                      <input
-                        type="password"
-                        id="confirmPassword"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                      />
-                    </div>
-                    {error && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-                        {error}
-                      </div>
-                    )}
-                    <div className="flex gap-3">
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex-1 bg-primary-red text-white px-6 py-3 rounded-md font-semibold hover:bg-[#9A162D] transition disabled:opacity-50"
-                      >
-                        {loading ? 'Changing...' : 'Change Password'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowChangePassword(false)
-                          setCurrentPassword('')
-                          setNewPassword('')
-                          setConfirmPassword('')
-                          setError('')
-                        }}
-                        className="flex-1 bg-gray-500 text-white px-6 py-3 rounded-md font-semibold hover:bg-gray-600 transition"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                )}
               </div>
-            )}
-          </>
-        )}
-      </div>
 
-      <div className="bg-primary-light rounded-lg p-8">
-        <h2 className="text-2xl font-bold text-primary-blue mb-4">
-          Not Registered with IPPMS?
-        </h2>
-        <p className="text-gray-700 mb-6">
-          To become a member of People&apos;s Renaissance Movement, you need to first register 
-          through the Integrated Political Party Management System (IPPMS). Here&apos;s how:
-        </p>
-        <ol className="list-decimal list-inside space-y-3 text-gray-700 mb-6">
-          <li>Visit the official IPPMS portal at <a href="https://ippms.ke" target="_blank" rel="noopener noreferrer" className="text-primary-blue hover:underline">ippms.ke</a></li>
-          <li>Create an account or log in if you already have one</li>
-          <li>Complete the membership registration form</li>
-          <li>Submit your registration and wait for approval</li>
-          <li>Once approved, you&apos;ll receive your IPPMS ID</li>
-          <li>Return here and enter your National ID to create your profile</li>
-        </ol>
-        <div className="bg-white p-4 rounded-md">
-          <p className="text-sm text-gray-600">
-            <strong>Note:</strong> IPPMS registration is mandatory for all political party members 
-            in Kenya as per the Political Parties Act. This ensures transparency and proper 
-            management of party membership.
-          </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-800 space-y-2">
+                <p><strong>Not yet registered with ORPP?</strong> Dial <span className="font-mono font-bold">*509#</span> or visit <strong>ippms.orpp.or.ke</strong> and use party code <span className="font-bold">105</span> to register first, then come back here.</p>
+                <p><strong>Already registered with ORPP but your data hasn&apos;t synced yet?</strong> You can still <strong>Create Profile Anyway</strong> — your profile will be matched and verified automatically once your ORPP data is received on our end.</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setStep('idle')}
+                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition text-sm"
+                >
+                  Try a Different ID
+                </button>
+                <button
+                  onClick={() => setStep('manual-entry')}
+                  className="flex-1 bg-primary-blue text-white py-3 rounded-xl font-semibold hover:bg-[#002244] transition text-sm"
+                >
+                  Create Profile Anyway
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step: manual-entry */}
+          {(step === 'manual-entry' || (step === 'creating' && !orppData)) && (
+            <div className="p-7">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="font-bold text-gray-900">Create Profile Anyway</h3>
+              </div>
+              <p className="text-sm text-gray-500 mb-1">
+                Your profile will be created with <strong>unsynced status</strong>. When your ORPP registration is confirmed and your data is received, your profile will be automatically updated and verified.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-xs text-blue-800 mb-5">
+                ID Number: <span className="font-mono font-bold">{nationalId}</span> · Profile sync status: <span className="font-semibold text-amber-700">Pending ORPP sync</span>
+              </div>
+
+              <form onSubmit={handleCreateManual} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Surname <span className="text-red-500">*</span></label>
+                    <input type="text" value={manualSurname} onChange={(e) => setManualSurname(e.target.value)} required className={inputCls} placeholder="Last name" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Other Names <span className="text-red-500">*</span></label>
+                    <input type="text" value={manualOtherNames} onChange={(e) => setManualOtherNames(e.target.value)} required className={inputCls} placeholder="First & middle names" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Date of Birth</label>
+                    <input type="date" value={manualDob} onChange={(e) => setManualDob(e.target.value)} className={inputCls} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Gender</label>
+                    <select value={manualGender} onChange={(e) => setManualGender(e.target.value)} className={inputCls}>
+                      <option value="">Select</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Phone Number <span className="text-red-500">*</span></label>
+                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className={inputCls} placeholder="07XX XXX XXX" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Email Address <span className="text-red-500">*</span></label>
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputCls} placeholder="your@email.com" />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>County</label>
+                  <select value={manualCounty} onChange={(e) => setManualCounty(e.target.value)} className={inputCls}>
+                    <option value="">Select County</option>
+                    {counties.map((c) => (
+                      <option key={c.id} value={c.countyName}>{c.countyName}</option>
+                    ))}
+                  </select>
+                </div>
+                {constituencies.length > 0 && (
+                  <div>
+                    <label className={labelCls}>Constituency</label>
+                    <select value={manualConstituency} onChange={(e) => setManualConstituency(e.target.value)} className={inputCls}>
+                      <option value="">Select Constituency</option>
+                      {constituencies.map((c) => (
+                        <option key={c.id} value={c.constituencyName}>{c.constituencyName}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {wards.length > 0 && (
+                  <div>
+                    <label className={labelCls}>Ward</label>
+                    <select value={manualWard} onChange={(e) => setManualWard(e.target.value)} className={inputCls}>
+                      <option value="">Select Ward</option>
+                      {wards.map((w) => (
+                        <option key={w.id} value={w.wardName}>{w.wardName}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Religion</label>
+                    <input type="text" value={manualReligion} onChange={(e) => setManualReligion(e.target.value)} className={inputCls} placeholder="e.g. Christianity" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Ethnicity</label>
+                    <input type="text" value={manualEthnicity} onChange={(e) => setManualEthnicity(e.target.value)} className={inputCls} placeholder="e.g. Kikuyu" />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Address</label>
+                  <input type="text" value={manualAddress} onChange={(e) => setManualAddress(e.target.value)} className={inputCls} placeholder="Physical address" />
+                </div>
+                <div className="flex gap-6">
+                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" checked={manualYouth} onChange={(e) => setManualYouth(e.target.checked)} className="w-4 h-4 rounded text-primary-blue" />
+                    Youth (18–35 yrs)
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" checked={manualPwd} onChange={(e) => setManualPwd(e.target.checked)} className="w-4 h-4 rounded text-primary-blue" />
+                    Person with Disability (PWD)
+                  </label>
+                </div>
+                <div>
+                  <label className={labelCls}>Membership Category</label>
+                  <select value={membershipCategoryId} onChange={(e) => setMembershipCategoryId(e.target.value)} className={inputCls}>
+                    <option value="">Select a category (optional)</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.title} — KShs {Number(c.fee).toLocaleString('en-KE', { minimumFractionDigits: 2 })} {c.timeline === 0 ? '(One-Off)' : `(${c.timeline}-yr)`}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {createError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{createError}</div>
+                )}
+
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setStep('not-found')}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition text-sm"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={step === 'creating'}
+                    className="flex-1 bg-primary-red text-white py-3 rounded-xl font-semibold hover:bg-[#9A162D] transition disabled:opacity-50 text-sm"
+                  >
+                    {step === 'creating' ? 'Creating Profile…' : 'Create My Profile'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Step: done */}
+          {step === 'done' && (
+            <div className="p-7 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Profile Created!</h3>
+              <p className="text-gray-600 text-sm mb-4">{createResult?.message}</p>
+              {createResult?.tempPassword && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-5 text-sm">
+                  <p className="text-yellow-800 font-medium mb-1">Your temporary password:</p>
+                  <p className="font-mono font-bold text-lg text-yellow-900 tracking-wider">{createResult.tempPassword}</p>
+                  <p className="text-yellow-700 text-xs mt-1">Use this to log in, then change it in your profile settings.</p>
+                </div>
+              )}
+              <Link
+                href="/membership/login"
+                className="inline-block bg-primary-blue text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#002244] transition"
+              >
+                Go to Login
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-        <h2 className="text-2xl font-bold text-primary-blue mb-6">
-          Membership Categories
-        </h2>
-        <p className="text-gray-700 mb-6">
-          Choose the membership category that best suits your commitment to People&apos;s Renaissance Movement.
-        </p>
-        
+      {/* ── Membership Categories ── */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 mb-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Membership Categories</h2>
+        <p className="text-sm text-gray-500 mb-5">Choose the category that fits your level of commitment.</p>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300">
+          <table className="w-full text-sm">
             <thead>
               <tr className="bg-primary-blue text-white">
-                <th className="border border-gray-300 px-4 py-3 text-left">Membership Type</th>
-                <th className="border border-gray-300 px-4 py-3 text-right">Fees (KShs)</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Timelines</th>
+                <th className="px-4 py-3 text-left rounded-tl-lg">Type</th>
+                <th className="px-4 py-3 text-right">Fees (KShs)</th>
+                <th className="px-4 py-3 text-left rounded-tr-lg">Timeline</th>
               </tr>
             </thead>
-            <tbody>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">Ordinary Membership</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">20.00</td>
-                <td className="border border-gray-300 px-4 py-3">One-Off Payment</td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">Life Membership</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">20,000.00</td>
-                <td className="border border-gray-300 px-4 py-3">Renewable Every 5 years</td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">Bronze Life Membership</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">50,000.00</td>
-                <td className="border border-gray-300 px-4 py-3">Renewable Every 5 years</td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">Silver Life Membership</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">100,000.00</td>
-                <td className="border border-gray-300 px-4 py-3">Renewable Every 5 years</td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">Gold Life Membership</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">1,000,000.00</td>
-                <td className="border border-gray-300 px-4 py-3">Renewable Every 5 years</td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">Diamond Life Membership</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">5,000,000.00</td>
-                <td className="border border-gray-300 px-4 py-3">Renewable Every 5 years</td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">Platinum Life Membership</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">20,000,000.00</td>
-                <td className="border border-gray-300 px-4 py-3">Renewable Every 5 years</td>
-              </tr>
+            <tbody className="divide-y divide-gray-100">
+              {[
+                ['Ordinary Membership', '20.00', 0],
+                ['Life Membership', '20,000.00', 5],
+                ['Bronze Life Membership', '50,000.00', 5],
+                ['Silver Life Membership', '100,000.00', 5],
+                ['Gold Life Membership', '1,000,000.00', 5],
+                ['Diamond Life Membership', '5,000,000.00', 5],
+                ['Platinum Life Membership', '20,000,000.00', 5],
+              ].map(([type, fee, timeline]) => (
+                <tr key={type} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{type}</td>
+                  <td className="px-4 py-3 text-right text-gray-700">{fee}</td>
+                  <td className="px-4 py-3 text-gray-500">{timeline === 0 ? 'One-Off Payment' : `Renewable every ${timeline} years`}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-
-        <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
-          <p className="text-sm text-gray-700">
-            <strong className="text-yellow-800">Important Note:</strong> To be an aspirant or party official, 
-            you must be at least a Life Member and fully paid up.
-          </p>
+        <div className="mt-4 bg-amber-50 border-l-4 border-amber-400 px-4 py-3 rounded-r-lg text-sm text-amber-800">
+          <strong>Note:</strong> To become an aspirant or party official, you must be at least a Life Member and fully paid up.
         </div>
       </div>
 
-      <div className="mt-8 text-center">
-        <Link
-          href="/volunteer"
-          className="text-primary-blue hover:underline"
-        >
+      {/* Footer link */}
+      <div className="text-center">
+        <Link href="/volunteer" className="text-sm text-gray-500 hover:text-primary-blue transition">
           Not ready to become a member? Consider volunteering instead →
         </Link>
       </div>
     </div>
   )
 }
-

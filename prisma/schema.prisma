@@ -25,29 +25,30 @@ model User {
 
 model Member {
   id                   Int       @id @default(autoincrement())
-  idNumber             String    @unique
-  ippmsId              String?   @unique
+  idNumber             String    @unique @map("id_number")
+  ippmsId              String?   @unique @map("ippms_id")
   surname              String
-  otherNames           String
+  otherNames           String    @map("other_names")
   email                String?
   phone                String?
-  dateOfBirth          DateTime?
+  dateOfBirth          DateTime? @map("date_of_birth")
   gender               String?
   religion             String?
   ethnicity            String?
   address              String?
-  countyCode           Int?
-  constituencyCode     Int?
-  wardCode             Int?
-  youth                Boolean?  @default(false) // Youth (yes/no)
-  pwd                  Boolean?  @default(false) // PWD (yes/no)
-  membershipDate       DateTime  @default(now())
-  status               String    @default("active") // active, inactive, suspended
-  password             String? // Hashed password for member login
-  membershipCategoryId String? // Reference to membership category
-  profileCreatedAt     DateTime  @default(now())
-  ippmsDataSyncedAt    DateTime? // Date/time when IPPMS data was last synced/updated
-  updatedAt            DateTime  @updatedAt
+  countyCode           Int?      @map("county_code")
+  constituencyCode     Int?      @map("constituency_code")
+  wardCode             Int?      @map("ward_code")
+  youth                Boolean?  @default(false)
+  pwd                  Boolean?  @default(false)
+  membershipDate       DateTime  @default(now()) @map("membership_date")
+  status               String    @default("active")
+  password             String?
+  membershipCategoryId String?   @map("membership_category_id")
+  profileCreatedAt     DateTime  @default(now()) @map("profile_created_at")
+  ippmsDataSyncedAt    DateTime? @map("ippms_data_synced_at")
+  profileSyncStatus    Boolean   @default(false) @map("profile_sync_status")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
   membershipCategory MembershipCategory?      @relation(fields: [membershipCategoryId], references: [id])
   volunteers         Volunteer[]
@@ -65,7 +66,7 @@ model MembershipCategory {
   id        String   @id @default(cuid())
   title     String   @unique
   fee       Float
-  timeline  String
+  timeline  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

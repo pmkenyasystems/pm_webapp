@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+
+export const dynamic = 'force-dynamic'
 import DashboardStats from '@/components/admin/DashboardStats'
 import RecentActivity from '@/components/admin/RecentActivity'
 import AdminHeader from '@/components/admin/AdminHeader'

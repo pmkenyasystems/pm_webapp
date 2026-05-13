@@ -68,12 +68,14 @@ export default function LeadershipStructurePage() {
             'Deputy Party Leader',
             'Secretary General',
             'Chairman',
+            'Treasurer',
+            'Organising Secretary',
+            'Executive Director',
             'Deputy Chairman',
             'Deputy Secretary General',
-            'Treasurer',
             'Deputy Treasurer',
-            'Organising Secretary',
             'Deputy Organising Secretary',
+            'Deputy Executive Director',
           ]}
           isFirst
         />

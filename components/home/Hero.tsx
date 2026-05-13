@@ -64,28 +64,28 @@ export default function Hero() {
               <span className="text-primary-blue">Kenya Needs</span>{' '}
               <span className="text-primary-red text-4xl md:text-5xl lg:text-[3.5rem] xl:text-6xl">A Renaissance.</span>
             </h1>
-            <p className="mt-4 text-base md:text-lg text-gray-800 max-w-xl">
+            <p className="mt-4 text-base md:text-lg font-semibold text-gray-900 max-w-xl drop-shadow">
               Welcome to the Movement.
             </p>
-            <div className="mt-10 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/membership"
-                className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-medium text-white bg-primary-red/90 hover:bg-primary-red border border-primary-red/20 transition-all duration-200 hover:scale-105"
+                className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-primary-red hover:bg-primary-red/90 shadow-md shadow-red-900/30 border-2 border-white/20 transition-all duration-200 hover:scale-105"
               >
                 Become a Member
-                <svg className="w-3.5 h-3.5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
               </Link>
               <Link
                 href="/volunteer"
-                className="inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white/90 hover:bg-white border border-gray-200 transition-all duration-200 hover:scale-105"
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-bold text-gray-900 bg-white hover:bg-gray-100 shadow-md border-2 border-gray-300 transition-all duration-200 hover:scale-105"
               >
                 Volunteer
               </Link>
               <Link
                 href="/donate"
-                className="inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-medium text-white bg-primary-blue/85 hover:bg-primary-blue border border-primary-blue/30 transition-all duration-200 hover:scale-105"
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-primary-blue hover:bg-primary-blue/90 shadow-md shadow-blue-900/30 border-2 border-white/20 transition-all duration-200 hover:scale-105"
               >
                 Donate
               </Link>

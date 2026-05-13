@@ -1,4 +1,4 @@
-export type CommitteeRole = 'Chairperson' | 'Vice Chairperson' | 'Secretary' | 'Member'
+export type CommitteeRole = 'Interim Chairperson' | 'Chairperson' | 'Vice Chairperson' | 'Secretary' | 'Member'
 
 export interface CommitteeMember {
   name: string
@@ -17,7 +17,7 @@ export interface Committee {
   members?: CommitteeMember[]
 }
 
-const ROLE_ORDER: CommitteeRole[] = ['Chairperson', 'Vice Chairperson', 'Secretary', 'Member']
+const ROLE_ORDER: CommitteeRole[] = ['Interim Chairperson', 'Chairperson', 'Vice Chairperson', 'Secretary', 'Member']
 
 export function sortMembersByRole(members: CommitteeMember[]): CommitteeMember[] {
   return [...members].sort(
@@ -73,7 +73,8 @@ export const committees: Committee[] = [
       {
         name: 'Noella Olukere',
         role: 'Member',
-        bio: 'Member of the Resource Mobilization Committee.',
+        bio: 'Chairperson Linda Mwananchi Young Women Movement. Events Manager and Political Analyst.',
+        profileImage: '/images/profile/noela.jpeg',
       },
       {
         name: 'Dennis Ajega',
@@ -297,11 +298,25 @@ export const partyOrgans: Committee[] = [
     ],
   },
   {
+    id: 'secretariat',
+    title: 'The Secretariat',
+    description: 'The Secretariat is responsible for the party\'s day-to-day administrative and business operations, providing institutional support, coordination, and continuity across all party structures and functions.',
+    image: '/images/committees/secretariat.jpg',
+    members: [],
+  },
+  {
     id: 'advisory-council',
     title: 'The Advisory Council',
     description: 'The Advisory Council comprises distinguished Kenyans who provide strategic counsel, institutional memory, and expert guidance to the party leadership on matters of governance and national policy.',
     image: '/images/committees/advisory-council.jpg',
-    members: [],
+    members: [
+      {
+        name: 'Njenga wa Ragū',
+        role: 'Interim Chairperson',
+        bio: 'Interim Chairperson of the National Advisory Council.',
+        profileImage: '/images/profile/njenga.jpeg',
+      },
+    ],
   },
   {
     id: 'university-comrades',

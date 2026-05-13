@@ -31,7 +31,7 @@ interface Member {
     id: string
     title: string
     fee: number
-    timeline: string
+    timeline: number
   } | null
 }
 
@@ -250,7 +250,7 @@ export default function MemberDetailPage() {
                           {member.membershipCategory.title}
                         </span>
                         <p className="text-xs text-gray-500 mt-1">
-                          Fee: KES {member.membershipCategory.fee.toLocaleString()} - {member.membershipCategory.timeline}
+                          Fee: KES {member.membershipCategory.fee.toLocaleString()} · {member.membershipCategory.timeline === 0 ? 'One-Off Payment' : `Renewable every ${member.membershipCategory.timeline} years`}
                         </p>
                       </dd>
                     </div>

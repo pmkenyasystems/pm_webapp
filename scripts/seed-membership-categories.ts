@@ -3,41 +3,13 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 const membershipCategories = [
-  {
-    title: 'Ordinary Membership',
-    fee: 20.00,
-    timeline: 'One-Off Payment',
-  },
-  {
-    title: 'Life Membership',
-    fee: 20000.00,
-    timeline: 'Renewable Every 5 years',
-  },
-  {
-    title: 'Bronze Life Membership',
-    fee: 50000.00,
-    timeline: 'Renewable Every 5 years',
-  },
-  {
-    title: 'Silver Life Membership',
-    fee: 100000.00,
-    timeline: 'Renewable Every 5 years',
-  },
-  {
-    title: 'Gold Life Membership',
-    fee: 1000000.00,
-    timeline: 'Renewable Every 5 years',
-  },
-  {
-    title: 'Diamond Life Membership',
-    fee: 5000000.00,
-    timeline: 'Renewable Every 5 years',
-  },
-  {
-    title: 'Platinum Life Membership',
-    fee: 20000000.00,
-    timeline: 'Renewable Every 5 years',
-  },
+  { title: 'Ordinary Membership',      fee: 20.00,       timeline: 0 },
+  { title: 'Life Membership',          fee: 20000.00,    timeline: 5 },
+  { title: 'Bronze Life Membership',   fee: 50000.00,    timeline: 5 },
+  { title: 'Silver Life Membership',   fee: 100000.00,   timeline: 5 },
+  { title: 'Gold Life Membership',     fee: 1000000.00,  timeline: 5 },
+  { title: 'Diamond Life Membership',  fee: 5000000.00,  timeline: 5 },
+  { title: 'Platinum Life Membership', fee: 20000000.00, timeline: 5 },
 ]
 
 async function main() {
