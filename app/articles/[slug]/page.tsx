@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 async function getArticle(slug: string) {
   try {
     return await prisma.article.findUnique({

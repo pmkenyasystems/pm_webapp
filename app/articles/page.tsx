@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import SocialShare from '@/components/sharing/SocialShare'
 
+export const dynamic = 'force-dynamic'
+
 async function getArticles() {
   try {
     return await prisma.article.findMany({

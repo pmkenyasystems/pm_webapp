@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { nationalLeaders } from '@/lib/national-leadership'
 import LeadershipTabs from '@/components/leadership/LeadershipTabs'
 
+export const dynamic = 'force-dynamic'
+
 async function getCounties() {
   return prisma.county.findMany({
     orderBy: { countyName: 'asc' },
