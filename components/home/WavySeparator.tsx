@@ -5,7 +5,7 @@ export default function WavySeparator() {
     <div className="relative z-10 w-full flex justify-center pt-0 pb-5 md:pb-6 -mt-7 md:-mt-8">
       <div className="flex flex-row items-stretch rounded-xl bg-white shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm">
         <Link
-          href="/membership"
+          href="/membership/login"
           className="flex items-center gap-1.5 bg-primary-blue/5 hover:bg-primary-blue hover:text-white text-primary-blue font-semibold px-3 py-3 text-xs sm:text-sm sm:px-6 sm:py-3.5 sm:gap-2 transition-all duration-200 group"
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-primary-blue group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">

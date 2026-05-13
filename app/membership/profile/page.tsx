@@ -27,7 +27,7 @@ interface Member {
     id: string
     title: string
     fee: number
-    timeline: string
+    timeline: number
   } | null
 }
 
@@ -424,7 +424,7 @@ export default function MemberProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Membership Category</label>
                   <p className="text-gray-900">{member.membershipCategory.title}</p>
                   <p className="text-sm text-gray-600 mt-1">
-                    Fee: KSh {member.membershipCategory.fee.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | {member.membershipCategory.timeline}
+                    Fee: KSh {member.membershipCategory.fee.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · {member.membershipCategory.timeline === 0 ? 'One-Off Payment' : `Renewable every ${member.membershipCategory.timeline} years`}
                   </p>
                 </div>
               )}

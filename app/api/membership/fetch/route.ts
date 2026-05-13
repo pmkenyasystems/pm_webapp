@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import axios from 'axios'
+import { prisma } from '@/lib/prisma'
+import { serializeMemberForApi } from '@/lib/serialize-member'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,55 +9,33 @@ export async function POST(request: NextRequest) {
     const { nationalId } = await request.json()
 
     if (!nationalId) {
-      return NextResponse.json(
-        { error: 'National ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'National ID is required' }, { status: 400 })
     }
 
-    // Fetch member data from IPPMS API by National ID
-    const ippmsApiUrl = process.env.IPPMS_API_URL || 'https://api.ippms.ke'
-    const ippmsApiKey = process.env.IPPMS_API_KEY
-
-    const response = await axios.get(`${ippmsApiUrl}/members/by-id-number/${nationalId}`, {
-      headers: {
-        'Authorization': `Bearer ${ippmsApiKey}`,
-        'Content-Type': 'application/json',
-      },
+    const member = await prisma.member.findUnique({
+      where: { idNumber: nationalId },
+      include: { county: true, constituency: true, ward: true },
     })
 
-    if (!response.data) {
+    if (!member) {
       return NextResponse.json(
-        { error: 'Member not found in IPPMS system' },
+        { error: 'This ID has not been found in our ORPP records. Your ORPP registration may not have been synced yet.' },
         { status: 404 }
       )
     }
 
-    // Map IPPMS API response to our format
-    const ippmsData = response.data
-    const member = {
-      surname: ippmsData.Surname || ippmsData.surname || '',
-      otherNames: ippmsData.OtherNames || ippmsData.otherNames || '',
-      idNumber: ippmsData.ID_Passport_No || ippmsData.id_Passport_No || ippmsData.idNumber || nationalId,
-      dateOfBirth: ippmsData.DOB || ippmsData.dob || ippmsData.dateOfBirth || null,
-      gender: ippmsData.Gender || ippmsData.gender || null,
-      religion: ippmsData.Religion || ippmsData.religion || null,
-      ethnicity: ippmsData.Ethnicity || ippmsData.ethnicity || null,
-      county: ippmsData.County || ippmsData.county || null,
-      constituency: ippmsData.Constituency || ippmsData.constituency || null,
-      ward: ippmsData.Ward || ippmsData.ward || null,
-      youth: ippmsData.Youth === 'yes' || ippmsData.Youth === true || ippmsData.youth === 'yes' || ippmsData.youth === true || false,
-      pwd: ippmsData.PWD === 'yes' || ippmsData.PWD === true || ippmsData.pwd === 'yes' || ippmsData.pwd === true || false,
-      ippmsId: ippmsData.ippmsId || ippmsData.Membership_No || ippmsData.membership_No || ippmsData.membershipNo || null,
+    // Member already has a profile (password set)
+    if (member.password) {
+      return NextResponse.json({ alreadyHasProfile: true }, { status: 200 })
     }
 
-    return NextResponse.json({ member })
+    // ORPP record exists, no profile yet — return data for confirmation
+    return NextResponse.json({ member: serializeMemberForApi(member as any) })
   } catch (error: any) {
-    console.error('Error fetching member from IPPMS:', error)
+    console.error('Error fetching member:', error)
     return NextResponse.json(
-      { error: error.response?.data?.message || 'Failed to fetch member data from IPPMS' },
-      { status: error.response?.status || 500 }
+      { error: error.message || 'Failed to fetch member data' },
+      { status: 500 }
     )
   }
 }
-
