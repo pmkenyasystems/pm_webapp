@@ -10,6 +10,7 @@ export default function VolunteerPage() {
     phone: '',
     address: '',
     county: '',
+    diasporaLocation: '',
     skills: '',
     availability: '',
     isMember: false,
@@ -103,6 +104,7 @@ export default function VolunteerPage() {
         phone: '',
         address: '',
         county: '',
+        diasporaLocation: '',
         skills: '',
         availability: '',
         isMember: false,
@@ -209,6 +211,7 @@ export default function VolunteerPage() {
             <div>
               <label htmlFor="county" className="block text-sm font-medium text-gray-700 mb-2">
                 County
+                <span className="ml-1 font-normal text-gray-500">(In the diaspora? Select <span className="font-medium text-primary-blue">Diaspora</span>)</span>
               </label>
               <select
                 id="county"
@@ -234,6 +237,23 @@ export default function VolunteerPage() {
                 <p className="mt-1 text-sm text-gray-500">No counties available. Please contact support.</p>
               )}
             </div>
+
+            {formData.county === 'Diaspora' && (
+              <div>
+                <label htmlFor="diasporaLocation" className="block text-sm font-medium text-gray-700 mb-2">
+                  Diaspora Location
+                </label>
+                <input
+                  type="text"
+                  id="diasporaLocation"
+                  name="diasporaLocation"
+                  value={formData.diasporaLocation}
+                  onChange={handleChange}
+                  placeholder="e.g. London, UK / Toronto, Canada / Dubai, UAE"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                />
+              </div>
+            )}
 
             <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">

@@ -63,7 +63,7 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Connect</h4>
             <ul className="space-y-2 text-sm text-gray-400 mb-4">
               <li>Email: info@pmkenya.ke</li>
-              <li>Phone: +254 119 165 87</li>
+              <li>Phone: +254 119 916 587</li>
               <li>
                 <Link href="/contact" className="hover:text-white transition">
                   View Location
