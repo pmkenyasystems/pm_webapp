@@ -282,7 +282,7 @@ export default function DonatePage() {
                       <BankRow label="Branch Code" value={BANK.branchCode} />
                     </div>
                     <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
-                      After transferring, email your proof of payment to <strong>info@peoplesrm.co.ke</strong> so we can acknowledge your contribution.
+                      After transferring, email your proof of payment to <strong>peoplesrenaissancemovement@gmail.com</strong> so we can acknowledge your contribution.
                     </div>
                   </div>
                 )}
@@ -358,7 +358,7 @@ export default function DonatePage() {
                       <BankRow label="Branch Code" value={BANK.branchCode} />
                     </div>
                     <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
-                      After transferring, email your confirmation to <strong>info@peoplesrm.co.ke</strong> so we can acknowledge your contribution.
+                      After transferring, email your confirmation to <strong>peoplesrenaissancemovement@gmail.com</strong> so we can acknowledge your contribution.
                     </div>
                   </div>
                 )}
