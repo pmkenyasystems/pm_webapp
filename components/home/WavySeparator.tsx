@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function WavySeparator() {
   return (
-    <div className="relative z-10 w-full flex justify-center pt-0 pb-5 md:pb-6 -mt-7 md:-mt-8">
+    <div className="relative z-10 w-full flex justify-center pt-0 pb-2 -mt-7 md:-mt-8">
       <div className="flex flex-row items-stretch rounded-xl bg-white shadow-lg border border-gray-200 overflow-hidden backdrop-blur-sm">
         <Link
           href="/membership/login"
