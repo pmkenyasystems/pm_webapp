@@ -2,103 +2,97 @@ import { prisma } from '@/lib/prisma'
 
 async function getRecentActivity() {
   const [recentDonations, recentVolunteers, recentMembers] = await Promise.all([
-    prisma.donation.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
-    prisma.volunteer.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
+    prisma.donation.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
+    prisma.volunteer.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
     prisma.member.findMany({
       orderBy: { profileCreatedAt: 'desc' },
       take: 5,
       include: { county: true },
     }),
   ])
-
   return { recentDonations, recentVolunteers, recentMembers }
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    completed: 'bg-green-50 text-green-700',
+    approved:  'bg-green-50 text-green-700',
+    active:    'bg-green-50 text-green-700',
+    pending:   'bg-amber-50 text-amber-700',
+    failed:    'bg-red-50 text-red-700',
+    rejected:  'bg-red-50 text-red-700',
+  }
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold capitalize ${map[status] ?? 'bg-gray-100 text-gray-600'}`}>
+      {status}
+    </span>
+  )
 }
 
 export default async function RecentActivity() {
   const { recentDonations, recentVolunteers, recentMembers } = await getRecentActivity()
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Donations</h3>
-        <div className="space-y-3">
-          {recentDonations.length > 0 ? (
-            recentDonations.map((donation) => (
-              <div key={donation.id} className="flex justify-between items-center text-sm">
-                <div>
-                  <p className="font-medium text-gray-900">KES {donation.amount.toLocaleString()}</p>
-                  <p className="text-gray-500">{donation.paymentMethod}</p>
-                </div>
-                <span className={`px-2 py-1 rounded text-xs ${
-                  donation.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  donation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {donation.status}
-                </span>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Recent Donations */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50">
+          <h3 className="text-sm font-semibold text-gray-900">Recent Donations</h3>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {recentDonations.length > 0 ? recentDonations.map((d) => (
+            <div key={d.id} className="flex items-center justify-between px-5 py-3 gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900">KES {d.amount.toLocaleString()}</p>
+                <p className="text-xs text-gray-400 capitalize">{d.paymentMethod}</p>
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500 text-sm">No recent donations</p>
+              <StatusBadge status={d.status} />
+            </div>
+          )) : (
+            <p className="px-5 py-4 text-xs text-gray-400">No recent donations</p>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Volunteers</h3>
-        <div className="space-y-3">
-          {recentVolunteers.length > 0 ? (
-            recentVolunteers.map((volunteer) => (
-              <div key={volunteer.id} className="text-sm">
-                <p className="font-medium text-gray-900">
-                  {volunteer.firstName} {volunteer.lastName}
-                </p>
-                <p className="text-gray-500">{volunteer.email}</p>
-                <span className={`inline-block mt-1 px-2 py-1 rounded text-xs ${
-                  volunteer.status === 'approved' ? 'bg-green-100 text-green-800' :
-                  volunteer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {volunteer.status}
-                </span>
+      {/* Recent Volunteers */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50">
+          <h3 className="text-sm font-semibold text-gray-900">Recent Volunteers</h3>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {recentVolunteers.length > 0 ? recentVolunteers.map((v) => (
+            <div key={v.id} className="flex items-center justify-between px-5 py-3 gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{v.firstName} {v.lastName}</p>
+                <p className="text-xs text-gray-400 truncate">{v.email}</p>
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500 text-sm">No recent volunteers</p>
+              <StatusBadge status={v.status} />
+            </div>
+          )) : (
+            <p className="px-5 py-4 text-xs text-gray-400">No recent volunteers</p>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Members</h3>
-        <div className="space-y-3">
-          {recentMembers.length > 0 ? (
-            recentMembers.map((member) => (
-              <div key={member.id} className="text-sm">
-                <p className="font-medium text-gray-900">
-                  {member.surname} {member.otherNames}
-                </p>
-                <p className="text-gray-500">{member.county?.countyName || 'N/A'}</p>
-                <span className={`inline-block mt-1 px-2 py-1 rounded text-xs ${
-                  member.status === 'active' ? 'bg-green-100 text-green-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {member.status}
-                </span>
+      {/* Recent Members */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50">
+          <h3 className="text-sm font-semibold text-gray-900">Recent Members</h3>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {recentMembers.length > 0 ? recentMembers.map((m) => (
+            <div key={m.id} className="flex items-center justify-between px-5 py-3 gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{m.surname} {m.otherNames}</p>
+                <p className="text-xs text-gray-400 truncate">{m.county?.countyName || 'N/A'}</p>
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500 text-sm">No recent members</p>
+              <StatusBadge status={m.status} />
+            </div>
+          )) : (
+            <p className="px-5 py-4 text-xs text-gray-400">No recent members</p>
           )}
         </div>
       </div>
     </div>
   )
 }
-

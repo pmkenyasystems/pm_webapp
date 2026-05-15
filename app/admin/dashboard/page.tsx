@@ -43,9 +43,8 @@ export default async function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminHeader title="Admin Dashboard" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AdminHeader title="Dashboard" />
+      <div className="p-4 sm:p-6">
         <DashboardStats stats={stats} />
         <RecentActivity />
       </div>

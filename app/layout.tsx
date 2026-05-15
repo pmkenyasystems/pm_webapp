@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
-import { Inter, Poppins, Montserrat } from 'next/font/google'
+import { Lato } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
+import ConditionalShell from '@/components/layout/ConditionalShell'
 import { Providers } from './providers'
 import DisableInspect from '@/components/security/DisableInspect'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-poppins' })
-const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-montserrat' })
+const lato = Lato({
+  subsets: ['latin'],
+  weight: ['300', '400', '700', '900'],
+  variable: '--font-lato',
+})
 
 export const metadata: Metadata = {
   title: 'People\'s Renaissance Movement - The Change We Need',
@@ -42,15 +43,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable} ${montserrat.variable}`}>
+    <html lang="en" className={lato.variable}>
       <body className="font-sans antialiased">
         <DisableInspect />
         <Providers>
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
+          <ConditionalShell>{children}</ConditionalShell>
         </Providers>
       </body>
     </html>
