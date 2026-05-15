@@ -19,7 +19,7 @@ export default async function FeaturedContent() {
   const { articles } = await getFeaturedContent()
 
   return (
-    <section className="pt-6 pb-12 bg-white">
+    <section className="pt-2 pb-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-2xl bg-gray-50 p-5 md:p-8 border border-gray-100">
           <div className="flex items-center justify-between mb-6">
