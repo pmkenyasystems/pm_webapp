@@ -44,21 +44,45 @@ export async function GET(request: NextRequest) {
     })
 
     const idNumbers = Array.from(new Set(aspirants.map((a) => a.idNumber)))
+    const now = new Date()
     const members = await prisma.member.findMany({
       where: { idNumber: { in: idNumbers } },
-      select: { idNumber: true, surname: true, otherNames: true },
+      select: {
+        idNumber: true,
+        surname: true,
+        otherNames: true,
+        membershipCategory: { select: { title: true } },
+        subscriptions: {
+          where: { status: 'completed', periodEnd: { gte: now } },
+          select: { id: true },
+          take: 1,
+        },
+      },
     })
-    const memberByName: Record<string, { surname: string; otherNames: string }> = {}
+    const memberMap: Record<string, {
+      surname: string
+      otherNames: string
+      categoryTitle: string | null
+      subscriptionPaid: boolean
+    }> = {}
     members.forEach((m) => {
-      memberByName[m.idNumber] = { surname: m.surname, otherNames: m.otherNames }
+      memberMap[m.idNumber] = {
+        surname: m.surname,
+        otherNames: m.otherNames,
+        categoryTitle: m.membershipCategory?.title ?? null,
+        subscriptionPaid: m.subscriptions.length > 0,
+      }
     })
 
     const list = aspirants.map((a) => {
-      const member = memberByName[a.idNumber]
+      const member = memberMap[a.idNumber]
       return {
         id: a.id,
         idNumber: a.idNumber,
         memberName: member ? `${member.surname} ${member.otherNames}`.trim() : null,
+        membership: member
+          ? { category: member.categoryTitle, paid: member.subscriptionPaid }
+          : null,
         election: a.election,
         position: a.position,
         county: a.county?.countyName ?? null,
@@ -79,6 +103,49 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching aspirants:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch aspirants' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { id, status } = await request.json()
+    if (!id) return NextResponse.json({ error: 'Aspirant ID is required' }, { status: 400 })
+    if (![0, 1, 2].includes(Number(status))) return NextResponse.json({ error: 'Invalid status value' }, { status: 400 })
+
+    const updated = await prisma.aspirant.update({
+      where: { id },
+      data: { status: Number(status) },
+      select: { id: true, status: true },
+    })
+    return NextResponse.json({ aspirant: updated })
+  } catch (error: unknown) {
+    console.error('Error updating aspirant status:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to update status' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { id } = await request.json()
+    if (!id) return NextResponse.json({ error: 'Aspirant ID is required' }, { status: 400 })
+
+    await prisma.aspirant.delete({ where: { id } })
+    return NextResponse.json({ message: 'Aspirant deleted successfully' })
+  } catch (error: unknown) {
+    console.error('Error deleting aspirant:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to delete aspirant' },
       { status: 500 }
     )
   }

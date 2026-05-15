@@ -52,6 +52,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/qr" className="text-gray-400 hover:text-white transition">
+                  QR Code Generator
+                </Link>
+              </li>
+              <li>
                 <Link href="/admin/login" className="text-gray-400 hover:text-white transition">
                   Admin Login
                 </Link>
