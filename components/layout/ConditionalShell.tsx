@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Navbar from './Navbar'
 import Footer from './Footer'
+import NDCBanner from '@/components/home/NDCBanner'
 
 export default function ConditionalShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -12,6 +13,7 @@ export default function ConditionalShell({ children }: { children: React.ReactNo
 
   return (
     <>
+      <NDCBanner />
       <Navbar />
       <main className="min-h-screen">{children}</main>
       <Footer />
