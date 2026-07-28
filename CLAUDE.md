@@ -114,12 +114,15 @@ STRIPE_PUBLISHABLE_KEY
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 IPPMS_API_URL
 IPPMS_API_KEY
+GMAIL_USER               # sender for aspirant-application notification emails (lib/mailer.ts)
+GMAIL_APP_PASSWORD
+NEB_EMAIL                # recipient for new-aspirant notifications
 ```
 
 ## Notable Patterns
 
 - **Prisma client** is a singleton in `lib/prisma.ts` — always import from there, never instantiate directly.
 - **BigInt serialization**: Prisma returns BigInt for some fields; `lib/serialize-member.ts` handles JSON serialization of member objects.
-- **Scripts** use `tsx` (not `ts-node`). Add new scripts to `package.json` and run via `npx tsx scripts/your-script.ts`.
+- **Scripts** use `tsx` (not `ts-node`). Add new scripts to `package.json` and run via `npx tsx scripts/your-script.ts`. `scripts/` also contains one-off per-county member seed files (`seed-<county>.ts`) not wired into `package.json` — run these directly with `npx tsx`.
 - **Admin route protection** is checked at the API level (session + module permissions), not just middleware.
 - `db:push` is used instead of `db:migrate` for schema changes in this project — avoid running migrations in development unless intentional.
