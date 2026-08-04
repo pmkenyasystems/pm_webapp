@@ -272,3 +272,11 @@ model Aspirant {
   @@unique([idNumber, electionId, positionId])
   @@map("aspirant")
 }
+
+model NdcRegistration {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String
+  createdAt DateTime @default(now())
+}
