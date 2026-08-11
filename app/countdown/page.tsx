@@ -164,7 +164,7 @@ export default function CountdownPage() {
           className="mt-8 sm:mt-10 flex items-center gap-3 text-xs sm:text-sm uppercase tracking-[0.2em] font-semibold"
           style={{ color: `${DEEP_BLUE}99` }}
         >
-          <span>People&apos;s Renaissance Movement</span>
+          <span>PM Party</span>
           <span className="h-1 w-1 rounded-full" style={{ backgroundColor: BRIGHT_RED }} />
           <span>Mabadiliko Ni Sasa</span>
         </div>
