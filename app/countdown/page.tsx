@@ -35,21 +35,19 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** Diagonal flag-style ribbon accents in a corner; flip with `mirror` for the opposite side. */
-function CornerRibbons({ mirror = false }: { mirror?: boolean }) {
+/** A slim, nested corner bracket ornament; flip with `mirror` for the opposite side. */
+function CornerBracket({ mirror = false }: { mirror?: boolean }) {
   return (
     <div
-      className={`pointer-events-none absolute top-0 ${mirror ? 'right-0 scale-x-[-1]' : 'left-0'} w-[55vw] max-w-[520px] h-full overflow-hidden -z-10`}
+      className={`pointer-events-none absolute top-6 sm:top-8 md:top-10 ${
+        mirror ? 'right-6 sm:right-8 md:right-10 scale-x-[-1]' : 'left-6 sm:left-8 md:left-10'
+      } w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 -z-10`}
       aria-hidden
     >
-      <div
-        className="absolute -top-[8%] -left-[25%] w-[170%] h-16 sm:h-20 md:h-24 rotate-[-32deg] origin-top-left shadow-lg"
-        style={{ backgroundColor: DEEP_BLUE }}
-      />
-      <div
-        className="absolute top-[18%] -left-[30%] w-[170%] h-8 sm:h-10 md:h-12 rotate-[-32deg] origin-top-left shadow-lg"
-        style={{ backgroundColor: BRIGHT_RED }}
-      />
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        <path d="M4 44 V4 H44" stroke={DEEP_BLUE} strokeWidth="1.75" strokeLinecap="round" opacity={0.9} />
+        <path d="M16 32 V16 H32" stroke={BRIGHT_RED} strokeWidth="1.75" strokeLinecap="round" />
+      </svg>
     </div>
   )
 }
@@ -74,8 +72,8 @@ export default function CountdownPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-white flex flex-col items-center justify-center px-6 py-16 isolate">
-      <CornerRibbons />
-      <CornerRibbons mirror />
+      <CornerBracket />
+      <CornerBracket mirror />
 
       <div className="relative flex flex-col items-center text-center gap-5 sm:gap-6 max-w-3xl w-full">
         <div className="relative h-14 sm:h-16 w-auto aspect-[943/693]">
