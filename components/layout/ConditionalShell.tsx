@@ -8,7 +8,7 @@ import NDCBanner from '@/components/home/NDCBanner'
 export default function ConditionalShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAdmin = pathname.startsWith('/admin')
-  const isBare = pathname.startsWith('/ndc')
+  const isBare = pathname.startsWith('/ndc') || pathname.startsWith('/countdown')
 
   if (isAdmin || isBare) return <>{children}</>
 
