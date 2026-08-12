@@ -14,7 +14,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-poppins), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-barlow-semi-condensed), system-ui, sans-serif;
 }
 
 @layer utilities {

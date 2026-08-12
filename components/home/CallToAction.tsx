@@ -2,38 +2,31 @@ import Link from 'next/link'
 
 export default function CallToAction() {
   return (
-    <section className="bg-primary-red text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-2xl md:text-3xl font-bold mb-3">
-          Be part of the Movement.
-        </h2>
-        <p className="text-lg md:text-xl font-medium tracking-wide mb-6 max-w-2xl mx-auto">
-          <span className="text-white">The Change We Need</span>
-          <span className="mx-2 text-white/80" aria-hidden>·</span>
-          <span className="text-white/95 italic">Mabadiliko Ni Sasa.</span>
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
-          <Link
-            href="/membership"
-            className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-medium text-white border border-white/70 bg-white/10 hover:bg-white/20 transition"
-          >
-            Become a Member
-          </Link>
-          <Link
-            href="/volunteer"
-            className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-medium text-white border border-white/70 bg-white/10 hover:bg-white/20 transition"
-          >
-            Volunteer
-          </Link>
-          <Link
-            href="/donate"
-            className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg text-sm font-medium text-white border border-white/70 bg-white/10 hover:bg-white/20 transition"
-          >
-            Donate
-          </Link>
-        </div>
+    <section id="join" className="px-6 py-11 md:px-12 md:py-[60px] bg-primary-blue text-white text-center scroll-mt-20">
+      <h2 className="font-heading font-black text-2xl md:text-[32px] uppercase mb-2.5">
+        Be Part Of The Movement
+      </h2>
+      <p className="text-white text-[15px] mb-[26px]">The Change We Need &middot; Mabadiliko Ni Sasa</p>
+      <div className="flex flex-wrap justify-center gap-3">
+        <Link
+          href="/membership"
+          className="font-extrabold text-[15px] px-6 py-[13px] rounded-full bg-primary-red text-white hover:bg-[#c9141a] transition"
+        >
+          Become a Member
+        </Link>
+        <Link
+          href="/volunteer"
+          className="font-extrabold text-[15px] px-6 py-[13px] rounded-full border-2 border-white text-white hover:bg-white hover:text-primary-blue transition"
+        >
+          Volunteer
+        </Link>
+        <Link
+          href="/donate"
+          className="font-extrabold text-[15px] px-6 py-[13px] rounded-full bg-white text-primary-blue hover:bg-gray-200 transition"
+        >
+          Donate
+        </Link>
       </div>
     </section>
   )
 }
-
