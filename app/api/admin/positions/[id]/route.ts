@@ -68,13 +68,16 @@ export async function PUT(
       )
     }
 
-    const { positionTitle, positionLevel } = await request.json()
+    const { positionTitle, positionLevel, applicationFee } = await request.json()
 
     const position = await prisma.position.update({
       where: { id: parseInt(params.id) },
       data: {
         ...(positionTitle && { positionTitle }),
         ...(positionLevel && { positionLevel }),
+        ...(applicationFee !== undefined && {
+          applicationFee: applicationFee != null && applicationFee !== '' ? Number(applicationFee) : null,
+        }),
       },
     })
 

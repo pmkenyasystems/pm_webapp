@@ -61,7 +61,7 @@ export default function Footer() {
         <div className="font-bold text-sm mb-3.5 uppercase tracking-wide">Quick Links</div>
         <div className="flex flex-col gap-2.5 text-sm text-gray-600">
           <Link href="/#about" className="hover:text-primary-blue transition">About Us</Link>
-          <Link href="/membership" className="hover:text-primary-blue transition">Membership</Link>
+          <Link href="/membership/register" className="hover:text-primary-blue transition">Membership</Link>
           <Link href="/volunteer" className="hover:text-primary-blue transition">Volunteer</Link>
           <Link href="/donate" className="hover:text-primary-blue transition">Donate</Link>
         </div>

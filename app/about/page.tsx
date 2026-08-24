@@ -316,7 +316,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
-              href="/membership"
+              href="/membership/register"
               className="bg-primary-red text-white px-8 py-3 rounded-md font-semibold hover:bg-[#9A162D] transition"
             >
               Become a Member

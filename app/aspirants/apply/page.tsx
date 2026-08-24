@@ -457,7 +457,7 @@ export default function AspirantApplicationPage() {
                   {loading ? 'Submitting...' : 'Submit Application'}
                 </button>
                 <Link
-                  href="/membership"
+                  href="/membership/register"
                   className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md font-semibold hover:bg-gray-300 transition inline-block"
                 >
                   Cancel

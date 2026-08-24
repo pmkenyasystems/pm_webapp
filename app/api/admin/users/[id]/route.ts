@@ -30,6 +30,7 @@ export async function GET(
         name: true,
         role: true,
         modules: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -65,7 +66,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden: Super admin access required' }, { status: 403 })
     }
 
-    const { email, password, name, role, modules } = await request.json()
+    const { email, password, name, role, modules, isActive } = await request.json()
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -82,6 +83,21 @@ export async function PUT(
         { error: 'Cannot change super admin role' },
         { status: 400 }
       )
+    }
+
+    if (isActive === false) {
+      if (existingUser.role === 'super_admin') {
+        return NextResponse.json(
+          { error: 'Cannot deactivate a super admin' },
+          { status: 400 }
+        )
+      }
+      if (existingUser.id === session.user.id) {
+        return NextResponse.json(
+          { error: 'Cannot deactivate your own account' },
+          { status: 400 }
+        )
+      }
     }
 
     // Check if email is being changed and if it's already taken
@@ -112,6 +128,7 @@ export async function PUT(
         updateData.modules = null
       }
     }
+    if (isActive !== undefined) updateData.isActive = !!isActive
 
     const user = await prisma.user.update({
       where: { id: params.id },
@@ -122,6 +139,7 @@ export async function PUT(
         name: true,
         role: true,
         modules: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },

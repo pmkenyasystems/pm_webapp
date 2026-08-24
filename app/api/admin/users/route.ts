@@ -3,19 +3,10 @@ import { getSession } from '@/lib/auth'
 import { isSuperAdmin } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import { sendAdminWelcomeEmail } from '@/lib/mailer'
+import { generateTemporaryPassword } from '@/lib/generate-temp-password'
 import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
-
-const PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
-
-function generateTemporaryPassword(length = 12): string {
-  const bytes = crypto.randomBytes(length)
-  let out = ''
-  for (let i = 0; i < length; i++) out += PASSWORD_CHARS[bytes[i] % PASSWORD_CHARS.length]
-  return out
-}
 
 // GET all admin users (only super admin)
 export async function GET() {
@@ -37,6 +28,7 @@ export async function GET() {
         name: true,
         role: true,
         modules: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },

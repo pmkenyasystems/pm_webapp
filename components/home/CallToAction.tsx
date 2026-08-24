@@ -10,7 +10,7 @@ export default function CallToAction() {
         <p className="text-white text-[15px] mb-[26px]">The Change We Need &middot; Mabadiliko Ni Sasa</p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link
-            href="/membership"
+            href="/membership/register"
             className="font-extrabold text-[15px] px-6 py-[13px] rounded-full bg-primary-red text-white hover:bg-[#c9141a] transition"
           >
             Become a Member

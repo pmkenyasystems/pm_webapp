@@ -36,12 +36,27 @@ export async function GET(request: NextRequest) {
       where: Object.keys(where).length ? where : undefined,
       include: {
         election: { select: { id: true, title: true, electionDate: true } },
-        position: { select: { id: true, positionTitle: true, positionLevel: true } },
+        position: { select: { id: true, positionTitle: true, positionLevel: true, applicationFee: true } },
         county: { select: { countyCode: true, countyName: true } },
         constituency: { select: { constituencyCode: true, constituencyName: true } },
         ward: { select: { wardCode: true, wardName: true } },
       },
       orderBy: { createdAt: 'desc' },
+    })
+
+    const payments = await prisma.aspirantPayment.findMany({
+      where: { aspirantId: { in: aspirants.map((a) => a.id) } },
+      orderBy: { createdAt: 'desc' },
+      select: { aspirantId: true, status: true },
+    })
+    const feeStatusByAspirantId: Record<string, 'paid' | 'pending' | 'unpaid'> = {}
+    aspirants.forEach((a) => {
+      const own = payments.filter((p) => p.aspirantId === a.id)
+      feeStatusByAspirantId[a.id] = own.some((p) => p.status === 'completed')
+        ? 'paid'
+        : own.some((p) => p.status === 'pending')
+        ? 'pending'
+        : 'unpaid'
     })
 
     const idNumbers = Array.from(new Set(aspirants.map((a) => a.idNumber)))
@@ -90,6 +105,7 @@ export async function GET(request: NextRequest) {
         constituency: a.constituency?.constituencyName ?? null,
         ward: a.ward?.wardName ?? null,
         status: a.status,
+        feeStatus: feeStatusByAspirantId[a.id],
         country: a.country,
         createdAt: a.createdAt,
         updatedAt: a.updatedAt,
@@ -166,6 +182,18 @@ export async function PATCH(request: NextRequest) {
     const { id, status } = await request.json()
     if (!id) return NextResponse.json({ error: 'Aspirant ID is required' }, { status: 400 })
     if (![0, 1, 2].includes(Number(status))) return NextResponse.json({ error: 'Invalid status value' }, { status: 400 })
+
+    if (Number(status) === 1) {
+      const paidPayment = await prisma.aspirantPayment.findFirst({
+        where: { aspirantId: id, status: 'completed' },
+      })
+      if (!paidPayment) {
+        return NextResponse.json(
+          { error: 'This aspirant cannot be approved until their application fee payment has been verified' },
+          { status: 400 }
+        )
+      }
+    }
 
     const updated = await prisma.aspirant.update({
       where: { id },

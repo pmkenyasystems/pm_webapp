@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import axios from 'axios'
 import Stripe from 'stripe'
+import { initiateStkPush } from '@/lib/mpesa'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,62 +9,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2023-10-16',
 })
 
-// M-Pesa STK Push function
 async function initiateMpesaSTK(phone: string, amount: number) {
-  const consumerKey = process.env.MPESA_CONSUMER_KEY
-  const consumerSecret = process.env.MPESA_CONSUMER_SECRET
-  const shortcode = process.env.MPESA_SHORTCODE
-  const passkey = process.env.MPESA_PASSKEY
-  const environment = process.env.MPESA_ENVIRONMENT || 'sandbox'
-
-  const baseUrl = environment === 'production' 
-    ? 'https://api.safaricom.co.ke' 
-    : 'https://sandbox.safaricom.co.ke'
-
-  try {
-    // Get access token
-    const authResponse = await axios.get(`${baseUrl}/oauth/v1/generate?grant_type=client_credentials`, {
-      auth: {
-        username: consumerKey || '',
-        password: consumerSecret || '',
-      },
-    })
-
-    const accessToken = authResponse.data.access_token
-
-    // Initiate STK Push
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3)
-    const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString('base64')
-    const phoneNumber = phone.startsWith('254') ? phone : `254${phone.replace(/^0/, '')}`
-
-    const stkResponse = await axios.post(
-      `${baseUrl}/mpesa/stkpush/v1/processrequest`,
-      {
-        BusinessShortCode: shortcode,
-        Password: password,
-        Timestamp: timestamp,
-        TransactionType: 'CustomerPayBillOnline',
-        Amount: Math.round(amount),
-        PartyA: phoneNumber,
-        PartyB: shortcode,
-        PhoneNumber: phoneNumber,
-        CallBackURL: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/donate/callback`,
-        AccountReference: 'PRM Donation',
-        TransactionDesc: 'Donation to People\'s Renaissance Movement',
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-
-    return stkResponse.data
-  } catch (error: any) {
-    console.error('M-Pesa STK Push error:', error)
-    throw new Error(error.response?.data?.errorMessage || 'Failed to initiate M-Pesa payment')
-  }
+  return initiateStkPush({
+    phone,
+    amount,
+    accountReference: 'PRM Donation',
+    transactionDesc: "Donation to People's Renaissance Movement",
+    callbackPath: '/api/donate/callback',
+  })
 }
 
 export async function POST(request: NextRequest) {

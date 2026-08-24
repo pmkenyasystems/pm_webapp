@@ -12,9 +12,7 @@ interface Analytics {
   byCounty: { countyCode: number | null; county: string; count: number }[]
   byPosition: { position: string; level: string; count: number }[]
   byPositionLevel: { level: string; count: number }[]
-  byElection: { id: string; title: string; isActive: boolean; count: number }[]
   monthlyTrend: { label: string; count: number }[]
-  unpaidAspirants: { total: number; items: { id: string; name: string; election: string; position: string; county: string; status: number }[] }
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -175,49 +173,6 @@ export default function ElectionsDashboardPage() {
               </div>
             </div>
 
-            {/* By election */}
-            <div className="bg-white border border-gray-100 rounded-xl p-4">
-              <div className="font-bold text-[15px] mb-3.5">By Election</div>
-              <RankedBarList
-                emptyLabel="No election data yet."
-                items={data.byElection.map((e) => ({ label: e.title, sublabel: e.isActive ? 'Active' : 'Closed', count: e.count }))}
-                maxRows={8}
-              />
-            </div>
-
-            {/* Governance flag */}
-            {data.unpaidAspirants.total > 0 && (
-              <div className="bg-white border border-gray-100 rounded-xl p-4 overflow-x-auto">
-                <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
-                  <div className="font-bold text-[15px]">Aspirants Without an Active Subscription</div>
-                  <span className="text-[11.5px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                    {data.unpaidAspirants.total} flagged
-                  </span>
-                </div>
-                <p className="text-[13px] text-gray-500 mb-3.5">
-                  Not-yet-rejected aspirants whose membership subscription isn't currently active — worth a check before approval.
-                </p>
-                <div className="min-w-[480px]">
-                  <div className="grid grid-cols-4 text-xs font-bold text-gray-500 uppercase pb-2.5 border-b border-gray-100">
-                    <div>Name</div><div>Election</div><div>Position</div><div>County</div>
-                  </div>
-                  {data.unpaidAspirants.items.map((u) => (
-                    <div key={u.id} className="grid grid-cols-4 text-[13.5px] py-2.5 border-b border-gray-50 items-center">
-                      <div className="font-semibold">{u.name}</div>
-                      <div className="text-gray-500">{u.election}</div>
-                      <div>{u.position}</div>
-                      <div>{u.county}</div>
-                    </div>
-                  ))}
-                </div>
-                {data.unpaidAspirants.total > data.unpaidAspirants.items.length && (
-                  <p className="text-xs text-gray-400 mt-3">
-                    Showing {data.unpaidAspirants.items.length} of {data.unpaidAspirants.total}.{' '}
-                    <Link href="/admin/aspirants" className="text-primary-blue font-semibold">View all in Aspirants →</Link>
-                  </p>
-                )}
-              </div>
-            )}
           </div>
         ) : null}
       </div>

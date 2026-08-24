@@ -48,17 +48,17 @@ export default function Hero() {
         </div>
 
         <div className="relative max-w-[640px] py-12 md:py-0 text-gray-900">
-        <h1 className="font-heading font-black leading-[0.95] text-[40px] md:text-[72px] mb-[22px] uppercase text-primary-blue">
-          Kenya Needs
+        <h1 className="font-heading font-black leading-[0.95] text-[34px] md:text-[58px] mb-[22px] uppercase text-primary-blue">
+          Tuko Chama
           <br />
-          <span className="text-primary-red">A Renaissance</span>
+          <span className="text-primary-red">Tuko PM</span>
         </h1>
         <p className="text-base md:text-[19px] leading-[1.5] text-gray-600 mb-[30px] max-w-[520px] font-semibold">
           Welcome to the People&apos;s Movement. Get Involved.
         </p>
         <div className="flex gap-2.5 flex-nowrap overflow-x-auto">
           <Link
-            href="/membership"
+            href="/membership/register"
             className="font-bold text-[13.5px] px-[18px] py-2.5 rounded-full bg-primary-red text-white whitespace-nowrap flex-shrink-0 hover:bg-primary-blue transition"
           >
             Become a Member

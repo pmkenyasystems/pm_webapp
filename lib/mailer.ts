@@ -102,7 +102,7 @@ export async function sendAspirantConfirmation(data: {
   }
 
   const siteUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/+$/, '')
-  const portalUrl = `${siteUrl}/membership/profile?section=elections`
+  const portalUrl = `${siteUrl}/membership/profile?section=applications`
   const firstName = data.name.trim().split(' ')[0] || 'there'
 
   await transporter.sendMail({
@@ -329,6 +329,113 @@ export async function sendAdminWelcomeEmail(data: {
           <p style="margin: 0; color: #9ca3af; font-size: 12px;">
             This is an automated message from the PM Party admin dashboard. If you were not expecting this
             account, please contact the secretariat.
+          </p>
+        </div>
+      </div>
+    `,
+  })
+}
+
+export async function sendAdminPasswordResetEmail(data: {
+  name: string | null
+  email: string
+  temporaryPassword: string
+}) {
+  const senderEmail = process.env.GMAIL_USER
+
+  if (!senderEmail) {
+    throw new Error('GMAIL_USER not configured in .env')
+  }
+
+  const siteUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/+$/, '')
+  const loginUrl = `${siteUrl}/admin/login`
+  const firstName = data.name?.trim().split(' ')[0] || 'there'
+
+  await transporter.sendMail({
+    from: `"PM Party Admin" <${senderEmail}>`,
+    to: data.email,
+    subject: 'Your PM Party Admin Password Has Been Reset',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #003366; color: white; padding: 24px 32px;">
+          <h2 style="margin: 0;">Password Reset</h2>
+          <p style="margin: 4px 0 0; opacity: 0.85; font-size: 14px;">People's Renaissance Movement</p>
+        </div>
+
+        <div style="padding: 32px; background: #f9fafb; border: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 16px; color: #374151;">
+            Hi ${firstName},
+          </p>
+          <p style="margin: 0 0 16px; color: #374151;">
+            Your password for the PM Party admin dashboard has been reset by a super admin. Use the
+            temporary password below to log in.
+          </p>
+
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 16px;">
+            <tbody>
+              ${row('Email', data.email)}
+              ${row('Temporary Password', `<code style="font-size: 15px; font-weight: 700;">${data.temporaryPassword}</code>`)}
+            </tbody>
+          </table>
+
+          <p style="margin: 0 0 24px; color: #b91c1c; font-size: 13px; font-weight: 600;">
+            For security, please change this password immediately after logging in.
+          </p>
+
+          <a href="${loginUrl}" style="display: inline-block; background: #003366; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">
+            Log In to Admin Dashboard
+          </a>
+        </div>
+
+        <div style="padding: 16px 32px; background: #f3f4f6; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+            This is an automated message from the PM Party admin dashboard. If you did not expect this
+            reset, please contact the secretariat immediately.
+          </p>
+        </div>
+      </div>
+    `,
+  })
+}
+
+export async function sendMembershipRegistrationConfirmation(data: { name: string; email: string }) {
+  const senderEmail = process.env.GMAIL_USER
+
+  if (!senderEmail) {
+    console.error('Email not sent: GMAIL_USER not configured in .env')
+    return
+  }
+
+  const firstName = data.name.trim().split(' ')[0] || 'there'
+
+  await transporter.sendMail({
+    from: `"PM Party" <${senderEmail}>`,
+    to: data.email,
+    subject: 'Thanks for Sharing Your Details with PM Party',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #003366; color: white; padding: 24px 32px;">
+          <h2 style="margin: 0;">Thanks for Reaching Out</h2>
+          <p style="margin: 4px 0 0; opacity: 0.85; font-size: 14px;">People's Renaissance Movement</p>
+        </div>
+
+        <div style="padding: 32px; background: #f9fafb; border: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 16px; color: #374151;">
+            Dear ${firstName},
+          </p>
+          <p style="margin: 0 0 16px; color: #374151;">
+            Thank you for sharing your details with People's Renaissance Movement (PM Party). Our
+            membership team has received your information and will be in touch to welcome you and keep
+            you informed about PM Party activities near you.
+          </p>
+          <p style="margin: 24px 0 0; color: #6b7280; font-size: 13px;">
+            The Change We Need &mdash; Mabadiliko Ni Sasa
+          </p>
+        </div>
+
+        <div style="padding: 16px 32px; background: #f3f4f6; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+            This is an automated confirmation from the PM Party website.
           </p>
         </div>
       </div>

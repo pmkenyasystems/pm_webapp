@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import PageLoader from '@/components/PageLoader'
+import AspirantPaymentPanel from '@/components/membership/AspirantPaymentPanel'
 
 interface Member {
   id: number
@@ -53,15 +54,6 @@ interface MemberDonation {
   createdAt: string
 }
 
-interface Announcement {
-  id: string
-  title: string
-  slug: string
-  excerpt?: string | null
-  publishedAt?: string | null
-  createdAt: string
-}
-
 interface ElectionItem {
   id: string
   title: string
@@ -70,23 +62,19 @@ interface ElectionItem {
   isActive: boolean
 }
 
-type Section = 'overview' | 'membership' | 'donations' | 'elections'
+type Section = 'overview' | 'membership' | 'donations' | 'applications' | 'candidatures'
 
 const sectionLabels: Record<Section, string> = {
   overview: 'Overview',
   membership: 'Membership & Renewal',
   donations: 'Donation History',
-  elections: 'Elections & Voting',
+  applications: 'My Applications',
+  candidatures: 'Candidature Profiles',
 }
 
 function formatDate(iso?: string | null) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
-function formatShortDate(iso?: string | null) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' })
 }
 
 function formatMoney(amount: number, currency = 'KES') {
@@ -101,9 +89,9 @@ export default function MemberDashboardPage() {
 
   const [payments, setPayments] = useState<SubscriptionPayment[]>([])
   const [donations, setDonations] = useState<MemberDonation[]>([])
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
 
   const [showRenewOptions, setShowRenewOptions] = useState(false)
+  const [downloadingCard, setDownloadingCard] = useState(false)
 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const accountMenuRef = useRef<HTMLDivElement>(null)
@@ -135,11 +123,13 @@ export default function MemberDashboardPage() {
   const [aspirantError, setAspirantError] = useState('')
   const [aspirantSuccess, setAspirantSuccess] = useState(false)
   const [showAspirantForm, setShowAspirantForm] = useState(false)
+  const [myApplications, setMyApplications] = useState<any[]>([])
+  const [myApplicationsLoading, setMyApplicationsLoading] = useState(false)
 
   useEffect(() => {
     const memberData = localStorage.getItem('memberSession')
     if (!memberData) {
-      router.push('/membership')
+      router.push('/membership/login')
       return
     }
 
@@ -148,29 +138,32 @@ export default function MemberDashboardPage() {
       setMember(memberObj)
       fetchPayments(memberObj.idNumber)
       fetchDonations(memberObj.idNumber)
-      fetchAnnouncements()
 
       if (typeof window !== 'undefined') {
         const urlParams = new URLSearchParams(window.location.search)
         const section = urlParams.get('section')
-        if (section === 'elections') setActiveSection('elections')
+        if (section === 'applications' || section === 'elections') setActiveSection('applications')
+        else if (section === 'candidatures') setActiveSection('candidatures')
         else if (section === 'donations') setActiveSection('donations')
         else if (section === 'membership') setActiveSection('membership')
       }
     } catch (e) {
       console.error('Error parsing member session:', e)
       localStorage.removeItem('memberSession')
-      router.push('/membership')
+      router.push('/membership/login')
     } finally {
       setLoading(false)
     }
   }, [router])
 
   useEffect(() => {
-    if (activeSection === 'elections' && elections.length === 0 && !aspirantLoadingData) {
+    if (activeSection === 'applications' && elections.length === 0 && !aspirantLoadingData) {
       fetchAspirantData()
     }
-  }, [activeSection])
+    if ((activeSection === 'applications' || activeSection === 'candidatures') && member) {
+      fetchMyApplications()
+    }
+  }, [activeSection, member])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -212,21 +205,6 @@ export default function MemberDashboardPage() {
     }
   }
 
-  const fetchAnnouncements = async () => {
-    try {
-      const response = await fetch('/api/articles?limit=3')
-      if (response.ok) {
-        const data = await response.json()
-        setAnnouncements(data.articles || [])
-      } else {
-        setAnnouncements([])
-      }
-    } catch (error) {
-      console.error('Error fetching announcements:', error)
-      setAnnouncements([])
-    }
-  }
-
   const fetchAspirantData = async () => {
     setAspirantLoadingData(true)
     try {
@@ -249,6 +227,20 @@ export default function MemberDashboardPage() {
       setAspirantError('Failed to load election data')
     } finally {
       setAspirantLoadingData(false)
+    }
+  }
+
+  const fetchMyApplications = async () => {
+    if (!member) return
+    setMyApplicationsLoading(true)
+    try {
+      const res = await fetch(`/api/aspirants/mine?idNumber=${member.idNumber}`)
+      const data = await res.json()
+      if (res.ok) setMyApplications(data.applications || [])
+    } catch (err) {
+      console.error('Error fetching my applications:', err)
+    } finally {
+      setMyApplicationsLoading(false)
     }
   }
 
@@ -392,7 +384,7 @@ export default function MemberDashboardPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('memberSession')
-    router.push('/membership')
+    router.push('/membership/login')
   }
 
   if (loading) {
@@ -428,10 +420,87 @@ export default function MemberDashboardPage() {
     { key: 'overview', label: 'Overview' },
     { key: 'membership', label: 'Membership & Renewal' },
     { key: 'donations', label: 'Donation History' },
-    { key: 'elections', label: 'Elections & Voting' },
+    { key: 'applications', label: 'My Applications' },
+    { key: 'candidatures', label: 'Candidature Profiles' },
   ]
 
   const isActiveMember = member.status === 'active'
+
+  const handleDownloadCard = async () => {
+    setDownloadingCard(true)
+    try {
+      const { default: jsPDF } = await import('jspdf')
+      const W = 85.6
+      const H = 54
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [W, H] })
+
+      // Card background
+      doc.setFillColor(0, 52, 145) // primary-blue
+      doc.rect(0, 0, W, H, 'F')
+
+      // Decorative circle, top-right
+      try {
+        doc.setGState(doc.GState({ opacity: 0.35 }))
+      } catch {}
+      doc.setFillColor(240, 24, 30) // primary-red
+      doc.circle(W - 6, 6, 16, 'F')
+      try {
+        doc.setGState(doc.GState({ opacity: 1 }))
+      } catch {}
+
+      // Logo
+      try {
+        const logoDataUrl = await fetch('/logo.png')
+          .then((res) => res.blob())
+          .then(
+            (blob) =>
+              new Promise<string>((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result as string)
+                reader.onerror = reject
+                reader.readAsDataURL(blob)
+              })
+          )
+        doc.addImage(logoDataUrl, 'PNG', 5, 5, 9, 9)
+      } catch (err) {
+        console.error('Could not embed logo on membership card:', err)
+      }
+
+      doc.setTextColor(255, 255, 255)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(6.5)
+      doc.text('PM PARTY MEMBERSHIP ID', 17, 8.5)
+
+      doc.setFontSize(12.5)
+      doc.text(fullName, 5, 21)
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.text(`${tierLabel} Tier${member.county ? ` · ${member.county} County` : ''}`, 5, 26)
+
+      const field = (x: number, y: number, label: string, value: string) => {
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(6)
+        doc.setTextColor(255, 255, 255)
+        doc.text(label.toUpperCase(), x, y)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(7.5)
+        doc.text(value, x, y + 4)
+      }
+
+      field(5, 35, 'Member No.', `PM-${member.idNumber}`)
+      field(45, 35, 'Ward', member.ward || '—')
+      field(5, 45, 'Valid Through', formatDate(latestCompleted?.periodEnd))
+      field(45, 45, 'Status', member.status.charAt(0).toUpperCase() + member.status.slice(1))
+
+      doc.save(`PM-Party-Membership-ID-${member.idNumber}.pdf`)
+    } catch (err) {
+      console.error('Error generating membership card PDF:', err)
+      alert('Failed to generate your membership card. Please try again.')
+    } finally {
+      setDownloadingCard(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-white text-gray-900">
@@ -579,6 +648,17 @@ export default function MemberDashboardPage() {
                 </div>
               </div>
 
+              <button
+                onClick={handleDownloadCard}
+                disabled={downloadingCard}
+                className="lg:col-start-1 flex items-center justify-center gap-2 w-full text-sm font-bold px-4 py-2.5 rounded-md bg-white border border-gray-200 text-primary-blue hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {downloadingCard ? 'Preparing…' : 'Download Membership Card'}
+              </button>
+
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                   {kpis.map(k => (
@@ -587,30 +667,6 @@ export default function MemberDashboardPage() {
                       <div className="font-heading font-extrabold text-2xl text-primary-blue mt-1.5">{k.value}</div>
                     </div>
                   ))}
-                </div>
-
-                <div className="bg-white border border-gray-100 rounded-xl p-5">
-                  <div className="font-bold text-[15px] mb-3">Announcements from Leadership</div>
-                  {announcements.length === 0 ? (
-                    <p className="text-sm text-gray-400">No announcements yet.</p>
-                  ) : (
-                    announcements.map(a => (
-                      <div
-                        key={a.id}
-                        className="py-3 border-t border-gray-50 first:border-t-0 flex flex-col sm:flex-row sm:justify-between gap-1.5"
-                      >
-                        <div>
-                          <Link href={`/articles/${a.slug}`} className="font-semibold text-[14.5px] hover:text-primary-red transition">
-                            {a.title}
-                          </Link>
-                          {a.excerpt && <div className="text-[13px] text-gray-500 mt-0.5">{a.excerpt}</div>}
-                        </div>
-                        <div className="text-[12.5px] text-gray-400 whitespace-nowrap">
-                          {formatShortDate(a.publishedAt || a.createdAt)}
-                        </div>
-                      </div>
-                    ))
-                  )}
                 </div>
               </div>
             </div>
@@ -740,8 +796,33 @@ export default function MemberDashboardPage() {
             </div>
           )}
 
-          {activeSection === 'elections' && (
+          {activeSection === 'applications' && (
             <div className="flex flex-col gap-4">
+              {myApplications.length > 0 && (
+                <div className="bg-white border border-gray-100 rounded-xl p-5">
+                  <div className="font-bold text-base mb-1">My Applications</div>
+                  <p className="text-[13px] text-gray-500 mb-3.5">
+                    Your application fee must be paid before the Elections Board can approve your application.
+                  </p>
+                  {myApplicationsLoading ? (
+                    <div className="text-center py-8">
+                      <PageLoader size="sm" />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {myApplications.map((app) => (
+                        <AspirantPaymentPanel
+                          key={app.id}
+                          application={app}
+                          idNumber={member!.idNumber}
+                          onUpdate={fetchMyApplications}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="bg-white border border-gray-100 rounded-xl p-5">
                 <div className="font-bold text-base mb-3.5">Active Elections</div>
                 {aspirantLoadingData ? (
@@ -899,6 +980,54 @@ export default function MemberDashboardPage() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {activeSection === 'candidatures' && (
+            <div className="bg-white border border-gray-100 rounded-xl p-5">
+              <div className="font-bold text-base mb-1">Candidature Profiles</div>
+              <p className="text-[13px] text-gray-500 mb-3.5">
+                A candidature profile is created once the Elections Board approves your aspirant application.
+              </p>
+              {myApplicationsLoading ? (
+                <div className="text-center py-8">
+                  <PageLoader size="sm" />
+                </div>
+              ) : (
+                (() => {
+                  const candidatures = myApplications.filter((app) => app.status === 1)
+                  if (candidatures.length === 0) {
+                    return (
+                      <p className="text-sm text-gray-400 py-4">
+                        No candidature profiles yet. Once an aspirant application of yours is approved, it
+                        will appear here.
+                      </p>
+                    )
+                  }
+                  return (
+                    <div className="space-y-3">
+                      {candidatures.map((c) => (
+                        <div key={c.id} className="border border-gray-100 rounded-lg p-4">
+                          <div className="flex justify-between items-center flex-wrap gap-2">
+                            <div className="font-semibold text-[14.5px]">
+                              {c.position.positionTitle} &middot; {c.election.title}
+                            </div>
+                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">
+                              Approved Candidate
+                            </span>
+                          </div>
+                          <p className="text-[13px] text-gray-500 mt-1.5">
+                            {c.position.positionLevel} level{c.area ? ` · ${c.area}` : ''}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Election date: {formatDate(c.election.electionDate)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()
+              )}
             </div>
           )}
         </div>

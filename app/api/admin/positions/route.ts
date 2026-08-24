@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { positionTitle, positionLevel } = await request.json()
+    const { positionTitle, positionLevel, applicationFee } = await request.json()
 
     if (!positionTitle || !positionLevel) {
       return NextResponse.json(
@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       data: {
         positionTitle,
         positionLevel,
+        applicationFee: applicationFee != null && applicationFee !== '' ? Number(applicationFee) : null,
       },
     })
 

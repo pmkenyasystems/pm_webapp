@@ -44,7 +44,7 @@ export default function Navbar() {
             </Link>
           ))}
           <Link
-            href="/membership"
+            href="/membership/register"
             className="font-extrabold text-[14.5px] text-white bg-primary-red px-5 py-2.5 rounded-full uppercase tracking-[0.3px] hover:bg-primary-blue transition"
           >
             Membership
@@ -78,7 +78,7 @@ export default function Navbar() {
               </Link>
             ))}
             <Link
-              href="/membership"
+              href="/membership/register"
               onClick={() => setIsOpen(false)}
               className="py-3.5 font-bold text-base uppercase text-primary-red"
             >

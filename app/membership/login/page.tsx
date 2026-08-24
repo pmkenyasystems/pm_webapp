@@ -66,7 +66,7 @@ export default function MemberLoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -157,7 +157,7 @@ export default function MemberLoginPage() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don&apos;t have a profile yet?{' '}
-          <Link href="/membership#create-profile" className="text-primary-blue font-medium hover:underline">
+          <Link href="/membership/register" className="text-primary-blue font-medium hover:underline">
             Create one here
           </Link>
         </p>

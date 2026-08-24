@@ -12,7 +12,7 @@ export type Module = ModuleName
 export async function hasModuleAccess(module: Module): Promise<boolean> {
   const session = await getSession()
   
-  if (!session || !session.user) {
+  if (!session || !session.user || session.user.isActive === false) {
     return false
   }
 
@@ -26,7 +26,7 @@ export async function hasModuleAccess(module: Module): Promise<boolean> {
     where: { email: session.user.email! },
   })
 
-  if (!user) {
+  if (!user || !user.isActive) {
     return false
   }
 
@@ -48,7 +48,10 @@ export async function hasModuleAccess(module: Module): Promise<boolean> {
  */
 export async function isSuperAdmin(): Promise<boolean> {
   const session = await getSession()
-  return session?.user?.role === 'super_admin' || false
+  if (!session?.user || session.user.isActive === false) {
+    return false
+  }
+  return session.user.role === 'super_admin'
 }
 
 /**

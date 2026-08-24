@@ -97,7 +97,7 @@ export default function AdminPage() {
                 Log Out as Member
               </button>
               <Link
-                href="/membership"
+                href="/membership/register"
                 className="block w-full text-center bg-gray-200 text-gray-700 px-4 py-3 rounded-md font-semibold hover:bg-gray-300 transition"
               >
                 Go to Membership Page
