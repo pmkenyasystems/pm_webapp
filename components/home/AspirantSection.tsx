@@ -2,7 +2,8 @@ import Link from 'next/link'
 
 export default function AspirantSection() {
   return (
-    <section id="aspirant" className="px-5 py-12 md:px-12 md:py-[88px] bg-primary-red text-white scroll-mt-20">
+    <section id="aspirant" className="py-12 md:py-[88px] bg-primary-red text-white scroll-mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="max-w-[760px] mx-auto text-center">
         <span className="font-heading font-bold tracking-[2px] text-[13px] uppercase text-white">
           2027 General Election
@@ -20,6 +21,7 @@ export default function AspirantSection() {
         >
           Apply as an Aspirant
         </Link>
+      </div>
       </div>
     </section>
   )

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
+import PageLoader from '@/components/PageLoader'
 
 interface Member {
   id: number
@@ -42,12 +44,70 @@ interface SubscriptionPayment {
   periodEnd: string
 }
 
-export default function MemberProfilePage() {
+interface MemberDonation {
+  id: string
+  amount: number
+  currency: string
+  paymentMethod: string
+  transactionId?: string | null
+  createdAt: string
+}
+
+interface Announcement {
+  id: string
+  title: string
+  slug: string
+  excerpt?: string | null
+  publishedAt?: string | null
+  createdAt: string
+}
+
+interface ElectionItem {
+  id: string
+  title: string
+  description?: string | null
+  electionDate: string
+  isActive: boolean
+}
+
+type Section = 'overview' | 'membership' | 'donations' | 'elections'
+
+const sectionLabels: Record<Section, string> = {
+  overview: 'Overview',
+  membership: 'Membership & Renewal',
+  donations: 'Donation History',
+  elections: 'Elections & Voting',
+}
+
+function formatDate(iso?: string | null) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function formatShortDate(iso?: string | null) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' })
+}
+
+function formatMoney(amount: number, currency = 'KES') {
+  return `${currency} ${amount.toLocaleString('en-KE', { maximumFractionDigits: 0 })}`
+}
+
+export default function MemberDashboardPage() {
   const router = useRouter()
   const [member, setMember] = useState<Member | null>(null)
-  const [payments, setPayments] = useState<SubscriptionPayment[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeSection, setActiveSection] = useState<'profile' | 'payments' | 'pay' | 'aspirant' | 'change-password'>('profile')
+  const [activeSection, setActiveSection] = useState<Section>('overview')
+
+  const [payments, setPayments] = useState<SubscriptionPayment[]>([])
+  const [donations, setDonations] = useState<MemberDonation[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+
+  const [showRenewOptions, setShowRenewOptions] = useState(false)
+
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const accountMenuRef = useRef<HTMLDivElement>(null)
+
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -55,9 +115,9 @@ export default function MemberProfilePage() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
-  
+
   // Aspirant application form state
-  const [elections, setElections] = useState<any[]>([])
+  const [elections, setElections] = useState<ElectionItem[]>([])
   const [positions, setPositions] = useState<any[]>([])
   const [counties, setCounties] = useState<any[]>([])
   const [constituencies, setConstituencies] = useState<any[]>([])
@@ -74,9 +134,9 @@ export default function MemberProfilePage() {
   const [aspirantLoadingData, setAspirantLoadingData] = useState(false)
   const [aspirantError, setAspirantError] = useState('')
   const [aspirantSuccess, setAspirantSuccess] = useState(false)
+  const [showAspirantForm, setShowAspirantForm] = useState(false)
 
   useEffect(() => {
-    // Check if member is logged in
     const memberData = localStorage.getItem('memberSession')
     if (!memberData) {
       router.push('/membership')
@@ -87,16 +147,15 @@ export default function MemberProfilePage() {
       const memberObj = JSON.parse(memberData)
       setMember(memberObj)
       fetchPayments(memberObj.idNumber)
-      
-      // Check if there's a section parameter in the URL (e.g., from redirect)
+      fetchDonations(memberObj.idNumber)
+      fetchAnnouncements()
+
       if (typeof window !== 'undefined') {
         const urlParams = new URLSearchParams(window.location.search)
         const section = urlParams.get('section')
-        if (section === 'aspirant') {
-          setActiveSection('aspirant')
-        } else if (section === 'payments') {
-          setActiveSection('payments')
-        }
+        if (section === 'elections') setActiveSection('elections')
+        else if (section === 'donations') setActiveSection('donations')
+        else if (section === 'membership') setActiveSection('membership')
       }
     } catch (e) {
       console.error('Error parsing member session:', e)
@@ -107,12 +166,66 @@ export default function MemberProfilePage() {
     }
   }, [router])
 
-  // Fetch aspirant application data when section is active
   useEffect(() => {
-    if (activeSection === 'aspirant' && !aspirantLoadingData && elections.length === 0) {
+    if (activeSection === 'elections' && elections.length === 0 && !aspirantLoadingData) {
       fetchAspirantData()
     }
   }, [activeSection])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const fetchPayments = async (idNumber: string) => {
+    try {
+      const response = await fetch(`/api/membership/payments?idNumber=${idNumber}`)
+      if (response.ok) {
+        const data = await response.json()
+        setPayments(data.payments || [])
+      } else {
+        setPayments([])
+      }
+    } catch (error) {
+      console.error('Error fetching payments:', error)
+      setPayments([])
+    }
+  }
+
+  const fetchDonations = async (idNumber: string) => {
+    try {
+      const response = await fetch(`/api/membership/donations?idNumber=${idNumber}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDonations(data.donations || [])
+      } else {
+        setDonations([])
+      }
+    } catch (error) {
+      console.error('Error fetching donations:', error)
+      setDonations([])
+    }
+  }
+
+  const fetchAnnouncements = async () => {
+    try {
+      const response = await fetch('/api/articles?limit=3')
+      if (response.ok) {
+        const data = await response.json()
+        setAnnouncements(data.articles || [])
+      } else {
+        setAnnouncements([])
+      }
+    } catch (error) {
+      console.error('Error fetching announcements:', error)
+      setAnnouncements([])
+    }
+  }
 
   const fetchAspirantData = async () => {
     setAspirantLoadingData(true)
@@ -133,7 +246,7 @@ export default function MemberProfilePage() {
       if (positionsRes.ok) setPositions(positionsData.positions || [])
       if (countiesRes.ok) setCounties(countiesData.counties || [])
     } catch (err: any) {
-      setAspirantError('Failed to load application data')
+      setAspirantError('Failed to load election data')
     } finally {
       setAspirantLoadingData(false)
     }
@@ -144,7 +257,6 @@ export default function MemberProfilePage() {
     setAspirantFormData(prev => {
       const newData = { ...prev, [name]: value }
 
-      // Reset dependent fields when parent changes
       if (name === 'countyCode') {
         newData.constituencyCode = ''
         newData.wardCode = ''
@@ -163,13 +275,10 @@ export default function MemberProfilePage() {
       setConstituencies([])
       return
     }
-
     try {
       const response = await fetch(`/api/locations/constituencies?countyCode=${countyCode}`)
       const data = await response.json()
-      if (response.ok) {
-        setConstituencies(data.constituencies || [])
-      }
+      if (response.ok) setConstituencies(data.constituencies || [])
     } catch (err) {
       console.error('Error fetching constituencies:', err)
     }
@@ -180,13 +289,10 @@ export default function MemberProfilePage() {
       setWards([])
       return
     }
-
     try {
       const response = await fetch(`/api/locations/wards?constituencyCode=${constituencyCode}`)
       const data = await response.json()
-      if (response.ok) {
-        setWards(data.wards || [])
-      }
+      if (response.ok) setWards(data.wards || [])
     } catch (err) {
       console.error('Error fetching wards:', err)
     }
@@ -200,6 +306,7 @@ export default function MemberProfilePage() {
 
     if (!member) {
       setAspirantError('Please log in to apply')
+      setAspirantLoading(false)
       return
     }
 
@@ -242,27 +349,6 @@ export default function MemberProfilePage() {
     }
   }
 
-  const fetchPayments = async (idNumber: string) => {
-    try {
-      const response = await fetch(`/api/membership/payments?idNumber=${idNumber}`)
-      if (response.ok) {
-        const data = await response.json()
-        setPayments(data.payments || [])
-      } else {
-        // If API returns error, just set empty array (model might not have data yet)
-        setPayments([])
-      }
-    } catch (error) {
-      console.error('Error fetching payments:', error)
-      setPayments([])
-    }
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('memberSession')
-    router.push('/membership')
-  }
-
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setPasswordError('')
@@ -272,14 +358,12 @@ export default function MemberProfilePage() {
       setPasswordError('New passwords do not match')
       return
     }
-
     if (newPassword.length < 6) {
       setPasswordError('Password must be at least 6 characters long')
       return
     }
 
     setChangingPassword(true)
-
     try {
       const response = await fetch('/api/membership/change-password', {
         method: 'POST',
@@ -292,16 +376,13 @@ export default function MemberProfilePage() {
       })
 
       const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to change password')
-      }
+      if (!response.ok) throw new Error(data.error || 'Failed to change password')
 
       setPasswordSuccess('Password changed successfully!')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-      setShowChangePassword(false)
+      setTimeout(() => setShowChangePassword(false), 1200)
     } catch (err: any) {
       setPasswordError(err.message)
     } finally {
@@ -309,575 +390,594 @@ export default function MemberProfilePage() {
     }
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('memberSession')
+    router.push('/membership')
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <PageLoader size="lg" label="Loading your dashboard…" />
       </div>
     )
   }
 
-  if (!member) {
-    return null
-  }
+  if (!member) return null
+
+  const initials = `${member.surname?.[0] ?? ''}${member.otherNames?.[0] ?? ''}`.toUpperCase() || 'M'
+  const fullName = `${member.surname} ${member.otherNames}`.trim()
+  const tierLabel = member.membershipCategory?.title || 'Standard'
+
+  const completedPayments = payments.filter(p => p.status === 'completed')
+  const latestCompleted = completedPayments[0]
+  const yearsAsMember = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(member.membershipDate).getTime()) / (365.25 * 24 * 3600 * 1000))
+  )
+  const totalDonated = donations.reduce((sum, d) => sum + d.amount, 0)
+  const donationCurrency = donations[0]?.currency || 'KES'
+
+  const kpis = [
+    { label: 'Years as Member', value: String(yearsAsMember) },
+    { label: 'Subscriptions Paid', value: String(completedPayments.length) },
+    { label: 'Total Donated', value: formatMoney(totalDonated, donationCurrency) },
+  ]
+
+  const navItems: { key: Section; label: string }[] = [
+    { key: 'overview', label: 'Overview' },
+    { key: 'membership', label: 'Membership & Renewal' },
+    { key: 'donations', label: 'Donation History' },
+    { key: 'elections', label: 'Elections & Voting' },
+  ]
+
+  const isActiveMember = member.status === 'active'
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Member Profile</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Welcome, {member.surname} {member.otherNames}
-              </p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
-            >
-              Logout
-            </button>
+    <div className="flex min-h-screen w-full bg-white text-gray-900">
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-[250px] shrink-0 flex-col bg-white border-r border-gray-100 px-4 py-6">
+        <div className="flex items-center gap-2.5 pb-6 mb-5 border-b border-gray-100 px-1">
+          <div className="relative h-8 w-8 shrink-0">
+            <Image src="/logo_full.png" alt="PM Party logo" fill className="object-contain" />
+          </div>
+          <div className="font-heading font-extrabold text-[13px] leading-tight text-primary-blue">
+            MEMBER<br />PORTAL
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation */}
-        <div className="bg-white rounded-lg shadow mb-6">
-          <nav className="flex space-x-1 p-2" aria-label="Tabs">
-            <button
-              onClick={() => setActiveSection('profile')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                activeSection === 'profile'
-                  ? 'bg-primary-blue text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Profile
-            </button>
-            <button
-              onClick={() => setActiveSection('payments')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                activeSection === 'payments'
-                  ? 'bg-primary-blue text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Payments
-            </button>
-            <button
-              onClick={() => setActiveSection('pay')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                activeSection === 'pay'
-                  ? 'bg-primary-blue text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Pay Subscription
-            </button>
-            <button
-              onClick={() => setActiveSection('aspirant')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                activeSection === 'aspirant'
-                  ? 'bg-primary-blue text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Apply As Aspirant
-            </button>
-            <button
-              onClick={() => {
-                setActiveSection('change-password')
-                setShowChangePassword(true)
-              }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                activeSection === 'change-password'
-                  ? 'bg-primary-blue text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Change Password
-            </button>
-          </nav>
-        </div>
+        <nav className="flex-1 flex flex-col gap-1">
+          {navItems.map(item => {
+            const active = item.key === activeSection
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-[14.5px] font-semibold transition ${
+                  active ? 'bg-primary-red text-white' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-sm shrink-0 ${active ? 'bg-white/80' : 'bg-gray-400'}`}
+                />
+                {item.label}
+              </button>
+            )
+          })}
+        </nav>
 
-        {/* Profile Section */}
-        {activeSection === 'profile' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <p className="text-gray-900">{member.surname} {member.otherNames}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
-                <p className="text-gray-900">{member.idNumber}</p>
-              </div>
-              {member.membershipCategory && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Membership Category</label>
-                  <p className="text-gray-900">{member.membershipCategory.title}</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Fee: KSh {member.membershipCategory.fee.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · {member.membershipCategory.timeline === 0 ? 'One-Off Payment' : `Renewable every ${member.membershipCategory.timeline} years`}
-                  </p>
-                </div>
-              )}
-              {member.email && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <p className="text-gray-900">{member.email}</p>
-                </div>
-              )}
-              {member.phone && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <p className="text-gray-900">{member.phone}</p>
-                </div>
-              )}
-              {member.dateOfBirth && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                  <p className="text-gray-900">{new Date(member.dateOfBirth).toLocaleDateString()}</p>
-                </div>
-              )}
-              {member.gender && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                  <p className="text-gray-900">{member.gender}</p>
-                </div>
-              )}
-              {member.religion && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Religion</label>
-                  <p className="text-gray-900">{member.religion}</p>
-                </div>
-              )}
-              {member.ethnicity && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ethnicity</label>
-                  <p className="text-gray-900">{member.ethnicity}</p>
-                </div>
-              )}
-              {member.address && (
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                  <p className="text-gray-900">{member.address}</p>
-                </div>
-              )}
-              {member.county && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">County</label>
-                  <p className="text-gray-900">{member.county}</p>
-                </div>
-              )}
-              {member.constituency && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Constituency</label>
-                  <p className="text-gray-900">{member.constituency}</p>
-                </div>
-              )}
-              {member.ward && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ward</label>
-                  <p className="text-gray-900">{member.ward}</p>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Membership Date</label>
-                <p className="text-gray-900">{new Date(member.membershipDate).toLocaleDateString()}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                  member.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {member.status}
-                </span>
-              </div>
+        <button
+          onClick={handleLogout}
+          className="mt-4 pt-4 border-t border-gray-100 px-3 py-2.5 text-left text-sm font-semibold text-gray-400 hover:text-gray-700 transition"
+        >
+          &larr; Back to Site / Logout
+        </button>
+      </aside>
+
+      {/* Main column */}
+      <main className="flex-1 flex flex-col min-w-0">
+        <header className="flex items-center justify-between gap-3 px-4 sm:px-9 py-3.5 sm:py-5 border-b border-gray-100">
+          <div className="flex items-center gap-2.5 lg:hidden">
+            <div className="relative h-6 w-6 shrink-0">
+              <Image src="/logo_full.png" alt="PM Party logo" fill className="object-contain" />
             </div>
+            <div className="font-heading font-extrabold text-base uppercase">{sectionLabels[activeSection]}</div>
           </div>
-        )}
-
-        {/* Payments Section */}
-        {activeSection === 'payments' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Membership Subscription Payments</h2>
-            {payments.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No payment records found.</p>
-                <button
-                  onClick={() => setActiveSection('pay')}
-                  className="bg-primary-blue text-white px-6 py-2 rounded-md hover:bg-[#002244] transition"
-                >
-                  Make Your First Payment
-                </button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Period
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Payment Method
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {payments.map((payment) => (
-                      <tr key={payment.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(payment.periodStart).toLocaleDateString()} - {new Date(payment.periodEnd).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {payment.currency} {payment.amount.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {payment.paymentMethod.toUpperCase()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            payment.status === 'completed'
-                              ? 'bg-green-100 text-green-800'
-                              : payment.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {payment.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(payment.createdAt).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <div className="hidden lg:block font-heading font-extrabold text-[22px] uppercase">
+            {sectionLabels[activeSection]}
           </div>
-        )}
 
-        {/* Pay Subscription Section */}
-        {activeSection === 'pay' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Pay Membership Subscription</h2>
-            <div className="max-w-2xl">
-              <p className="text-gray-600 mb-6">
-                Membership subscription is valid for 5 years. Please select your payment method below.
-              </p>
-              <div className="space-y-4">
-                <div className="border-2 border-gray-300 rounded-lg p-4 hover:border-primary-blue transition cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">M-Pesa</h3>
-                      <p className="text-sm text-gray-600">Pay via M-Pesa mobile money</p>
-                    </div>
-                    <button className="bg-primary-blue text-white px-6 py-2 rounded-md hover:bg-[#002244] transition">
-                      Pay Now
-                    </button>
+          <div className="flex items-center gap-2.5 sm:gap-4">
+            <span
+              className={`hidden lg:inline-flex text-[13px] font-semibold px-3 py-1.5 rounded-full ${
+                isActiveMember ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {isActiveMember ? 'Membership Active' : member.status}
+            </span>
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                onClick={() => setAccountMenuOpen(o => !o)}
+                className="w-8 h-8 sm:w-[38px] sm:h-[38px] rounded-full bg-gray-100 flex items-center justify-center font-bold text-[13px] text-primary-blue"
+              >
+                {initials}
+              </button>
+              {accountMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                  <div className="px-4 py-3 border-b border-gray-50">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{fullName}</p>
+                    <p className="text-[11px] text-gray-400 truncate">{member.idNumber}</p>
                   </div>
-                </div>
-                <div className="border-2 border-gray-300 rounded-lg p-4 hover:border-primary-blue transition cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Card Payment</h3>
-                      <p className="text-sm text-gray-600">Pay via credit or debit card</p>
-                    </div>
-                    <button className="bg-primary-blue text-white px-6 py-2 rounded-md hover:bg-[#002244] transition">
-                      Pay Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-6">
-                Note: Payment processing will be implemented soon. Please contact support for manual payment processing.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Aspirant Application Section */}
-        {activeSection === 'aspirant' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Apply As Aspirant</h2>
-            <p className="text-gray-600 mb-6">
-              Apply to be an aspirant in an upcoming election. Please fill in all required details.
-            </p>
-
-            {aspirantSuccess && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
-                Application submitted successfully! Your application is pending review.
-              </div>
-            )}
-
-            {aspirantError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-                {aspirantError}
-              </div>
-            )}
-
-            {aspirantLoadingData ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-blue mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading application data...</p>
-              </div>
-            ) : (
-              <form onSubmit={handleAspirantSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="electionId" className="block text-sm font-medium text-gray-700 mb-2">
-                    Election *
-                  </label>
-                  <select
-                    id="electionId"
-                    name="electionId"
-                    value={aspirantFormData.electionId}
-                    onChange={handleAspirantChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                  >
-                    <option value="">Select an election</option>
-                    {elections.map((election) => (
-                      <option key={election.id} value={election.id}>
-                        {election.title} - {new Date(election.electionDate).toLocaleDateString()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="positionId" className="block text-sm font-medium text-gray-700 mb-2">
-                    Position *
-                  </label>
-                  <select
-                    id="positionId"
-                    name="positionId"
-                    value={aspirantFormData.positionId}
-                    onChange={handleAspirantChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                  >
-                    <option value="">Select a position</option>
-                    {positions.map((position) => (
-                      <option key={position.id} value={position.id}>
-                        {position.positionTitle} ({position.positionLevel})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
-                    Country *
-                  </label>
-                  <input
-                    type="text"
-                    id="country"
-                    name="country"
-                    value={aspirantFormData.country}
-                    onChange={handleAspirantChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="countyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                    County
-                  </label>
-                  <select
-                    id="countyCode"
-                    name="countyCode"
-                    value={aspirantFormData.countyCode}
-                    onChange={handleAspirantChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                  >
-                    <option value="">Select a county</option>
-                    {counties.map((county) => (
-                      <option key={county.id} value={county.countyCode}>
-                        {county.countyName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {aspirantFormData.countyCode && (
-                  <div>
-                    <label htmlFor="constituencyCode" className="block text-sm font-medium text-gray-700 mb-2">
-                      Constituency
-                    </label>
-                    <select
-                      id="constituencyCode"
-                      name="constituencyCode"
-                      value={aspirantFormData.constituencyCode}
-                      onChange={handleAspirantChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                    >
-                      <option value="">Select a constituency</option>
-                      {constituencies.map((constituency) => (
-                        <option key={constituency.id} value={constituency.constituencyCode}>
-                          {constituency.constituencyName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {aspirantFormData.constituencyCode && (
-                  <div>
-                    <label htmlFor="wardCode" className="block text-sm font-medium text-gray-700 mb-2">
-                      Ward
-                    </label>
-                    <select
-                      id="wardCode"
-                      name="wardCode"
-                      value={aspirantFormData.wardCode}
-                      onChange={handleAspirantChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
-                    >
-                      <option value="">Select a ward</option>
-                      {wards.map((ward) => (
-                        <option key={ward.id} value={ward.wardCode}>
-                          {ward.wardName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="flex gap-4">
                   <button
-                    type="submit"
-                    disabled={aspirantLoading}
-                    className="bg-primary-blue text-white px-6 py-2 rounded-md font-semibold hover:bg-[#002244] transition disabled:opacity-50"
-                  >
-                    {aspirantLoading ? 'Submitting...' : 'Submit Application'}
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => {
-                      setAspirantFormData({
-                        electionId: '',
-                        positionId: '',
-                        country: 'Kenya',
-                        countyCode: '',
-                        constituencyCode: '',
-                        wardCode: '',
-                      })
-                      setConstituencies([])
-                      setWards([])
-                      setAspirantError('')
-                      setAspirantSuccess(false)
+                      setShowChangePassword(true)
+                      setAccountMenuOpen(false)
                     }}
-                    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md font-semibold hover:bg-gray-300 transition"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                   >
-                    Clear Form
+                    Change Password
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                  >
+                    Logout
                   </button>
                 </div>
-              </form>
-            )}
+              )}
+            </div>
           </div>
-        )}
+        </header>
 
-        {/* Change Password Section */}
-        {(activeSection === 'change-password' || showChangePassword) && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Change Password</h2>
+        {/* Mobile tab bar */}
+        <nav className="flex lg:hidden overflow-x-auto gap-1.5 px-3.5 py-2.5 border-b border-gray-100">
+          {navItems.map(item => {
+            const active = item.key === activeSection
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                className={`whitespace-nowrap px-3.5 py-2 rounded-2xl text-[13px] font-semibold transition ${
+                  active ? 'bg-primary-red text-white' : 'bg-gray-50 text-gray-600'
+                }`}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </nav>
+
+        <div className="flex-1 px-4 sm:px-9 py-5 sm:py-8 overflow-auto">
+          {activeSection === 'overview' && (
+            <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-blue to-[#0a4dc4] text-white p-6">
+                <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-primary-red/35"></div>
+                <div className="font-heading font-bold text-xs tracking-widest uppercase text-white/70">
+                  Digital Membership ID
+                </div>
+                <div className="font-heading font-extrabold text-2xl mt-3.5 mb-0.5">{fullName}</div>
+                <div className="text-[13.5px] text-white/85">
+                  {tierLabel} Tier{member.county ? ` · ${member.county} County` : ''}
+                </div>
+                <div className="grid grid-cols-2 gap-2.5 mt-6 text-[12.5px] text-white/85">
+                  <div>
+                    <div className="opacity-70">Member No.</div>
+                    <div className="font-bold text-white">PM-{member.idNumber}</div>
+                  </div>
+                  <div>
+                    <div className="opacity-70">Ward</div>
+                    <div className="font-bold text-white">{member.ward || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="opacity-70">Valid Through</div>
+                    <div className="font-bold text-white">{formatDate(latestCompleted?.periodEnd)}</div>
+                  </div>
+                  <div>
+                    <div className="opacity-70">Status</div>
+                    <div className="font-bold text-white capitalize">{member.status}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                  {kpis.map(k => (
+                    <div key={k.label} className="bg-white border border-gray-100 rounded-xl p-4">
+                      <div className="text-[12.5px] font-semibold text-gray-500">{k.label}</div>
+                      <div className="font-heading font-extrabold text-2xl text-primary-blue mt-1.5">{k.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-white border border-gray-100 rounded-xl p-5">
+                  <div className="font-bold text-[15px] mb-3">Announcements from Leadership</div>
+                  {announcements.length === 0 ? (
+                    <p className="text-sm text-gray-400">No announcements yet.</p>
+                  ) : (
+                    announcements.map(a => (
+                      <div
+                        key={a.id}
+                        className="py-3 border-t border-gray-50 first:border-t-0 flex flex-col sm:flex-row sm:justify-between gap-1.5"
+                      >
+                        <div>
+                          <Link href={`/articles/${a.slug}`} className="font-semibold text-[14.5px] hover:text-primary-red transition">
+                            {a.title}
+                          </Link>
+                          {a.excerpt && <div className="text-[13px] text-gray-500 mt-0.5">{a.excerpt}</div>}
+                        </div>
+                        <div className="text-[12.5px] text-gray-400 whitespace-nowrap">
+                          {formatShortDate(a.publishedAt || a.createdAt)}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'membership' && (
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
+              <div className="bg-white border border-gray-100 rounded-xl p-5 overflow-x-auto">
+                <div className="font-bold text-base mb-3.5">Payment History</div>
+                {payments.length === 0 ? (
+                  <p className="text-sm text-gray-400 py-4">No payment records yet.</p>
+                ) : (
+                  <div className="min-w-[480px]">
+                    <div className="grid grid-cols-4 text-[12.5px] font-bold text-gray-500 uppercase pb-2.5 border-b border-gray-100">
+                      <div>Description</div>
+                      <div>Date</div>
+                      <div>Amount</div>
+                      <div>Status</div>
+                    </div>
+                    {payments.map(p => (
+                      <div key={p.id} className="grid grid-cols-4 text-sm py-3.5 border-b border-gray-50 items-center">
+                        <div className="font-semibold">Membership Subscription ({p.paymentMethod.toUpperCase()})</div>
+                        <div className="text-gray-500">{formatDate(p.createdAt)}</div>
+                        <div className="font-semibold">{formatMoney(p.amount, p.currency)}</div>
+                        <div>
+                          <span
+                            className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                              p.status === 'completed'
+                                ? 'bg-green-100 text-green-700'
+                                : p.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}
+                          >
+                            {p.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-xl p-5">
+                <div className="font-bold text-base mb-1">Renew Membership</div>
+                <div className="text-[13.5px] text-gray-500 mb-4">
+                  {tierLabel} Tier
+                  {latestCompleted ? ` · expires ${formatDate(latestCompleted.periodEnd)}` : ''}
+                </div>
+                {member.membershipCategory ? (
+                  <div className="font-heading font-extrabold text-[28px] text-primary-blue mb-4">
+                    {formatMoney(member.membershipCategory.fee, 'KES')}
+                    <span className="text-[13px] text-gray-500 font-semibold">
+                      {member.membershipCategory.timeline === 0
+                        ? ' one-off'
+                        : ` / ${member.membershipCategory.timeline} yr${member.membershipCategory.timeline > 1 ? 's' : ''}`}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500 mb-4">No membership category on file.</div>
+                )}
+                <button
+                  onClick={() => setShowRenewOptions(o => !o)}
+                  className="block w-full text-center font-bold text-sm py-3 rounded-md bg-primary-red text-white hover:bg-[#c91218] transition"
+                >
+                  Renew Now
+                </button>
+
+                {showRenewOptions && (
+                  <div className="mt-4 space-y-2.5">
+                    <div className="border border-gray-200 rounded-lg p-3.5 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-sm">M-Pesa</div>
+                        <div className="text-xs text-gray-500">Pay via mobile money</div>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-400">Coming soon</span>
+                    </div>
+                    <div className="border border-gray-200 rounded-lg p-3.5 flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-sm">Card Payment</div>
+                        <div className="text-xs text-gray-500">Pay via credit or debit card</div>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-400">Coming soon</span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Online renewal is being finalized. Please contact support for manual processing.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'donations' && (
+            <div className="bg-white border border-gray-100 rounded-xl p-5 overflow-x-auto">
+              <div className="flex justify-between items-center flex-wrap gap-2.5 mb-3.5">
+                <div className="font-bold text-base">Your Donation History</div>
+                <Link
+                  href="/donate"
+                  className="font-bold text-sm px-4 py-2 rounded-md bg-primary-blue text-white hover:bg-[#002e7a] transition"
+                >
+                  Make a Donation
+                </Link>
+              </div>
+              {donations.length === 0 ? (
+                <p className="text-sm text-gray-400 py-4">
+                  No donations found yet. Donations are matched to your account email or phone number.
+                </p>
+              ) : (
+                <div className="min-w-[460px]">
+                  <div className="grid grid-cols-4 text-[12.5px] font-bold text-gray-500 uppercase pb-2.5 border-b border-gray-100">
+                    <div>Date</div>
+                    <div>Amount</div>
+                    <div>Method</div>
+                    <div>Reference</div>
+                  </div>
+                  {donations.map(d => (
+                    <div key={d.id} className="grid grid-cols-4 text-sm py-3.5 border-b border-gray-50 items-center">
+                      <div className="text-gray-500">{formatDate(d.createdAt)}</div>
+                      <div className="font-semibold">{formatMoney(d.amount, d.currency)}</div>
+                      <div className="text-gray-500 uppercase">{d.paymentMethod}</div>
+                      <div className="text-gray-500 truncate">{d.transactionId || '—'}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeSection === 'elections' && (
+            <div className="flex flex-col gap-4">
+              <div className="bg-white border border-gray-100 rounded-xl p-5">
+                <div className="font-bold text-base mb-3.5">Active Elections</div>
+                {aspirantLoadingData ? (
+                  <div className="text-center py-8">
+                    <PageLoader size="sm" />
+                  </div>
+                ) : elections.length === 0 ? (
+                  <p className="text-sm text-gray-400">No active elections at the moment.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {elections.map(el => (
+                      <div key={el.id} className="border border-gray-100 rounded-lg p-4">
+                        <div className="flex justify-between items-center flex-wrap gap-2">
+                          <div className="font-semibold text-[14.5px]">{el.title}</div>
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
+                            {formatDate(el.electionDate)}
+                          </span>
+                        </div>
+                        {el.description && <p className="text-[13px] text-gray-500 mt-1.5">{el.description}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-xl p-5">
+                <div className="flex justify-between items-center flex-wrap gap-2.5 mb-1">
+                  <div className="font-bold text-base">Apply As Aspirant</div>
+                  <button
+                    onClick={() => setShowAspirantForm(s => !s)}
+                    className="font-bold text-sm px-4 py-2 rounded-md bg-primary-blue text-white hover:bg-[#002e7a] transition"
+                  >
+                    {showAspirantForm ? 'Hide Form' : 'Apply Now'}
+                  </button>
+                </div>
+                <p className="text-[13.5px] text-gray-500 mb-1">
+                  Stand for a position in an upcoming internal election. Applications are reviewed by the elections board.
+                </p>
+
+                {showAspirantForm && (
+                  <div className="mt-4">
+                    {aspirantSuccess && (
+                      <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-5 text-sm">
+                        Application submitted successfully! Your application is pending review.
+                      </div>
+                    )}
+                    {aspirantError && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-5 text-sm">
+                        {aspirantError}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleAspirantSubmit} className="space-y-5">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Election *</label>
+                        <select
+                          name="electionId"
+                          value={aspirantFormData.electionId}
+                          onChange={handleAspirantChange}
+                          required
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                        >
+                          <option value="">Select an election</option>
+                          {elections.map(election => (
+                            <option key={election.id} value={election.id}>
+                              {election.title} - {formatDate(election.electionDate)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Position *</label>
+                        <select
+                          name="positionId"
+                          value={aspirantFormData.positionId}
+                          onChange={handleAspirantChange}
+                          required
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                        >
+                          <option value="">Select a position</option>
+                          {positions.map(position => (
+                            <option key={position.id} value={position.id}>
+                              {position.positionTitle} ({position.positionLevel})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">County</label>
+                        <select
+                          name="countyCode"
+                          value={aspirantFormData.countyCode}
+                          onChange={handleAspirantChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                        >
+                          <option value="">Select a county</option>
+                          {counties.map(county => (
+                            <option key={county.id} value={county.countyCode}>
+                              {county.countyName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {aspirantFormData.countyCode && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Constituency</label>
+                          <select
+                            name="constituencyCode"
+                            value={aspirantFormData.constituencyCode}
+                            onChange={handleAspirantChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                          >
+                            <option value="">Select a constituency</option>
+                            {constituencies.map(constituency => (
+                              <option key={constituency.id} value={constituency.constituencyCode}>
+                                {constituency.constituencyName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {aspirantFormData.constituencyCode && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Ward</label>
+                          <select
+                            name="wardCode"
+                            value={aspirantFormData.wardCode}
+                            onChange={handleAspirantChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                          >
+                            <option value="">Select a ward</option>
+                            {wards.map(ward => (
+                              <option key={ward.id} value={ward.wardCode}>
+                                {ward.wardName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      <div className="flex gap-3">
+                        <button
+                          type="submit"
+                          disabled={aspirantLoading}
+                          className="bg-primary-red text-white px-6 py-2.5 rounded-md font-semibold text-sm hover:bg-[#c91218] transition disabled:opacity-50"
+                        >
+                          {aspirantLoading ? 'Submitting...' : 'Submit Application'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {showChangePassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-heading font-extrabold text-lg">Change Password</h2>
+              <button
+                onClick={() => {
+                  setShowChangePassword(false)
+                  setPasswordError('')
+                  setPasswordSuccess('')
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
             {passwordSuccess && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4 text-sm">
                 {passwordSuccess}
               </div>
             )}
             {passwordError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4 text-sm">
                 {passwordError}
               </div>
             )}
-            <form onSubmit={handleChangePassword} className="max-w-md space-y-4">
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
                 <input
                   type="password"
-                  id="currentPassword"
                   value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  onChange={e => setCurrentPassword(e.target.value)}
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
                 />
               </div>
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
                 <input
                   type="password"
-                  id="newPassword"
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={e => setNewPassword(e.target.value)}
                   required
                   minLength={6}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
                 />
               </div>
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm New Password
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password</label>
                 <input
                   type="password"
-                  id="confirmPassword"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={e => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
                 />
               </div>
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  disabled={changingPassword}
-                  className="bg-primary-blue text-white px-6 py-2 rounded-md hover:bg-[#002244] transition disabled:opacity-50"
-                >
-                  {changingPassword ? 'Changing...' : 'Change Password'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowChangePassword(false)
-                    setActiveSection('profile')
-                    setPasswordError('')
-                    setPasswordSuccess('')
-                  }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 transition"
-                >
-                  Cancel
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={changingPassword}
+                className="w-full bg-primary-blue text-white px-6 py-2.5 rounded-md font-semibold hover:bg-[#002e7a] transition disabled:opacity-50"
+              >
+                {changingPassword ? 'Changing...' : 'Change Password'}
+              </button>
             </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
-

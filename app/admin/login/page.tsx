@@ -3,6 +3,7 @@
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -39,10 +40,13 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Admin Login
+          <div className="relative h-10 w-auto aspect-[943/693] mx-auto mb-2">
+            <Image src="/logo_full.png" alt="PM Party logo" fill className="object-contain" priority />
+          </div>
+          <h2 className="text-center font-heading font-extrabold text-2xl uppercase tracking-wide text-primary-blue">
+            Admin &middot; ERP
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-1 text-center text-sm text-gray-500">
             People&apos;s Renaissance Movement
           </p>
         </div>

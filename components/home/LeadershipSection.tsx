@@ -10,7 +10,8 @@ const ORG_LEVELS = [
 
 export default function LeadershipSection() {
   return (
-    <section id="leadership" className="px-5 py-12 md:px-12 md:py-[88px] bg-white scroll-mt-20">
+    <section id="leadership" className="py-12 md:py-[88px] bg-white scroll-mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-11">
         <span className="font-heading font-bold tracking-[2px] text-[13px] uppercase text-primary-red">
           Party Structure
@@ -20,7 +21,7 @@ export default function LeadershipSection() {
         </h2>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3.5 md:gap-0 items-stretch max-w-[1200px] mx-auto">
+      <div className="flex flex-col md:flex-row gap-3.5 md:gap-0 items-stretch">
         {ORG_LEVELS.map((lvl, i) => (
           <div
             key={lvl.num}
@@ -52,6 +53,7 @@ export default function LeadershipSection() {
         >
           Meet the Leaders
         </Link>
+      </div>
       </div>
     </section>
   )

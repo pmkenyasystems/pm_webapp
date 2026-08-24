@@ -1,6 +1,7 @@
 export default function HomeAboutSection() {
   return (
-    <section id="about" className="px-5 py-12 md:px-12 md:py-[88px] bg-primary-blue text-white scroll-mt-20">
+    <section id="about" className="py-12 md:py-[88px] bg-primary-blue text-white scroll-mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="max-w-[760px] mx-auto text-center">
         <span className="font-heading font-bold tracking-[2px] text-[13px] uppercase text-white">
           About Us
@@ -13,6 +14,7 @@ export default function HomeAboutSection() {
           people-centred policies, transparent governance, and inclusive development. We stand for
           integrity, service, and progress that benefits every citizen.
         </p>
+      </div>
       </div>
     </section>
   )

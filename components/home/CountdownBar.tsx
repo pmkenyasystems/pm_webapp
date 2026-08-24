@@ -22,8 +22,8 @@ export default function CountdownBar() {
   ]
 
   return (
-    <section className="px-5 py-[18px] md:px-12 md:py-[22px] bg-primary-blue text-white">
-      <div className="flex flex-col md:flex-row flex-wrap items-center justify-between gap-[18px] max-w-[1200px] mx-auto text-center md:text-left">
+    <section className="py-[18px] md:py-[22px] bg-primary-blue text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row flex-wrap items-center justify-between gap-[18px] text-center md:text-left">
         <div>
           <span className="block font-heading font-bold tracking-[2px] text-[12.5px] uppercase mb-2">
             Countdown To The Polls

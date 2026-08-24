@@ -3,7 +3,8 @@ import { allOrganisations as committees } from '@/lib/committees'
 
 export default function CommitteesSection() {
   return (
-    <section id="committees" className="px-5 py-12 md:px-12 md:py-[88px] bg-white scroll-mt-20">
+    <section id="committees" className="py-12 md:py-[88px] bg-white scroll-mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-11">
         <span className="font-heading font-bold tracking-[2px] text-[13px] uppercase text-primary-red">
           Get Involved
@@ -26,6 +27,7 @@ export default function CommitteesSection() {
             </Link>
           </div>
         ))}
+      </div>
       </div>
     </section>
   )

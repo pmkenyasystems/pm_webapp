@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { hasModuleAccess } from '@/lib/permissions'
+import { createAspirantApplication, AspirantApplicationError } from '@/lib/aspirants'
 
 export const dynamic = 'force-dynamic'
 
@@ -103,6 +104,55 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching aspirants:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch aspirants' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST register a new aspirant on behalf of a member (admin)
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getSession()
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const hasAccess = await hasModuleAccess('aspirants')
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: 'Forbidden: You do not have access to the Aspirants module' },
+        { status: 403 }
+      )
+    }
+
+    const body = await request.json()
+    const { idNumber, fullName, phone, email, electionId, positionId, countyCode, constituencyCode, wardCode, pollingStation } = body
+
+    const { aspirant, confirmationSent, confirmationEmail } = await createAspirantApplication({
+      idNumber: idNumber?.trim(),
+      fullName,
+      phone,
+      email,
+      electionId,
+      positionId: positionId != null ? Number(positionId) : positionId,
+      countyCode: countyCode != null && countyCode !== '' ? Number(countyCode) : null,
+      constituencyCode: constituencyCode != null && constituencyCode !== '' ? Number(constituencyCode) : null,
+      wardCode: wardCode != null && wardCode !== '' ? Number(wardCode) : null,
+      pollingStation,
+    })
+
+    return NextResponse.json({ aspirant, confirmationSent, confirmationEmail }, { status: 201 })
+  } catch (error: any) {
+    console.error('Error registering aspirant:', error)
+    if (error instanceof AspirantApplicationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'This member has already applied for this position in this election' },
+        { status: 400 }
+      )
+    }
+    return NextResponse.json(
+      { error: error.message || 'Failed to register aspirant' },
       { status: 500 }
     )
   }

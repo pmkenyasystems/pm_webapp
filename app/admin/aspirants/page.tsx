@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import AdminHeader from '@/components/admin/AdminHeader'
 
 interface AspirantItem {
@@ -390,6 +391,15 @@ export default function AdminAspirantsPage() {
     <div className="min-h-screen bg-gray-50">
       <AdminHeader title="Aspirant Applications">
         <div className="flex items-center gap-2">
+          <Link
+            href="/admin/aspirants/new"
+            className="flex items-center gap-1.5 px-3 py-2 bg-primary-blue hover:bg-[#002244] text-white text-xs font-semibold rounded-lg transition"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Register Aspirant
+          </Link>
           <button
             onClick={handleExportExcel}
             disabled={exporting !== null || aspirants.length === 0}
@@ -429,7 +439,7 @@ export default function AdminAspirantsPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5">
+        <div className="bg-white rounded-[10px] border border-gray-200 p-4 mb-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Status</label>
@@ -467,11 +477,11 @@ export default function AdminAspirantsPage() {
 
         {/* Table */}
         {aspirants.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center">
+          <div className="bg-white rounded-[10px] border border-gray-200 p-10 text-center">
             <p className="text-gray-400 text-sm">No aspirant applications found.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
               <p className="text-xs text-gray-500">
                 <span className="font-semibold text-gray-800">{aspirants.length}</span> application{aspirants.length !== 1 ? 's' : ''}

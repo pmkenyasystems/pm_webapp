@@ -23,30 +23,31 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative flex flex-col md:flex-row-reverse items-center overflow-hidden bg-white min-h-0 md:min-h-[680px] gap-0 md:gap-6">
-      <div className="hidden md:block absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-primary-blue to-primary-red" />
+    <section className="relative overflow-hidden bg-white">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row-reverse items-center gap-0 md:gap-6 md:min-h-[680px]">
+        <div className="hidden md:block absolute left-4 sm:left-6 lg:left-8 top-0 bottom-0 w-2 bg-gradient-to-b from-primary-blue to-primary-red" />
 
-      <div className="relative w-full md:w-[48%] aspect-video md:aspect-[4/3] overflow-hidden md:rounded-[20px] border-0 md:border-[6px] md:border-white md:outline md:outline-2 md:outline-gray-200 flex-shrink-0">
-        {heroImages.map((src, i) => (
-          <img
-            key={src}
-            src={src}
-            alt="PM Party rally"
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
-            style={{ opacity: i === slide ? 1 : 0 }}
-          />
-        ))}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+        <div className="relative w-full md:w-[48%] aspect-video md:aspect-[4/3] overflow-hidden rounded-[20px] border-0 md:border-[6px] md:border-white md:outline md:outline-2 md:outline-gray-200 flex-shrink-0">
           {heroImages.map((src, i) => (
-            <span
+            <img
               key={src}
-              className={`w-[9px] h-[9px] rounded-full shadow-[0_0_0_2px_#fff] ${i === slide ? 'bg-primary-red' : 'bg-gray-300'}`}
+              src={src}
+              alt="PM Party rally"
+              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
+              style={{ opacity: i === slide ? 1 : 0 }}
             />
           ))}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+            {heroImages.map((src, i) => (
+              <span
+                key={src}
+                className={`w-[9px] h-[9px] rounded-full shadow-[0_0_0_2px_#fff] ${i === slide ? 'bg-primary-red' : 'bg-gray-300'}`}
+              />
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="relative max-w-[640px] px-5 py-12 md:px-12 md:py-0 text-gray-900">
+        <div className="relative max-w-[640px] py-12 md:py-0 text-gray-900">
         <h1 className="font-heading font-black leading-[0.95] text-[40px] md:text-[72px] mb-[22px] uppercase text-primary-blue">
           Kenya Needs
           <br />
@@ -88,6 +89,12 @@ export default function Hero() {
           >
             Member Login &rarr;
           </Link>
+        </div>
+        <p className="mt-10 font-heading font-bold uppercase text-[11px] sm:text-[13px] tracking-[0.12em] whitespace-nowrap">
+          <span className="text-primary-blue">The Change We Need</span>
+          <span className="text-primary-red/50 mx-2">&middot;</span>
+          <span className="text-primary-red">Mabadiliko Ni Sasa</span>
+        </p>
         </div>
       </div>
     </section>

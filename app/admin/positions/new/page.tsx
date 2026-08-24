@@ -56,7 +56,7 @@ export default function NewPositionPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Position</h1>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-[10px] border border-gray-200 p-8 space-y-6">
         <div>
           <label htmlFor="positionTitle" className="block text-sm font-medium text-gray-700 mb-2">
             Position Title *

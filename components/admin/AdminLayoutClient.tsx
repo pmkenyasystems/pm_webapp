@@ -47,7 +47,11 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
       </div>
 
       {/* Right — user menu */}
-      <div className="relative" ref={dropdownRef}>
+      <div className="flex items-center gap-3">
+        <span className="hidden sm:inline-flex items-center text-[12.5px] font-semibold px-3 py-1.5 rounded-full bg-green-50 text-green-700 capitalize">
+          {userRole.replace('_', ' ')}
+        </span>
+        <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen((o) => !o)}
           className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition"
@@ -113,6 +117,7 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
           </div>
         )}
       </div>
+      </div>
     </div>
   )
 }
@@ -123,8 +128,9 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const isLoginPage = pathname === '/admin/login'
+  const isStandalonePage = pathname?.startsWith('/admin/erp')
 
-  if (isLoginPage || status === 'loading' || !session) {
+  if (isLoginPage || isStandalonePage || status === 'loading' || !session) {
     return <>{children}</>
   }
 

@@ -22,18 +22,18 @@ interface StatCardProps {
 
 function StatCard({ label, value, sub, href, linkLabel, icon, iconBg, iconColor }: StatCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-[10px] border border-gray-200 p-5 flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-          <p className="text-2xl font-bold text-gray-900 leading-none">{value}</p>
-          {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{label}</p>
+          <p className="font-heading font-extrabold text-[26px] text-primary-blue leading-none">{value}</p>
+          {sub && <p className="text-xs text-gray-400 mt-1.5">{sub}</p>}
         </div>
         <div className={`${iconBg} p-2.5 rounded-xl shrink-0`}>
           <span className={iconColor}>{icon}</span>
         </div>
       </div>
-      <Link href={href} className="text-xs font-semibold text-primary-blue hover:underline inline-flex items-center gap-1">
+      <Link href={href} className="text-xs font-semibold text-primary-blue hover:text-primary-red transition inline-flex items-center gap-1">
         {linkLabel}
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

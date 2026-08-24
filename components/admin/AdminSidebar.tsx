@@ -101,6 +101,7 @@ const menuConfig: Array<{
     label: 'Elections Board',
     icon: Icons.elections,
     submenus: [
+      { label: 'Dashboard', href: '/admin/elections/dashboard' },
       { label: 'Elections', href: '/admin/elections' },
       { label: 'Aspirants', href: '/admin/aspirants' },
     ],
@@ -126,14 +127,7 @@ const menuConfig: Array<{
       { label: 'Wards', href: '/admin/officials/wards' },
     ],
   },
-  {
-    label: 'Settings',
-    module: 'admins',
-    icon: Icons.settings,
-    submenus: [
-      { label: 'Users', href: '/admin/users' },
-    ],
-  },
+  { label: 'User Management', module: 'admins', icon: Icons.account, href: '/admin/users' },
 ]
 
 function canAccess(item: (typeof menuConfig)[number], isSuperAdmin: boolean, userModules: string[]) {
@@ -169,13 +163,13 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
   return (
     <aside className="flex flex-col h-full bg-white border-r border-gray-100 w-64">
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
-        <div className="shrink-0">
-          <Image src="/logo.png" alt="PM Party Logo" width={36} height={36} className="object-contain" />
+      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+        <div className="relative h-7 w-auto aspect-[943/693] shrink-0">
+          <Image src="/logo_full.png" alt="PM Party logo" fill className="object-contain" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-bold text-gray-900 truncate">PM Party</p>
-          <p className="text-xs text-gray-400 truncate">Admin Portal</p>
+          <p className="font-heading font-extrabold text-[12px] leading-tight text-primary-blue truncate">PM PARTY</p>
+          <p className="font-heading font-extrabold text-[12px] leading-tight text-primary-blue truncate">ADMIN &middot; ERP</p>
         </div>
         {onClose && (
           <button onClick={onClose} className="ml-auto text-gray-400 hover:text-gray-600 lg:hidden">
@@ -194,7 +188,7 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
           onClick={onClose}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
             pathname === '/admin/dashboard'
-              ? 'bg-primary-blue text-white shadow-sm'
+              ? 'bg-primary-red text-white shadow-sm'
               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
           }`}
         >
@@ -202,8 +196,23 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
           Dashboard
         </Link>
 
+        {isSuperAdmin && (
+          <Link
+            href="/admin/erp"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              pathname.startsWith('/admin/erp')
+                ? 'bg-primary-red text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            <span className="shrink-0">{Icons.officials}</span>
+            ERP Overview
+          </Link>
+        )}
+
         <div className="pt-2 pb-1">
-          <p className="px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Management</p>
+          <p className="px-3 font-heading text-[10px] font-bold text-gray-400 uppercase tracking-widest">Management</p>
         </div>
 
         {visibleItems.map((item) => {
@@ -216,7 +225,7 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
                   type="button"
                   onClick={() => toggle(item.label)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    hasActive ? 'text-primary-blue bg-blue-50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    hasActive ? 'text-primary-red bg-primary-red/5' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   <span className="shrink-0">{item.icon}</span>
@@ -234,7 +243,7 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
                         onClick={onClose}
                         className={`block px-2 py-1.5 text-xs rounded-md transition ${
                           pathname === sub.href
-                            ? 'text-primary-blue font-semibold'
+                            ? 'text-primary-red font-semibold'
                             : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
                         }`}
                       >
@@ -254,7 +263,7 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-primary-blue text-white shadow-sm'
+                  ? 'bg-primary-red text-white shadow-sm'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
@@ -265,6 +274,12 @@ export default function AdminSidebar({ onClose }: SidebarProps) {
         })}
       </nav>
 
+      <Link
+        href="/"
+        className="flex items-center gap-2 mx-3 mb-3 mt-2 px-3 py-2.5 text-xs font-semibold text-gray-400 hover:text-gray-600 border-t border-gray-100 pt-4"
+      >
+        &larr; Exit to Public Site
+      </Link>
     </aside>
   )
 }

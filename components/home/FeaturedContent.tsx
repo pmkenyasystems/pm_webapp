@@ -21,7 +21,8 @@ export default async function FeaturedContent() {
   const { articles } = await getFeaturedContent()
 
   return (
-    <section id="news" className="px-5 py-12 md:px-12 md:py-[88px] bg-white">
+    <section id="news" className="py-12 md:py-[88px] bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-baseline mb-8 flex-wrap gap-2.5">
         <h2 className="font-heading font-black text-[26px] md:text-4xl uppercase m-0">
           News <span className="text-primary-red">&amp; Updates</span>
@@ -61,6 +62,7 @@ export default async function FeaturedContent() {
           No updates yet. Check back soon!
         </div>
       )}
+      </div>
     </section>
   )
 }

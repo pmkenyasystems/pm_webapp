@@ -72,7 +72,8 @@ const PILLARS = [
 
 export default function ManifestoSection() {
   return (
-    <section id="manifesto" className="px-5 py-12 md:px-12 md:py-[88px] bg-white text-gray-900 scroll-mt-20">
+    <section id="manifesto" className="py-12 md:py-[88px] bg-white text-gray-900 scroll-mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-11">
         <span className="font-heading font-bold tracking-[2px] text-[13px] uppercase text-primary-red">
           Our Manifesto
@@ -111,6 +112,7 @@ export default function ManifestoSection() {
         >
           Read the Full Manifesto
         </Link>
+      </div>
       </div>
     </section>
   )

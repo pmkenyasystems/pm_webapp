@@ -89,7 +89,7 @@ export default function MembersMapViewPage() {
         <p className="text-sm text-gray-600 mb-4">
           Hover over a county to see total registered voters (IEBC) and total party members.
         </p>
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
           {geography ? (
             <div className="relative w-full" style={{ maxWidth: 800, margin: '0 auto' }}>
               <ComposableMap

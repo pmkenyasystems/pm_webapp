@@ -95,7 +95,7 @@ export default function AdminOfficialsCountyPage() {
         </p>
 
         {counties.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="bg-white rounded-[10px] border border-gray-200 p-8 text-center">
             <p className="text-gray-500">No counties found.</p>
           </div>
         ) : (
@@ -103,7 +103,7 @@ export default function AdminOfficialsCountyPage() {
             {counties.map((county) => {
               const isExpanded = expanded.has(county.countyCode)
               return (
-                <div key={county.countyCode} className="bg-white rounded-lg shadow overflow-hidden">
+                <div key={county.countyCode} className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
                   <button
                     type="button"
                     onClick={() => toggleCounty(county.countyCode)}
@@ -122,15 +122,15 @@ export default function AdminOfficialsCountyPage() {
                   {isExpanded && (
                     <div className="border-t border-gray-200 overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead>
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                               Position
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                               Name
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                               Contact
                             </th>
                           </tr>

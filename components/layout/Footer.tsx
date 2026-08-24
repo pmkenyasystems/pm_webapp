@@ -41,7 +41,8 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer id="contacts" className="px-6 pt-10 pb-7 md:px-12 md:pt-[60px] md:pb-8 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-7 bg-white">
+    <footer id="contacts" className="bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-7 md:pt-[60px] md:pb-8 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-7">
       <div>
         <div className="font-heading font-extrabold text-lg mb-2 text-primary-blue">
           PEOPLE&apos;S RENAISSANCE MOVEMENT
@@ -96,6 +97,7 @@ export default function Footer() {
 
       <div className="col-span-full border-t border-gray-200 pt-5 text-[13px] text-gray-500">
         &copy; {new Date().getFullYear()} People&apos;s Renaissance Movement. All rights reserved.
+      </div>
       </div>
     </footer>
   )
