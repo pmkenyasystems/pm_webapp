@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import AdminHeader from '@/components/admin/AdminHeader'
+import { moduleLabel } from '@/lib/modules'
 
 interface User {
   id: string
@@ -11,6 +12,7 @@ interface User {
   name: string | null
   role: string
   modules: string | null
+  isActive: boolean
   createdAt: string
 }
 
@@ -19,6 +21,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [actioningId, setActioningId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -67,6 +70,73 @@ export default function AdminUsersPage() {
     }
   }
 
+  const handleToggleActive = async (user: User) => {
+    const activating = !user.isActive
+    if (
+      !confirm(
+        activating
+          ? `Reactivate ${user.email}? They will be able to log in again.`
+          : `Deactivate ${user.email}? They will no longer be able to log in or access the admin dashboard.`
+      )
+    ) {
+      return
+    }
+
+    setActioningId(user.id)
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: activating }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update user status')
+      }
+
+      setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, isActive: data.user.isActive } : u)))
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setActioningId(null)
+    }
+  }
+
+  const handleResetPassword = async (user: User) => {
+    if (
+      !confirm(
+        `Reset the password for ${user.email}? A new temporary password will be generated and emailed to them.`
+      )
+    ) {
+      return
+    }
+
+    setActioningId(user.id)
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}/reset-password`, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reset password')
+      }
+
+      if (data.emailSent) {
+        alert(`A new temporary password has been emailed to ${user.email}.`)
+      } else {
+        alert(
+          `${data.warning}\n\nTemporary password: ${data.temporaryPassword}`
+        )
+      }
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setActioningId(null)
+    }
+  }
+
   const parseModules = (modules: string | null): string[] => {
     if (!modules) return []
     try {
@@ -111,7 +181,7 @@ export default function AdminUsersPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {users.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="bg-white rounded-[10px] border border-gray-200 p-8 text-center">
             <p className="text-gray-500 mb-4">No admin users found.</p>
             <Link
               href="/admin/users/new"
@@ -121,23 +191,26 @@ export default function AdminUsersPage() {
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Name / Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Modules
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Created
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -173,7 +246,7 @@ export default function AdminUsersPage() {
                                   key={idx}
                                   className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
                                 >
-                                  {module}
+                                  {moduleLabel(module)}
                                 </span>
                               ))}
                             </div>
@@ -182,24 +255,57 @@ export default function AdminUsersPage() {
                           )}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            user.isActive
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-200 text-gray-700'
+                          }`}
+                        >
+                          {user.isActive ? 'Active' : 'Deactivated'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Link
-                          href={`/admin/users/${user.id}/edit`}
-                          className="text-primary-blue hover:text-[#002244] mr-4"
-                        >
-                          Edit
-                        </Link>
-                        {user.role !== 'super_admin' && (
-                          <button
-                            onClick={() => handleDelete(user.id)}
-                            className="text-red-600 hover:text-red-900"
+                        <div className="flex justify-end items-center gap-4">
+                          <Link
+                            href={`/admin/users/${user.id}/edit`}
+                            className="text-primary-blue hover:text-[#002244]"
                           >
-                            Delete
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleResetPassword(user)}
+                            disabled={actioningId === user.id}
+                            className="text-primary-blue hover:text-[#002244] disabled:opacity-50"
+                          >
+                            Reset Password
                           </button>
-                        )}
+                          {user.role !== 'super_admin' && (
+                            <>
+                              <button
+                                onClick={() => handleToggleActive(user)}
+                                disabled={actioningId === user.id}
+                                className={`disabled:opacity-50 ${
+                                  user.isActive
+                                    ? 'text-amber-600 hover:text-amber-800'
+                                    : 'text-green-600 hover:text-green-800'
+                                }`}
+                              >
+                                {user.isActive ? 'Deactivate' : 'Reactivate'}
+                              </button>
+                              <button
+                                onClick={() => handleDelete(user.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )

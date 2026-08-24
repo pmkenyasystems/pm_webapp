@@ -22,7 +22,7 @@ export default function SettingsPage() {
       <AdminHeader title="Settings" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white rounded-[10px] border border-gray-200">
           {/* Tabs */}
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6" aria-label="Tabs">

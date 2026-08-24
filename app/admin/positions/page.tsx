@@ -9,6 +9,7 @@ interface Position {
   id: number
   positionTitle: string
   positionLevel: string
+  applicationFee: number | null
   createdAt: string
   _count: {
     aspirants: number
@@ -28,6 +29,9 @@ export default function PositionsPage() {
   const [positions, setPositions] = useState<Position[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [editingFeeId, setEditingFeeId] = useState<number | null>(null)
+  const [feeDraft, setFeeDraft] = useState('')
+  const [savingFee, setSavingFee] = useState(false)
 
   useEffect(() => {
     fetchPositions()
@@ -47,6 +51,25 @@ export default function PositionsPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const saveFee = async (id: number) => {
+    setSavingFee(true)
+    try {
+      const response = await fetch(`/api/admin/positions/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationFee: feeDraft }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to update fee')
+      setPositions((prev) => prev.map((p) => (p.id === id ? { ...p, applicationFee: data.position.applicationFee } : p)))
+      setEditingFeeId(null)
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setSavingFee(false)
     }
   }
 
@@ -94,27 +117,30 @@ export default function PositionsPage() {
         )}
 
         {positions.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="bg-white rounded-[10px] border border-gray-200 p-8 text-center">
             <p className="text-gray-500">No positions found. Create your first position.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     ID
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Position Title
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Level
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Applications
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Application Fee
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -135,6 +161,46 @@ export default function PositionsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {position._count.aspirants}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {editingFeeId === position.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            autoFocus
+                            value={feeDraft}
+                            onChange={(e) => setFeeDraft(e.target.value)}
+                            className="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+                          />
+                          <button
+                            onClick={() => saveFee(position.id)}
+                            disabled={savingFee}
+                            className="text-primary-blue font-semibold hover:underline disabled:opacity-50"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingFeeId(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingFeeId(position.id)
+                            setFeeDraft(position.applicationFee != null ? String(position.applicationFee) : '')
+                          }}
+                          className="hover:underline"
+                        >
+                          {position.applicationFee != null
+                            ? `KES ${position.applicationFee.toLocaleString()}`
+                            : <span className="text-gray-400">Not set</span>}
+                        </button>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button

@@ -35,9 +35,9 @@ export default async function RecentActivity() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Recent Donations */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50">
-          <h3 className="text-sm font-semibold text-gray-900">Recent Donations</h3>
+      <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-heading font-extrabold text-[15px] uppercase tracking-wide text-gray-900">Recent Donations</h3>
         </div>
         <div className="divide-y divide-gray-50">
           {recentDonations.length > 0 ? recentDonations.map((d) => (
@@ -55,9 +55,9 @@ export default async function RecentActivity() {
       </div>
 
       {/* Recent Volunteers */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50">
-          <h3 className="text-sm font-semibold text-gray-900">Recent Volunteers</h3>
+      <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-heading font-extrabold text-[15px] uppercase tracking-wide text-gray-900">Recent Volunteers</h3>
         </div>
         <div className="divide-y divide-gray-50">
           {recentVolunteers.length > 0 ? recentVolunteers.map((v) => (
@@ -75,9 +75,9 @@ export default async function RecentActivity() {
       </div>
 
       {/* Recent Members */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50">
-          <h3 className="text-sm font-semibold text-gray-900">Recent Members</h3>
+      <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-heading font-extrabold text-[15px] uppercase tracking-wide text-gray-900">Recent Members</h3>
         </div>
         <div className="divide-y divide-gray-50">
           {recentMembers.length > 0 ? recentMembers.map((m) => (

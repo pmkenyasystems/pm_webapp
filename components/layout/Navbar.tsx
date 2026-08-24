@@ -2,137 +2,91 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { usePathname } from 'next/navigation'
 import Image from 'next/image'
+
+const NAV_LINKS = [
+  { href: '/#news', label: 'News' },
+  { href: '/#about', label: 'About' },
+  { href: '/#manifesto', label: 'Manifesto' },
+  { href: '/#leadership', label: 'Leadership' },
+  { href: '/#committees', label: 'Committees' },
+]
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const [getInvolvedOpen, setGetInvolvedOpen] = useState(false)
-  const pathname = usePathname()
-
-  const isActive = (path: string) => {
-    if (path === '/') {
-      return pathname === '/'
-    }
-    return pathname.startsWith(path)
-  }
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 md:w-14 md:h-14 relative flex-shrink-0 rounded-full overflow-hidden border-2 border-primary-blue/20">
-              <Image
-                src="/logo.png"
-                alt="People's Renaissance Movement Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <div>
-              <div className="text-primary-blue font-bold text-xs md:text-base uppercase tracking-tight leading-tight">
-                People&apos;s Renaissance Movement
-              </div>
-              <div className="text-primary-red text-[10px] md:text-xs uppercase font-medium">
-                The Change We Need
-              </div>
-            </div>
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-[0_1px_0_0_rgba(0,0,0,0.06)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-3.5 flex flex-wrap items-center justify-between gap-3">
+        <Link href="/" className="flex items-center gap-2.5 min-w-0">
+          <div className="relative h-11 md:h-[58px] w-auto aspect-[943/693] flex-shrink-0">
+            <Image
+              src="/logo_full.png"
+              alt="PM Party logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <span className="hidden md:inline font-heading font-extrabold text-[19px] tracking-[0.3px] whitespace-nowrap text-primary-blue">
+            PEOPLE&apos;S RENAISSANCE MOVEMENT
+          </span>
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-6">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="font-bold text-[14.5px] text-gray-900 uppercase tracking-[0.3px] hover:text-primary-red transition"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link
+            href="/membership/register"
+            className="font-extrabold text-[14.5px] text-white bg-primary-red px-5 py-2.5 rounded-full uppercase tracking-[0.3px] hover:bg-primary-blue transition"
+          >
+            Membership
           </Link>
+        </nav>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/"
-              className={`transition ${
-                isActive('/') ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1' : 'text-gray-700 hover:text-primary-blue'
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              href="/#about"
-              className="text-gray-700 hover:text-primary-blue transition"
-            >
-              About Us
-            </Link>
-            <div
-              className="relative"
-              onMouseEnter={() => setGetInvolvedOpen(true)}
-              onMouseLeave={() => setGetInvolvedOpen(false)}
-            >
-              <button
-                type="button"
-                className={`transition flex items-center gap-1 py-1 ${
-                  pathname === '/membership' || pathname === '/volunteer' || pathname === '/donate' || pathname.startsWith('/aspirants')
-                    ? 'text-primary-blue font-semibold border-b-2 border-primary-blue pb-1' : 'text-gray-700 hover:text-primary-blue'
-                }`}
-                aria-expanded={getInvolvedOpen}
-                aria-haspopup="true"
-              >
-                Get Involved
-                <svg className={`w-4 h-4 transition-transform ${getInvolvedOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {getInvolvedOpen && (
-                <div className="absolute left-0 top-full pt-1 min-w-[200px]">
-                  <div className="bg-white rounded-lg shadow-lg border border-gray-100 py-2">
-                    <Link href="/membership" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue transition" onClick={() => setGetInvolvedOpen(false)}>Become a Member</Link>
-                    <Link href="/volunteer" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue transition" onClick={() => setGetInvolvedOpen(false)}>Volunteer</Link>
-                    <Link href="/donate" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue transition" onClick={() => setGetInvolvedOpen(false)}>Donate</Link>
-                    <Link href="/aspirants/apply" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-blue transition" onClick={() => setGetInvolvedOpen(false)}>Apply as Aspirant</Link>
-                  </div>
-                </div>
-              )}
-            </div>
-            <Link
-              href="/#contacts"
-              className="text-gray-700 hover:text-primary-blue transition"
-            >
-              Contacts
-            </Link>
-          </div>
-
-          {/* Mobile menu button - red square with white lines */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="bg-primary-red text-white p-2.5 rounded focus:outline-none hover:bg-[#9A162D] transition"
-              aria-label="Toggle menu"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                {isOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          aria-label="Toggle menu"
+          aria-expanded={isOpen}
+          className="md:hidden flex flex-col gap-[5px] p-2 flex-shrink-0"
+        >
+          <span className="w-[22px] h-[2.5px] rounded-full bg-primary-blue" />
+          <span className="w-[22px] h-[2.5px] rounded-full bg-primary-red" />
+          <span className="w-[22px] h-[2.5px] rounded-full bg-primary-blue" />
+        </button>
       </div>
 
-      {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
-          <div className="px-4 py-3 space-y-1">
-            <Link href="/" className={`block px-3 py-2.5 rounded ${isActive('/') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>Home</Link>
-            <Link href="/#about" className="block px-3 py-2.5 rounded text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>About Us</Link>
-            <div className="pt-2 pb-1">
-              <p className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Get Involved</p>
-              <Link href="/membership" className={`block px-3 py-2.5 rounded text-sm ${isActive('/membership') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>Become a Member</Link>
-              <Link href="/volunteer" className={`block px-3 py-2.5 rounded text-sm ${isActive('/volunteer') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>Volunteer</Link>
-              <Link href="/donate" className="block px-3 py-2.5 rounded text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>Donate</Link>
-              <Link href="/aspirants/apply" className={`block px-3 py-2.5 rounded text-sm ${pathname.startsWith('/aspirants') ? 'bg-primary-blue text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'}`} onClick={() => setIsOpen(false)}>Apply as Aspirant</Link>
-            </div>
-            <Link href="/articles" className="block px-3 py-2.5 rounded text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>Updates</Link>
-            <Link href="/#contacts" className="block px-3 py-2.5 rounded text-gray-700 hover:bg-gray-100" onClick={() => setIsOpen(false)}>Contacts</Link>
+        <div className="md:hidden border-t border-gray-100 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 pb-5 flex flex-col gap-0.5">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className="py-3.5 font-bold text-base uppercase border-b border-gray-100"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <Link
+              href="/membership/register"
+              onClick={() => setIsOpen(false)}
+              className="py-3.5 font-bold text-base uppercase text-primary-red"
+            >
+              Membership
+            </Link>
           </div>
         </div>
       )}
-    </nav>
+    </header>
   )
 }
-

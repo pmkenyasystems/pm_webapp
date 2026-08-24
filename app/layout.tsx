@@ -1,14 +1,20 @@
 import type { Metadata } from 'next'
-import { Lato } from 'next/font/google'
+import { Barlow, Barlow_Semi_Condensed } from 'next/font/google'
 import './globals.css'
 import ConditionalShell from '@/components/layout/ConditionalShell'
 import { Providers } from './providers'
 import DisableInspect from '@/components/security/DisableInspect'
 
-const lato = Lato({
+const barlow = Barlow({
   subsets: ['latin'],
-  weight: ['300', '400', '700', '900'],
-  variable: '--font-lato',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-barlow',
+})
+
+const barlowSemiCondensed = Barlow_Semi_Condensed({
+  subsets: ['latin'],
+  weight: ['600', '700', '800', '900'],
+  variable: '--font-barlow-semi-condensed',
 })
 
 export const metadata: Metadata = {
@@ -43,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={lato.variable}>
+    <html lang="en" className={`${barlow.variable} ${barlowSemiCondensed.variable}`}>
       <body className="font-sans antialiased">
         <DisableInspect />
         <Providers>

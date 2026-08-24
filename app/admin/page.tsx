@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import PageLoader from '@/components/PageLoader'
 
 export default function AdminPage() {
   const { data: session, status } = useSession()
@@ -46,10 +47,7 @@ export default function AdminPage() {
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        <PageLoader size="lg" label="Loading..." />
       </div>
     )
   }
@@ -99,7 +97,7 @@ export default function AdminPage() {
                 Log Out as Member
               </button>
               <Link
-                href="/membership"
+                href="/membership/register"
                 className="block w-full text-center bg-gray-200 text-gray-700 px-4 py-3 rounded-md font-semibold hover:bg-gray-300 transition"
               >
                 Go to Membership Page

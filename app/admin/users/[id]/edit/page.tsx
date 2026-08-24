@@ -3,16 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-
-const AVAILABLE_MODULES = [
-  { value: 'news', label: 'News/Articles' },
-  { value: 'elections', label: 'Elections' },
-  { value: 'positions', label: 'Positions' },
-  { value: 'members', label: 'Members' },
-  { value: 'volunteers', label: 'Volunteers' },
-  { value: 'donations', label: 'Donations' },
-  { value: 'admins', label: 'Admin Management' },
-]
+import { AVAILABLE_MODULES } from '@/lib/modules'
 
 interface User {
   id: string
@@ -152,7 +143,7 @@ export default function EditAdminUserPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Edit Admin User</h1>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-[10px] border border-gray-200 p-8 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

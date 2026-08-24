@@ -125,7 +125,7 @@ export default function EditArticlePage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-[10px] border border-gray-200 p-8 space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
               Title *

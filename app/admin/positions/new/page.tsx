@@ -10,6 +10,7 @@ export default function NewPositionPage() {
   const [formData, setFormData] = useState({
     positionTitle: '',
     positionLevel: 'National', // Default to National
+    applicationFee: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -56,7 +57,7 @@ export default function NewPositionPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Create New Position</h1>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-[10px] border border-gray-200 p-8 space-y-6">
         <div>
           <label htmlFor="positionTitle" className="block text-sm font-medium text-gray-700 mb-2">
             Position Title *
@@ -90,6 +91,27 @@ export default function NewPositionPage() {
             <option value="Constituency">Constituency</option>
             <option value="Ward">Ward</option>
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="applicationFee" className="block text-sm font-medium text-gray-700 mb-2">
+            Application Fee (KES)
+          </label>
+          <input
+            type="number"
+            id="applicationFee"
+            name="applicationFee"
+            value={formData.applicationFee}
+            onChange={handleChange}
+            min="0"
+            step="1"
+            placeholder="e.g. 5000"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-blue focus:border-transparent"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Aspirants applying for this position must pay this fee before their application can be approved.
+            Leave blank if not yet decided — it can be set later.
+          </p>
         </div>
 
         {error && (

@@ -8,14 +8,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-lato)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-lato)', 'sans-serif'],
-        display: ['var(--font-lato)', 'sans-serif'],
+        sans: ['var(--font-barlow)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-barlow-semi-condensed)', 'sans-serif'],
+        display: ['var(--font-barlow-semi-condensed)', 'sans-serif'],
       },
       colors: {
         primary: {
-          blue: '#003366', // Dark blue from logo
-          red: '#C41E3A', // Red from logo
+          blue: '#003491', // Dark blue sampled from logo
+          red: '#F0181E', // Red sampled from logo
           light: '#E6F2FF', // Light blue tint
         },
       },

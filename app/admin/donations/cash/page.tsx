@@ -67,7 +67,7 @@ export default function AdminCashDonationsPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white rounded-[10px] border border-gray-200 p-6 mb-6">
           <div className="flex flex-wrap items-end gap-4">
             <div className="w-48">
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
@@ -95,11 +95,11 @@ export default function AdminCashDonationsPage() {
         </div>
 
         {donations.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="bg-white rounded-[10px] border border-gray-200 p-8 text-center">
             <p className="text-gray-500">No cash donations found.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <p className="text-sm text-gray-600">
                 Total: {donations.length} donation{donations.length !== 1 ? 's' : ''}
@@ -110,24 +110,24 @@ export default function AdminCashDonationsPage() {
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Donor
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Method
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Transaction ID
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Date
                     </th>
                   </tr>

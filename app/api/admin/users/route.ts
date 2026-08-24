@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { isSuperAdmin } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
+import { sendAdminWelcomeEmail } from '@/lib/mailer'
+import { generateTemporaryPassword } from '@/lib/generate-temp-password'
 import bcrypt from 'bcryptjs'
 
 export const dynamic = 'force-dynamic'
@@ -26,6 +28,7 @@ export async function GET() {
         name: true,
         role: true,
         modules: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -55,11 +58,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden: Super admin access required' }, { status: 403 })
     }
 
-    const { email, password, name, role, modules } = await request.json()
+    const { email, name, role, modules } = await request.json()
 
-    if (!email || !password) {
+    if (!email || !name) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email and name are required' },
+        { status: 400 }
+      )
+    }
+
+    const resolvedRole = role || 'admin'
+    const resolvedModules: string[] = Array.isArray(modules) ? modules : []
+
+    if (resolvedRole !== 'super_admin' && resolvedModules.length === 0) {
+      return NextResponse.json(
+        { error: 'Select at least one module for this admin' },
         { status: 400 }
       )
     }
@@ -76,21 +89,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Validate modules if provided
-    let modulesJson = null
-    if (modules && Array.isArray(modules) && modules.length > 0) {
-      modulesJson = JSON.stringify(modules)
-    }
+    const temporaryPassword = generateTemporaryPassword()
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10)
+    const modulesJson = resolvedModules.length > 0 ? JSON.stringify(resolvedModules) : null
 
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        name: name || null,
-        role: role || 'admin',
+        name,
+        role: resolvedRole,
         modules: modulesJson,
       },
       select: {
@@ -103,7 +111,27 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ user }, { status: 201 })
+    try {
+      await sendAdminWelcomeEmail({
+        name: user.name,
+        email: user.email,
+        temporaryPassword,
+        role: user.role,
+        modules: resolvedModules,
+      })
+      return NextResponse.json({ user, emailSent: true }, { status: 201 })
+    } catch (emailError: any) {
+      console.error('Error sending admin welcome email:', emailError)
+      return NextResponse.json(
+        {
+          user,
+          emailSent: false,
+          temporaryPassword,
+          warning: 'User created, but the welcome email could not be sent. Share this temporary password with them directly.',
+        },
+        { status: 201 }
+      )
+    }
   } catch (error: any) {
     console.error('Error creating user:', error)
     return NextResponse.json(

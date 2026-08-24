@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { getAvailableModules } from '@/lib/permissions'
 import AdminHeader from '@/components/admin/AdminHeader'
+import ChangePasswordForm from '@/components/admin/ChangePasswordForm'
 
 export default async function AdminProfilePage() {
   const session = await getSession()
@@ -32,7 +33,7 @@ export default async function AdminProfilePage() {
       <AdminHeader title="My Profile" />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h2 className="text-lg font-semibold text-gray-900">Personal profile</h2>
             <p className="text-sm text-gray-500 mt-0.5">
@@ -77,6 +78,10 @@ export default async function AdminProfilePage() {
               </dd>
             </div>
           </dl>
+        </div>
+
+        <div className="mt-6">
+          <ChangePasswordForm />
         </div>
       </div>
     </div>

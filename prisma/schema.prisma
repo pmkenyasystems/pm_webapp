@@ -17,6 +17,7 @@ model User {
   name      String?
   role      String   @default("admin") // super_admin, admin
   modules   String? // JSON array of modules: ["news", "events", "elections", "positions", "members", "volunteers", "donations"]
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -223,11 +224,12 @@ model Ward {
 }
 
 model Position {
-  id            Int      @id @default(autoincrement())
-  positionTitle String   @map("position_title")
-  positionLevel String   @map("position_level") // e.g., "National", "County", "Constituency", "Ward"
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id             Int      @id @default(autoincrement())
+  positionTitle  String   @map("position_title")
+  positionLevel  String   @map("position_level") // e.g., "National", "County", "Constituency", "Ward"
+  applicationFee Float?   @map("application_fee") // KES; aspirants must pay this before their application can be approved
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   aspirants Aspirant[]
 
@@ -268,9 +270,31 @@ model Aspirant {
   county       County?       @relation(fields: [countyCode], references: [countyCode])
   constituency Constituency? @relation(fields: [constituencyCode], references: [constituencyCode])
   ward         Ward?         @relation(fields: [wardCode], references: [wardCode])
+  payments     AspirantPayment[]
 
   @@unique([idNumber, electionId, positionId])
   @@map("aspirant")
+}
+
+model AspirantPayment {
+  id            String    @id @default(cuid())
+  aspirantId    String    @map("aspirant_id")
+  amount        Float
+  currency      String    @default("KES")
+  method        String // mpesa, bank
+  phone         String? // for mpesa STK push
+  bankName      String? // for bank deposits
+  transactionId String? // mpesa CheckoutRequestID, later replaced with the M-Pesa receipt number; or the bank deposit slip/reference number
+  status        String    @default("pending") // pending, completed, failed
+  verifiedBy    String? // admin User.id who manually verified a bank deposit or recorded a payment directly
+  verifiedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  aspirant Aspirant @relation(fields: [aspirantId], references: [id], onDelete: Cascade)
+
+  @@index([aspirantId])
+  @@map("aspirant_payment")
 }
 
 model NdcRegistration {
@@ -279,4 +303,31 @@ model NdcRegistration {
   phone     String
   email     String
   createdAt DateTime @default(now())
+}
+
+/// Standalone "share your details" interest form (see /membership/register) — separate from the
+/// full Member portal profile (which requires an ORPP/manual Member record + login). Kept independent
+/// on purpose so the membership team gets a simple lead list without touching the Member schema.
+model MembershipRegistration {
+  id                 String   @id @default(cuid())
+  idNumber           String   @map("id_number") // ID or passport number
+  surname            String
+  otherNames         String   @map("other_names")
+  dateOfBirth        DateTime @map("date_of_birth")
+  sex                String
+  email              String
+  phone              String
+  occupation         String?
+  ethnicity          String
+  religion           String
+  interestGroups     String?  @map("interest_groups") // JSON array: youth, woman, pwd, marginalized, ethnic_minority
+  membershipCategory String?  @map("membership_category")
+  county             String?
+  constituency       String?
+  ward               String?
+  agreedToPolicies   Boolean  @default(false) @map("agreed_to_policies")
+  agreedToTerms      Boolean  @default(false) @map("agreed_to_terms")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  @@map("membership_registration")
 }

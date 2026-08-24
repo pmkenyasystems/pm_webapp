@@ -24,6 +24,10 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        if (!user.isActive) {
+          throw new Error('AccountDeactivated')
+        }
+
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
         if (!isPasswordValid) {
@@ -36,6 +40,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           modules: (user as any).modules ?? undefined,
+          isActive: user.isActive,
         }
       },
     }),
@@ -49,6 +54,19 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role
         token.id = user.id
         token.modules = user.modules
+        token.isActive = user.isActive
+      } else if (token.id) {
+        // Re-check the account on every request so a deactivation or rights
+        // change (super admin editing another user) takes effect immediately,
+        // without waiting for the existing session to expire.
+        const dbUser = await prisma.user.findUnique({ where: { id: token.id } })
+        if (!dbUser) {
+          token.isActive = false
+        } else {
+          token.role = dbUser.role
+          token.modules = dbUser.modules ?? undefined
+          token.isActive = dbUser.isActive
+        }
       }
       return token
     },
@@ -57,6 +75,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string
         session.user.id = token.id as string
         session.user.modules = token.modules as string | undefined
+        session.user.isActive = token.isActive as boolean | undefined
       }
       return session
     },

@@ -1,8 +1,11 @@
 import Hero from '@/components/home/Hero'
-import WavySeparator from '@/components/home/WavySeparator'
+import CountdownBar from '@/components/home/CountdownBar'
 import FeaturedContent from '@/components/home/FeaturedContent'
 import HomeAboutSection from '@/components/home/HomeAboutSection'
-import OurContacts from '@/components/home/OurContacts'
+import ManifestoSection from '@/components/home/ManifestoSection'
+import LeadershipSection from '@/components/home/LeadershipSection'
+import CommitteesSection from '@/components/home/CommitteesSection'
+import AspirantSection from '@/components/home/AspirantSection'
 import CallToAction from '@/components/home/CallToAction'
 import HQLaunchNotice from '@/components/home/HQLaunchNotice'
 import NDCNotice from '@/components/home/NDCNotice'
@@ -12,15 +15,15 @@ export default function Home() {
     <div>
       <HQLaunchNotice />
       <NDCNotice />
-      <div className="flex flex-col h-[75vh]">
-        <Hero />
-        <WavySeparator />
-      </div>
+      <CountdownBar />
+      <Hero />
       <FeaturedContent />
       <HomeAboutSection />
-      <OurContacts />
+      <ManifestoSection />
+      <LeadershipSection />
+      <CommitteesSection />
+      <AspirantSection />
       <CallToAction />
     </div>
   )
 }
-

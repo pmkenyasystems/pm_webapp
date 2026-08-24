@@ -2,23 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-
-const ELECTION_DATE = new Date('2027-08-10T00:00:00+03:00')
+import { getTimeLeft } from '@/lib/election-countdown'
 
 // Sampled directly from /public/logo_full.png
 const BRIGHT_RED = '#F0181E'
 const DEEP_BLUE = '#003491'
-
-function getTimeLeft() {
-  const diff = ELECTION_DATE.getTime() - Date.now()
-  if (diff <= 0) return null
-  return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((diff / (1000 * 60)) % 60),
-    seconds: Math.floor((diff / 1000) % 60),
-  }
-}
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (

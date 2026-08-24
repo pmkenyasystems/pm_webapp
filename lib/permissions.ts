@@ -1,7 +1,8 @@
 import { getSession } from './auth'
 import { prisma } from './prisma'
+import { AVAILABLE_MODULES, type ModuleName } from './modules'
 
-export type Module = 'news' | 'elections' | 'positions' | 'members' | 'volunteers' | 'donations' | 'admins' | 'aspirants'
+export type Module = ModuleName
 
 /**
  * Check if the current user has access to a specific module.
@@ -11,7 +12,7 @@ export type Module = 'news' | 'elections' | 'positions' | 'members' | 'volunteer
 export async function hasModuleAccess(module: Module): Promise<boolean> {
   const session = await getSession()
   
-  if (!session || !session.user) {
+  if (!session || !session.user || session.user.isActive === false) {
     return false
   }
 
@@ -25,7 +26,7 @@ export async function hasModuleAccess(module: Module): Promise<boolean> {
     where: { email: session.user.email! },
   })
 
-  if (!user) {
+  if (!user || !user.isActive) {
     return false
   }
 
@@ -47,22 +48,16 @@ export async function hasModuleAccess(module: Module): Promise<boolean> {
  */
 export async function isSuperAdmin(): Promise<boolean> {
   const session = await getSession()
-  return session?.user?.role === 'super_admin' || false
+  if (!session?.user || session.user.isActive === false) {
+    return false
+  }
+  return session.user.role === 'super_admin'
 }
 
 /**
  * Get all available modules
  */
 export function getAvailableModules(): { value: Module; label: string }[] {
-  return [
-    { value: 'news', label: 'News/Articles' },
-    { value: 'elections', label: 'Elections' },
-    { value: 'positions', label: 'Positions' },
-    { value: 'members', label: 'Members' },
-    { value: 'volunteers', label: 'Volunteers' },
-    { value: 'donations', label: 'Donations' },
-    { value: 'aspirants', label: 'Aspirants' },
-    { value: 'admins', label: 'Admin Management' },
-  ]
+  return AVAILABLE_MODULES
 }
 

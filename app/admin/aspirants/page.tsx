@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import AdminHeader from '@/components/admin/AdminHeader'
 
 interface AspirantItem {
@@ -12,11 +13,12 @@ interface AspirantItem {
   phone: string | null
   membership: { category: string | null; paid: boolean } | null
   election: { id: string; title: string; electionDate: string }
-  position: { id: number; positionTitle: string; positionLevel: string }
+  position: { id: number; positionTitle: string; positionLevel: string; applicationFee: number | null }
   county: string | null
   constituency: string | null
   ward: string | null
   status: number
+  feeStatus: 'paid' | 'pending' | 'unpaid'
   country: string
   createdAt: string
 }
@@ -25,6 +27,12 @@ const ASPIRANT_STATUS: Record<number, { label: string; className: string }> = {
   0: { label: 'Pending',  className: 'bg-amber-50 text-amber-700' },
   1: { label: 'Approved', className: 'bg-green-50 text-green-700' },
   2: { label: 'Rejected', className: 'bg-red-50 text-red-700' },
+}
+
+const FEE_STATUS: Record<string, { label: string; className: string }> = {
+  paid: { label: 'Paid', className: 'bg-green-50 text-green-700' },
+  pending: { label: 'Pending', className: 'bg-amber-50 text-amber-700' },
+  unpaid: { label: 'Unpaid', className: 'bg-gray-100 text-gray-600' },
 }
 
 interface ElectionOption { id: string; title: string }
@@ -158,6 +166,244 @@ function EmailModal({
   )
 }
 
+// ── Payments modal ───────────────────────────────────────────────────────────
+interface AspirantPaymentRecord {
+  id: string
+  method: string
+  amount: number
+  currency: string
+  phone: string | null
+  bankName: string | null
+  transactionId: string | null
+  status: string
+  verifiedAt: string | null
+  createdAt: string
+}
+
+const PAYMENT_STATUS_STYLE: Record<string, string> = {
+  completed: 'bg-green-50 text-green-700',
+  pending: 'bg-amber-50 text-amber-700',
+  failed: 'bg-red-50 text-red-700',
+}
+
+function PaymentsModal({
+  aspirant,
+  onClose,
+  onChanged,
+}: {
+  aspirant: AspirantItem
+  onClose: () => void
+  onChanged: () => void
+}) {
+  const [payments, setPayments] = useState<AspirantPaymentRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [method, setMethod] = useState<'mpesa' | 'bank'>('bank')
+  const [amount, setAmount] = useState(aspirant.position.applicationFee != null ? String(aspirant.position.applicationFee) : '')
+  const [bankName, setBankName] = useState('')
+  const [reference, setReference] = useState('')
+  const [phone, setPhone] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/admin/aspirants/${aspirant.id}/payments`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to load payments')
+      setPayments(data.payments || [])
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const verify = async (paymentId: string, status: 'completed' | 'failed') => {
+    setBusyId(paymentId)
+    setError('')
+    try {
+      const res = await fetch(`/api/admin/aspirants/${aspirant.id}/payments`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId, status }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update payment')
+      await load()
+      onChanged()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const recordPayment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/admin/aspirants/${aspirant.id}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          method,
+          amount: amount || undefined,
+          bankName: method === 'bank' ? bankName : undefined,
+          phone: method === 'mpesa' ? phone : undefined,
+          transactionId: reference || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to record payment')
+      setShowForm(false)
+      setBankName('')
+      setReference('')
+      setPhone('')
+      await load()
+      onChanged()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Application Fee Payments</h2>
+            <p className="text-xs text-gray-500">{aspirant.fullName || aspirant.memberName || aspirant.idNumber} · {aspirant.position.positionTitle}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="px-6 py-5 overflow-y-auto space-y-4">
+          {aspirant.position.applicationFee != null && (
+            <p className="text-xs text-gray-500">Application fee for this position: <span className="font-semibold text-gray-800">KES {aspirant.position.applicationFee.toLocaleString()}</span></p>
+          )}
+
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">{error}</div>}
+
+          {loading ? (
+            <p className="text-sm text-gray-400 py-4 text-center">Loading…</p>
+          ) : payments.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4 text-center">No payment attempts recorded yet.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {payments.map((p) => (
+                <div key={p.id} className="border border-gray-100 rounded-xl p-3.5">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="text-sm font-semibold text-gray-800 capitalize">{p.method === 'mpesa' ? 'M-Pesa' : `Bank — ${p.bankName || 'N/A'}`}</div>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full capitalize ${PAYMENT_STATUS_STYLE[p.status] ?? 'bg-gray-100 text-gray-600'}`}>{p.status}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    KES {p.amount.toLocaleString()} {p.transactionId && <>· Ref: <span className="font-mono">{p.transactionId}</span></>}
+                  </div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{new Date(p.createdAt).toLocaleString()}</div>
+                  {p.status === 'pending' && (
+                    <div className="flex gap-2 mt-2.5">
+                      <button
+                        onClick={() => verify(p.id, 'completed')}
+                        disabled={busyId === p.id}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition disabled:opacity-50"
+                      >
+                        Mark Verified
+                      </button>
+                      <button
+                        onClick={() => verify(p.id, 'failed')}
+                        disabled={busyId === p.id}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition disabled:opacity-50"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!showForm ? (
+            <button
+              onClick={() => setShowForm(true)}
+              className="text-sm font-semibold text-primary-blue hover:underline"
+            >
+              + Record a payment directly
+            </button>
+          ) : (
+            <form onSubmit={recordPayment} className="border border-gray-100 rounded-xl p-4 space-y-3">
+              <p className="text-xs text-gray-500">Use this when an aspirant pays cash in person, or you've verified their deposit outside the portal.</p>
+              <div className="flex gap-2">
+                <select value={method} onChange={(e) => setMethod(e.target.value as 'mpesa' | 'bank')} className="px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                  <option value="bank">Bank / Cash</option>
+                  <option value="mpesa">M-Pesa</option>
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  placeholder="Amount (KES)"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+              </div>
+              {method === 'bank' ? (
+                <input
+                  type="text"
+                  placeholder="Bank name"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+              ) : (
+                <input
+                  type="tel"
+                  placeholder="Phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                />
+              )}
+              <input
+                type="text"
+                placeholder="Reference / receipt number"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+              <div className="flex gap-2">
+                <button type="submit" disabled={saving} className="text-sm font-semibold px-4 py-2 rounded-lg bg-primary-blue text-white hover:bg-[#002244] transition disabled:opacity-50">
+                  {saving ? 'Saving…' : 'Record Payment'}
+                </button>
+                <button type="button" onClick={() => setShowForm(false)} className="text-sm font-semibold px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Delete confirmation modal ────────────────────────────────────────────────
 function DeleteModal({
   aspirant,
@@ -246,6 +492,7 @@ export default function AdminAspirantsPage() {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AspirantItem | null>(null)
+  const [paymentsTarget, setPaymentsTarget] = useState<AspirantItem | null>(null)
 
   useEffect(() => { fetchAspirants() }, [filters])
 
@@ -390,6 +637,15 @@ export default function AdminAspirantsPage() {
     <div className="min-h-screen bg-gray-50">
       <AdminHeader title="Aspirant Applications">
         <div className="flex items-center gap-2">
+          <Link
+            href="/admin/aspirants/new"
+            className="flex items-center gap-1.5 px-3 py-2 bg-primary-blue hover:bg-[#002244] text-white text-xs font-semibold rounded-lg transition"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Register Aspirant
+          </Link>
           <button
             onClick={handleExportExcel}
             disabled={exporting !== null || aspirants.length === 0}
@@ -429,7 +685,7 @@ export default function AdminAspirantsPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5">
+        <div className="bg-white rounded-[10px] border border-gray-200 p-4 mb-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider">Status</label>
@@ -467,11 +723,11 @@ export default function AdminAspirantsPage() {
 
         {/* Table */}
         {aspirants.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 text-center">
+          <div className="bg-white rounded-[10px] border border-gray-200 p-10 text-center">
             <p className="text-gray-400 text-sm">No aspirant applications found.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-[10px] border border-gray-200 overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
               <p className="text-xs text-gray-500">
                 <span className="font-semibold text-gray-800">{aspirants.length}</span> application{aspirants.length !== 1 ? 's' : ''}
@@ -481,7 +737,7 @@ export default function AdminAspirantsPage() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    {['Applicant', 'ID Number', 'Membership', 'Election', 'Position', 'Area', 'Status', 'Applied', ''].map((h) => (
+                    {['Applicant', 'ID Number', 'Membership', 'Election', 'Position', 'Area', 'Status', 'Fee', 'Applied', ''].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -532,6 +788,15 @@ export default function AdminAspirantsPage() {
                             <option value={2}>Rejected</option>
                           </select>
                         </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <button
+                            onClick={() => setPaymentsTarget(a)}
+                            className={`text-xs font-semibold rounded-full px-2.5 py-1 transition hover:opacity-80 ${FEE_STATUS[a.feeStatus].className}`}
+                            title="View / record payments"
+                          >
+                            {FEE_STATUS[a.feeStatus].label}
+                          </button>
+                        </td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-400">
                           {new Date(a.createdAt).toLocaleDateString()}
                         </td>
@@ -569,6 +834,14 @@ export default function AdminAspirantsPage() {
           aspirant={deleteTarget}
           onConfirm={() => handleDelete(deleteTarget)}
           onClose={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {paymentsTarget && (
+        <PaymentsModal
+          aspirant={paymentsTarget}
+          onClose={() => setPaymentsTarget(null)}
+          onChanged={fetchAspirants}
         />
       )}
     </div>
