@@ -20,6 +20,8 @@ interface AspirantItem {
   status: number
   feeStatus: 'paid' | 'pending' | 'unpaid'
   country: string
+  certificateNumber: string | null
+  certificateIssuedAt: string | null
   createdAt: string
 }
 
@@ -493,8 +495,31 @@ export default function AdminAspirantsPage() {
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AspirantItem | null>(null)
   const [paymentsTarget, setPaymentsTarget] = useState<AspirantItem | null>(null)
+  const [issuingId, setIssuingId] = useState<string | null>(null)
 
   useEffect(() => { fetchAspirants() }, [filters])
+
+  const handleIssueCertificate = async (aspirant: AspirantItem) => {
+    if (!confirm(`Issue a nomination certificate to ${aspirant.fullName || aspirant.memberName || aspirant.idNumber} for ${aspirant.position.positionTitle}? This makes them an official PM Party candidate.`)) {
+      return
+    }
+    setIssuingId(aspirant.id)
+    setError('')
+    try {
+      const res = await fetch(`/api/admin/aspirants/${aspirant.id}/certificate`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to issue certificate')
+      setAspirants((all) => all.map((a) => a.id === aspirant.id ? {
+        ...a,
+        certificateNumber: data.aspirant.certificateNumber,
+        certificateIssuedAt: data.aspirant.certificateIssuedAt,
+      } : a))
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setIssuingId(null)
+    }
+  }
 
   const fetchAspirants = async () => {
     try {
@@ -737,7 +762,7 @@ export default function AdminAspirantsPage() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    {['Applicant', 'ID Number', 'Membership', 'Election', 'Position', 'Area', 'Status', 'Fee', 'Applied', ''].map((h) => (
+                    {['Applicant', 'ID Number', 'Membership', 'Election', 'Position', 'Area', 'Status', 'Fee', 'Certificate', 'Applied', ''].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -796,6 +821,26 @@ export default function AdminAspirantsPage() {
                           >
                             {FEE_STATUS[a.feeStatus].label}
                           </button>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {a.certificateIssuedAt ? (
+                            <span
+                              className="text-xs font-semibold rounded-full px-2.5 py-1 bg-green-50 text-green-700"
+                              title={a.certificateNumber ?? undefined}
+                            >
+                              Issued
+                            </span>
+                          ) : a.status === 1 ? (
+                            <button
+                              onClick={() => handleIssueCertificate(a)}
+                              disabled={issuingId === a.id}
+                              className="text-xs font-semibold rounded-full px-2.5 py-1 bg-primary-blue text-white hover:bg-[#002244] transition disabled:opacity-50"
+                            >
+                              {issuingId === a.id ? 'Issuing…' : 'Issue Certificate'}
+                            </button>
+                          ) : (
+                            <span className="text-xs text-gray-300">—</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-400">
                           {new Date(a.createdAt).toLocaleDateString()}

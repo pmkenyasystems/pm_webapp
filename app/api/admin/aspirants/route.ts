@@ -107,6 +107,8 @@ export async function GET(request: NextRequest) {
         status: a.status,
         feeStatus: feeStatusByAspirantId[a.id],
         country: a.country,
+        certificateNumber: a.certificateNumber,
+        certificateIssuedAt: a.certificateIssuedAt,
         createdAt: a.createdAt,
         updatedAt: a.updatedAt,
       }

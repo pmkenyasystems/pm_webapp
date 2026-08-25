@@ -24,6 +24,7 @@ export default function MembershipRegisterPage() {
   const [ethnicity, setEthnicity] = useState('')
   const [religion, setReligion] = useState('')
   const [interestGroups, setInterestGroups] = useState<string[]>([])
+  const [pwdRegistrationNumber, setPwdRegistrationNumber] = useState('')
   const [membershipCategory, setMembershipCategory] = useState('')
   const [categories, setCategories] = useState<any[]>([])
 
@@ -78,16 +79,24 @@ export default function MembershipRegisterPage() {
     setWard('')
   }, [constituency, constituencies])
 
+  const isPwd = interestGroups.includes('pwd')
+
   const toggleInterestGroup = (value: string) => {
-    setInterestGroups((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    )
+    setInterestGroups((prev) => {
+      const next = prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+      if (value === 'pwd' && prev.includes('pwd')) setPwdRegistrationNumber('')
+      return next
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
+    if (isPwd && !pwdRegistrationNumber.trim()) {
+      setError('PWD Registration Number is required')
+      return
+    }
     if (!agreedToPolicies || !agreedToTerms) {
       setError('You must agree to both statements before signing up')
       return
@@ -110,6 +119,7 @@ export default function MembershipRegisterPage() {
           ethnicity,
           religion,
           interestGroups,
+          pwdRegistrationNumber,
           membershipCategory,
           county,
           constituency,
@@ -157,10 +167,72 @@ export default function MembershipRegisterPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-2xl mx-auto">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-primary-blue transition mb-6"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </Link>
+
+        {/* ── Official registration is via IPPMS ── */}
         <div className="text-center mb-6">
-          <h1 className="font-heading font-black text-2xl sm:text-3xl uppercase text-primary-blue mb-2">
-            Membership Registration Form
+          <h1 className="font-heading font-black text-2xl sm:text-3xl uppercase text-primary-blue mb-3">
+            Join PM Party
           </h1>
+          <p className="text-gray-500 text-sm sm:text-base max-w-lg mx-auto">
+            Official party membership is registered through <strong className="text-gray-700">IPPMS</strong> —
+            the Integrated Political Parties Management System owned by the Office of the Registrar of
+            Political Parties (ORPP).
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+            <div className="text-3xl mb-3">🌐</div>
+            <div className="font-bold text-gray-900 mb-1">Online via IPPMS</div>
+            <p className="text-sm text-gray-500 mb-4">Sign in with your National ID or e-Citizen account.</p>
+            <a
+              href="https://ippms.orpp.or.ke"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-primary-blue text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#002244] transition"
+            >
+              Go to IPPMS
+            </a>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+            <div className="text-3xl mb-3">📱</div>
+            <div className="font-bold text-gray-900 mb-1">USSD *509#</div>
+            <p className="text-sm text-gray-500 mb-4">
+              No internet needed. Dial *509# on any mobile network. Party Code: <strong>105</strong>.
+            </p>
+            <a
+              href="tel:*509%23"
+              className="inline-block bg-primary-blue text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#002244] transition"
+            >
+              Dial *509#
+            </a>
+          </div>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5 mb-4 text-sm text-amber-800">
+          <strong>Already a member of another party?</strong> You must first resign that membership on
+          IPPMS before joining PM Party — this applies whether you register online or via *509#.
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3.5 mb-8 text-sm text-blue-800">
+          Facing any challenges with registration? We&apos;re glad to help — call us on{' '}
+          <a href="tel:+25411916587" className="font-bold hover:underline">+254 119 165 87</a>.
+        </div>
+
+        {/* ── Create your PM Party profile (separate from the IPPMS record above) ── */}
+        <div className="text-center mb-6">
+          <h2 className="font-heading font-black text-xl sm:text-2xl uppercase text-primary-blue mb-2">
+            Create Your PM Party Profile
+          </h2>
           <p className="text-gray-500 text-sm sm:text-base max-w-lg mx-auto">
             Already registered (or registering) via IPPMS? Share your details so our membership team can
             welcome you and keep you informed about PM Party activities.
@@ -249,6 +321,23 @@ export default function MembershipRegisterPage() {
                 </label>
               ))}
             </div>
+
+            {isPwd && (
+              <div className="mb-5">
+                <label className={labelCls}>PWD Registration Number <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={pwdRegistrationNumber}
+                  onChange={(e) => setPwdRegistrationNumber(e.target.value)}
+                  required
+                  className={inputCls}
+                  placeholder="e.g. NCPWD-2024-123456"
+                />
+                <p className="text-xs text-gray-500 mt-1.5">
+                  Enter your number as issued by the National Council for Persons with Disabilities (NCPWD).
+                </p>
+              </div>
+            )}
 
             <label className={labelCls}>Membership Category</label>
             <select value={membershipCategory} onChange={(e) => setMembershipCategory(e.target.value)} className={inputCls}>
