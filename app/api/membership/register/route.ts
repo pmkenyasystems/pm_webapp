@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     const ethnicity = String(body.ethnicity || '').trim()
     const religion = String(body.religion || '').trim()
     const interestGroups: string[] = Array.isArray(body.interestGroups) ? body.interestGroups : []
+    const pwdRegistrationNumber = body.pwdRegistrationNumber ? String(body.pwdRegistrationNumber).trim() : null
     const membershipCategory = body.membershipCategory ? String(body.membershipCategory).trim() : null
     const county = String(body.county || '').trim()
     const constituency = String(body.constituency || '').trim()
@@ -36,6 +37,9 @@ export async function POST(request: NextRequest) {
     }
     if (!ethnicity || !religion) {
       return NextResponse.json({ error: 'Please select your ethnicity and religion' }, { status: 400 })
+    }
+    if (interestGroups.includes('pwd') && !pwdRegistrationNumber) {
+      return NextResponse.json({ error: 'PWD Registration Number is required' }, { status: 400 })
     }
     if (!county || !constituency || !ward) {
       return NextResponse.json({ error: 'Please select your county, constituency and ward' }, { status: 400 })
@@ -57,6 +61,7 @@ export async function POST(request: NextRequest) {
         ethnicity,
         religion,
         interestGroups: interestGroups.length > 0 ? JSON.stringify(interestGroups) : null,
+        pwdRegistrationNumber: interestGroups.includes('pwd') ? pwdRegistrationNumber : null,
         membershipCategory,
         county,
         constituency,

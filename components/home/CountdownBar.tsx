@@ -26,7 +26,7 @@ export default function CountdownBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row flex-wrap items-center justify-between gap-[18px] text-center md:text-left">
         <div>
           <span className="block font-heading font-bold tracking-[2px] text-[12.5px] uppercase mb-2">
-            Countdown To The Polls
+            PM Countdown to Fresh Leadership
           </span>
           <div className="font-heading font-extrabold text-base md:text-[22px] uppercase">
             2027 General Election &middot; 10th August 2027

@@ -443,6 +443,71 @@ export async function sendMembershipRegistrationConfirmation(data: { name: strin
   })
 }
 
+export async function sendNominationCertificateEmail(data: {
+  name: string
+  email: string
+  certificateNumber: string
+  electionTitle: string
+  positionTitle: string
+}) {
+  const senderEmail = process.env.GMAIL_USER
+
+  if (!senderEmail) {
+    console.error('Email not sent: GMAIL_USER not configured in .env')
+    return
+  }
+
+  const siteUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/+$/, '')
+  const portalUrl = `${siteUrl}/membership/profile?section=candidatures`
+  const firstName = data.name.trim().split(' ')[0] || 'there'
+
+  await transporter.sendMail({
+    from: `"PM Party Elections Board" <${senderEmail}>`,
+    to: data.email,
+    subject: `Nomination Certificate Issued — ${data.positionTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #003366; color: white; padding: 24px 32px;">
+          <h2 style="margin: 0;">You've Been Nominated</h2>
+          <p style="margin: 4px 0 0; opacity: 0.85; font-size: 14px;">People's Renaissance Movement — Elections Board</p>
+        </div>
+
+        <div style="padding: 32px; background: #f9fafb; border: 1px solid #e5e7eb;">
+          <p style="margin: 0 0 16px; color: #374151;">
+            Dear ${firstName},
+          </p>
+          <p style="margin: 0 0 16px; color: #374151;">
+            Congratulations — the National Elections Board has issued you a nomination certificate,
+            confirming you as a PM Party candidate for the position and election below.
+          </p>
+
+          <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
+            <tbody>
+              ${row('Certificate No.', data.certificateNumber)}
+              ${row('Election', data.electionTitle)}
+              ${row('Position', data.positionTitle)}
+            </tbody>
+          </table>
+
+          <a href="${portalUrl}" style="display: inline-block; background: #003366; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">
+            View My Candidature Profile
+          </a>
+
+          <p style="margin: 24px 0 0; color: #6b7280; font-size: 13px;">
+            The Change We Need &mdash; Mabadiliko Ni Sasa
+          </p>
+        </div>
+
+        <div style="padding: 16px 32px; background: #f3f4f6; border-top: 1px solid #e5e7eb;">
+          <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+            This is an automated notification from the PM Party Elections Board.
+          </p>
+        </div>
+      </div>
+    `,
+  })
+}
+
 function row(label: string, value: string) {
   return `
     <tr>

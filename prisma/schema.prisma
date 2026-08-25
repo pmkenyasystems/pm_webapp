@@ -262,6 +262,9 @@ model Aspirant {
   wardCode         Int?     @map("ward_code")
   pollingStation   String?  @map("polling_station")
   status           Int      @default(0) // 0 = pending, 1 = approved, 2 = rejected
+  certificateNumber   String?   @map("certificate_number") // set when the Elections Board issues a nomination certificate — this is what makes the aspirant a "candidate"
+  certificateIssuedAt DateTime? @map("certificate_issued_at")
+  certificateIssuedBy String?   @map("certificate_issued_by") // admin User.id who issued the certificate
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -321,12 +324,14 @@ model MembershipRegistration {
   ethnicity          String
   religion           String
   interestGroups     String?  @map("interest_groups") // JSON array: youth, woman, pwd, marginalized, ethnic_minority
+  pwdRegistrationNumber String? @map("pwd_registration_number") // required when interestGroups includes "pwd"; issued by NCPWD
   membershipCategory String?  @map("membership_category")
   county             String?
   constituency       String?
   ward               String?
   agreedToPolicies   Boolean  @default(false) @map("agreed_to_policies")
   agreedToTerms      Boolean  @default(false) @map("agreed_to_terms")
+  ippmsId            String?  @map("ippms_id") // populated in the background by the periodic IPPMS sync job; null until then
   createdAt          DateTime @default(now()) @map("created_at")
 
   @@map("membership_registration")

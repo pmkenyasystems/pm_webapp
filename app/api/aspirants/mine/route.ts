@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
         area,
         status: a.status,
         statusLabel: STATUS_LABELS[a.status],
+        certificateNumber: a.certificateNumber,
+        certificateIssuedAt: a.certificateIssuedAt,
         createdAt: a.createdAt,
         updatedAt: a.updatedAt,
         applicationFee: a.position.applicationFee,

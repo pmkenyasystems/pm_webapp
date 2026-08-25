@@ -104,6 +104,7 @@ const menuConfig: Array<{
       { label: 'Dashboard', href: '/admin/elections/dashboard' },
       { label: 'Elections', href: '/admin/elections' },
       { label: 'Aspirants', href: '/admin/aspirants' },
+      { label: 'Candidate Profiles', href: '/admin/elections/candidates' },
     ],
   },
   {

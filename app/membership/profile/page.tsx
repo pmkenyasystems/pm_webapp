@@ -824,31 +824,6 @@ export default function MemberDashboardPage() {
               )}
 
               <div className="bg-white border border-gray-100 rounded-xl p-5">
-                <div className="font-bold text-base mb-3.5">Active Elections</div>
-                {aspirantLoadingData ? (
-                  <div className="text-center py-8">
-                    <PageLoader size="sm" />
-                  </div>
-                ) : elections.length === 0 ? (
-                  <p className="text-sm text-gray-400">No active elections at the moment.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {elections.map(el => (
-                      <div key={el.id} className="border border-gray-100 rounded-lg p-4">
-                        <div className="flex justify-between items-center flex-wrap gap-2">
-                          <div className="font-semibold text-[14.5px]">{el.title}</div>
-                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">
-                            {formatDate(el.electionDate)}
-                          </span>
-                        </div>
-                        {el.description && <p className="text-[13px] text-gray-500 mt-1.5">{el.description}</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-xl p-5">
                 <div className="flex justify-between items-center flex-wrap gap-2.5 mb-1">
                   <div className="font-bold text-base">Apply As Aspirant</div>
                   <button
@@ -987,7 +962,8 @@ export default function MemberDashboardPage() {
             <div className="bg-white border border-gray-100 rounded-xl p-5">
               <div className="font-bold text-base mb-1">Candidature Profiles</div>
               <p className="text-[13px] text-gray-500 mb-3.5">
-                A candidature profile is created once the Elections Board approves your aspirant application.
+                A candidature profile is created once the National Elections Board (NEB) issues you with a
+                nomination certificate / party ticket for your approved aspirant application.
               </p>
               {myApplicationsLoading ? (
                 <div className="text-center py-8">
@@ -995,12 +971,12 @@ export default function MemberDashboardPage() {
                 </div>
               ) : (
                 (() => {
-                  const candidatures = myApplications.filter((app) => app.status === 1)
+                  const candidatures = myApplications.filter((app) => app.status === 1 && app.certificateIssuedAt)
                   if (candidatures.length === 0) {
                     return (
                       <p className="text-sm text-gray-400 py-4">
-                        No candidature profiles yet. Once an aspirant application of yours is approved, it
-                        will appear here.
+                        No candidature profiles yet. Once NEB issues you with a nomination certificate / party
+                        ticket for an approved application, it will appear here.
                       </p>
                     )
                   }
@@ -1020,7 +996,7 @@ export default function MemberDashboardPage() {
                             {c.position.positionLevel} level{c.area ? ` · ${c.area}` : ''}
                           </p>
                           <p className="text-xs text-gray-400 mt-1">
-                            Election date: {formatDate(c.election.electionDate)}
+                            Certificate No. {c.certificateNumber} · Election date: {formatDate(c.election.electionDate)}
                           </p>
                         </div>
                       ))}

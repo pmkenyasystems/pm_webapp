@@ -11,23 +11,24 @@ export type Module = ModuleName
  */
 export async function hasModuleAccess(module: Module): Promise<boolean> {
   const session = await getSession()
-  
-  if (!session || !session.user || session.user.isActive === false) {
+
+  if (!session?.user?.email) {
     return false
   }
 
-  // Super admin has access to everything
-  if (session.user.role === 'super_admin') {
-    return true
-  }
-
-  // Get user from database to check modules
+  // Fetch fresh from the DB (not the JWT) so a deactivation or rights change
+  // by a super admin takes effect immediately, without waiting for re-login.
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email! },
+    where: { email: session.user.email },
   })
 
   if (!user || !user.isActive) {
     return false
+  }
+
+  // Super admin has access to everything
+  if (user.role === 'super_admin') {
+    return true
   }
 
   // If no modules assigned, deny access
@@ -48,10 +49,17 @@ export async function hasModuleAccess(module: Module): Promise<boolean> {
  */
 export async function isSuperAdmin(): Promise<boolean> {
   const session = await getSession()
-  if (!session?.user || session.user.isActive === false) {
+  if (!session?.user?.email) {
     return false
   }
-  return session.user.role === 'super_admin'
+
+  // Fetch fresh from the DB (not the JWT) so a deactivation takes effect immediately.
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { role: true, isActive: true },
+  })
+
+  return !!user && user.isActive && user.role === 'super_admin'
 }
 
 /**
