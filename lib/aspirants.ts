@@ -121,7 +121,6 @@ export async function createAspirantApplication(input: AspirantApplicationInput)
         email: recipientEmail,
         electionTitle: aspirant.election.title,
         positionTitle: aspirant.position.positionTitle,
-        positionLevel: aspirant.position.positionLevel,
         area,
       })
       confirmationSent = true

@@ -114,9 +114,13 @@ STRIPE_PUBLISHABLE_KEY
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 IPPMS_API_URL
 IPPMS_API_KEY
-GMAIL_USER               # sender for aspirant-application notification emails (lib/mailer.ts)
+GMAIL_USER               # sender for NDC/admin/membership notification emails (lib/mailer.ts)
 GMAIL_APP_PASSWORD
-NEB_EMAIL                # recipient for new-aspirant notifications
+SMTP_HOST                # Truehost cPanel mail server for the NEB mailbox, e.g. mail.pmparty.ke
+SMTP_PORT                # 465 (SSL) or 587 (STARTTLS)
+SMTP_PASSWORD            # password for the NEB_EMAIL mailbox
+NEB_EMAIL                # neb@pmparty.ke — sender for aspirant application submission +
+                         # nomination certificate emails, and recipient for new-aspirant notifications
 ```
 
 ## Notable Patterns
