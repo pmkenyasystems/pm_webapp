@@ -171,6 +171,7 @@ export async function sendAspirantConfirmation(data: {
   electionTitle: string
   positionTitle: string
   area: string
+  isRegisteredMember: boolean
 }) {
   const senderEmail = process.env.NEB_EMAIL
 
@@ -210,6 +211,20 @@ export async function sendAspirantConfirmation(data: {
               ${row('Area', data.area)}
             </tbody>
           </table>
+
+          ${
+            !data.isRegisteredMember
+              ? `
+          <div style="background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px;">
+            <p style="margin: 0; color: #9a3412; font-size: 14px;">
+              <strong>Note:</strong> Our records show you are not yet a registered member of People's
+              Renaissance Movement. For your application to be approved by the National Elections Board, you
+              must first register as a <strong>Life Member</strong> of the Party.
+            </p>
+          </div>
+          `
+              : ''
+          }
 
           <p style="margin: 0 0 20px; color: #374151;">
             The National Elections Board will reach out to you regarding the next steps. In case of further

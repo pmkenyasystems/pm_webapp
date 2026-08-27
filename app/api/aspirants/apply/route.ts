@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { positionId, countyCode, constituencyCode, wardCode, ...rest } = body
 
-    const { aspirant } = await createAspirantApplication({
+    const { aspirant, isRegisteredMember } = await createAspirantApplication({
       ...rest,
       positionId: positionId != null ? Number(positionId) : positionId,
       countyCode: countyCode != null && countyCode !== '' ? Number(countyCode) : null,
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(
-      { aspirant, message: 'Application submitted successfully' },
+      { aspirant, isRegisteredMember, message: 'Application submitted successfully' },
       { status: 201 }
     )
   } catch (error: any) {

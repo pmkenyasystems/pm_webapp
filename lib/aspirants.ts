@@ -24,9 +24,10 @@ export interface AspirantApplicationInput {
 }
 
 /**
- * Creates an aspirant application, used by both the member self-service flow and admin
- * registration. Notifies the elections board (NEB) and, when an email is available, confirms
- * the registration to the aspirant themselves with next steps.
+ * Creates an aspirant application, used by both the public self-service flow and admin
+ * registration. Membership is not required — non-members can apply, but NEB can only approve
+ * their application once they register as a Life Member. Notifies the elections board (NEB)
+ * and, when an email is available, confirms the registration to the aspirant themselves.
  */
 export async function createAspirantApplication(input: AspirantApplicationInput) {
   const { idNumber, electionId, positionId } = input
@@ -34,13 +35,10 @@ export async function createAspirantApplication(input: AspirantApplicationInput)
     throw new AspirantApplicationError('ID Number, Election, and Position are required', 400)
   }
 
+  // Membership is not required to apply — non-members can register as aspirants, but their
+  // application can only be approved by NEB once they become a registered Life Member.
   const member = await prisma.member.findUnique({ where: { idNumber } })
-  if (!member) {
-    throw new AspirantApplicationError(
-      'Member not found. The member must have a profile before being registered as an aspirant.',
-      404
-    )
-  }
+  const isRegisteredMember = !!member
 
   const election = await prisma.election.findUnique({ where: { id: electionId } })
   if (!election) {
@@ -106,8 +104,9 @@ export async function createAspirantApplication(input: AspirantApplicationInput)
   }).catch((err) => console.error('Failed to send NEB email:', err))
 
   // Confirm to the aspirant themselves, with next steps
-  const recipientEmail = (input.email?.trim() || member.email || '').trim()
-  const recipientName = input.fullName?.trim() || `${member.surname} ${member.otherNames}`.trim()
+  const recipientEmail = (input.email?.trim() || member?.email || '').trim()
+  const recipientName =
+    input.fullName?.trim() || (member ? `${member.surname} ${member.otherNames}`.trim() : '') || 'Aspirant'
   const area =
     [aspirant.ward?.wardName, aspirant.constituency?.constituencyName, aspirant.county?.countyName]
       .filter(Boolean)
@@ -122,6 +121,7 @@ export async function createAspirantApplication(input: AspirantApplicationInput)
         electionTitle: aspirant.election.title,
         positionTitle: aspirant.position.positionTitle,
         area,
+        isRegisteredMember,
       })
       confirmationSent = true
     } catch (err) {
@@ -129,5 +129,5 @@ export async function createAspirantApplication(input: AspirantApplicationInput)
     }
   }
 
-  return { aspirant, confirmationSent, confirmationEmail: recipientEmail || null }
+  return { aspirant, confirmationSent, confirmationEmail: recipientEmail || null, isRegisteredMember }
 }

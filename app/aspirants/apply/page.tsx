@@ -74,6 +74,7 @@ export default function AspirantApplicationPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [isRegisteredMember, setIsRegisteredMember] = useState(true)
   const [showMinCategoryDialog, setShowMinCategoryDialog] = useState(false)
 
   const positionMinCategories = [
@@ -202,6 +203,7 @@ export default function AspirantApplicationPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to submit application')
 
+      setIsRegisteredMember(data.isRegisteredMember !== false)
       setSuccess(true)
       setFormData({
         fullName: '',
@@ -313,6 +315,15 @@ export default function AspirantApplicationPage() {
                     </a>
                     .
                   </p>
+                  {!isRegisteredMember && (
+                    <div className="mt-4 bg-amber-50 border border-amber-200 rounded-md px-4 py-3">
+                      <p className="text-amber-900 text-sm">
+                        <strong>Note:</strong> Our records show you are not yet a registered member of the
+                        Party. For your application to be approved by the National Elections Board, you must
+                        first register as a <strong>Life Member</strong> of People&apos;s Renaissance Movement.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 border-t border-gray-200">
                   <button
