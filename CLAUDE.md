@@ -83,7 +83,7 @@ Admin session is stored in JWT. Member portal uses a separate login (`/api/membe
 - **Aspirant** — links Member + Election + Position + geography; approval workflow (pending → approved/rejected)
 - **CountyOfficial** — party leadership roles per county (Chairperson, Secretary, Treasurer, Youth Rep, Women Rep, PWD Rep)
 - **User** — admin accounts with module-level permissions
-- Geographic hierarchy: **County → Constituency → Ward**
+- Geographic hierarchy: **County → Constituency → Ward → PollingCentre**
 
 ### Payment Flows
 
@@ -114,9 +114,13 @@ STRIPE_PUBLISHABLE_KEY
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 IPPMS_API_URL
 IPPMS_API_KEY
-GMAIL_USER               # sender for aspirant-application notification emails (lib/mailer.ts)
+GMAIL_USER               # sender for NDC/admin/membership notification emails (lib/mailer.ts)
 GMAIL_APP_PASSWORD
-NEB_EMAIL                # recipient for new-aspirant notifications
+SMTP_HOST                # Truehost mail server for the NEB mailbox: workplace.truehost.cloud
+SMTP_PORT                # 587 (STARTTLS) — 465 (SSL) also works per Truehost's settings
+SMTP_PASSWORD            # password for the NEB_EMAIL mailbox
+NEB_EMAIL                # neb@pmparty.ke — sender for aspirant application submission +
+                         # nomination certificate emails, and recipient for new-aspirant notifications
 ```
 
 ## Notable Patterns

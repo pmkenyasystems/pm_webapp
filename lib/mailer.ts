@@ -1,19 +1,26 @@
 import nodemailer from 'nodemailer'
-import path from 'path'
 import { moduleLabel } from './modules'
 
-const ASPIRANT_APPLICATION_FORM_PATH = path.join(
-  process.cwd(),
-  'public',
-  'documents',
-  'PM-Party-Aspirant-Application-Form.pdf'
-)
-
-const transporter = nodemailer.createTransport({
+// General notifications (NDC, admin accounts, membership) — sent via Gmail.
+export const gmailTransporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
+  },
+})
+
+// Aspirant application emails — sent via the NEB mailbox (Truehost SMTP) for
+// better deliverability, since these were landing in spam when sent via Gmail.
+const smtpPort = Number(process.env.SMTP_PORT) || 465
+
+const nebTransporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: smtpPort,
+  secure: smtpPort === 465,
+  auth: {
+    user: process.env.NEB_EMAIL,
+    pass: process.env.SMTP_PASSWORD,
   },
 })
 
@@ -31,17 +38,18 @@ export async function sendAspirantNotification(data: {
   pollingStation: string | null
 }) {
   const nebEmail = process.env.NEB_EMAIL
-  const senderEmail = process.env.GMAIL_USER
 
-  if (!nebEmail || !senderEmail) {
-    console.error('Email not sent: GMAIL_USER or NEB_EMAIL not configured in .env')
+  if (!nebEmail) {
+    console.error('Email not sent: NEB_EMAIL not configured in .env')
     return
   }
+
+  const senderEmail = nebEmail
 
   const locationParts = [data.county, data.constituency, data.ward].filter(Boolean)
   const location = locationParts.length ? locationParts.join(', ') : 'Not specified'
 
-  await transporter.sendMail({
+  await nebTransporter.sendMail({
     from: `"PRM Elections" <${senderEmail}>`,
     to: nebEmail,
     subject: `New Aspirant Application — ${data.positionTitle} (${data.electionTitle})`,
@@ -86,81 +94,156 @@ export async function sendAspirantNotification(data: {
   })
 }
 
-/** Confirms to the aspirant themselves that they've been registered, and what happens next. */
+const MCA_REQUIREMENTS = [
+  "Certified copy of the applicant's National Identity Card",
+  'Certified Proof of registration as a voter',
+  "Copy of the People's Renaissance Movement Life Membership Certificate/Card",
+  'Clearance certificate from the Kenya Revenue Authority (KRA)',
+  'Clearance certificate from the Higher Education Loans Board (HELB)',
+  'Clearance certificate from the Ethics and Anti-Corruption Commission',
+  'Certified Nomination Forms by the County Executive Committee (CEC) to which the applicant belongs (where applicable)',
+  'Copy of post-secondary education from an institution recognized in Kenya',
+  'Original receipt from the Party Headquarters as proof of payment of non-refundable nomination fee of Kshs. 35,000 (Kshs. 20,000 for SIGs)',
+  'Original receipt from the PM Party as proof of payment of membership fee of Kshs. 10,000 (for recruitment of members)',
+  'Meet all other requirements of the Elections Act and regulations made by the IEBC',
+]
+
+const MNA_REQUIREMENTS = [
+  "Certified copy of the applicant's National Identity Card",
+  'Certified Proof of registration as a voter',
+  "Copy of the People's Renaissance Movement Life Membership Certificate",
+  'Clearance certificate from the Kenya Revenue Authority (KRA)',
+  'Clearance certificate from the Higher Education Loans Board (HELB)',
+  'Clearance certificate from the Ethics and Anti-Corruption Commission',
+  'Certified Nomination Forms by the County Executive Committee (CEC) to which the applicant belongs',
+  'Copy of degree certificate from a university recognized in Kenya',
+  'Original receipt from the Party Headquarters as proof of payment of non-refundable nomination fee of Kshs. 100,000 (Kshs. 50,000 for SIGs)',
+  'Original receipt of payment of membership fee of Kshs. 40,000 (for recruitment of members)',
+  'Meet all other requirements of the Elections Act and regulations made by the IEBC',
+]
+
+const SENATOR_WOMEN_REP_REQUIREMENTS = [
+  "Certified copy of the applicant's National Identity Card",
+  'Certified Proof of registration as a voter',
+  "Copy of the People's Renaissance Movement Life Membership Certificate",
+  'Clearance certificate from the Kenya Revenue Authority (KRA)',
+  'Clearance certificate from the Higher Education Loans Board (HELB)',
+  'Clearance certificate from the Ethics and Anti-Corruption Commission',
+  'Certified Nomination Forms by the County Executive Committee (CEC) to which the applicant belongs',
+  'Copy of degree certificate from a university recognized in Kenya',
+  'Original receipt from the Party Headquarters as proof of payment of non-refundable nomination fee of Kshs. 250,000 (Kshs. 150,000 for SIGs)',
+  'Original receipt of payment of membership fee of Kshs. 40,000 (for recruitment of members)',
+  'Meet all other requirements of the Elections Act and regulations made by the IEBC',
+]
+
+const GOVERNOR_REQUIREMENTS = [
+  "Certified copy of the applicant's National Identity Card",
+  'Certified Proof of registration as a voter',
+  "Copy of the People's Renaissance Movement Life Membership Certificate",
+  'Clearance certificate from the Kenya Revenue Authority (KRA)',
+  'Clearance certificate from the Higher Education Loans Board (HELB)',
+  'Clearance certificate from the Ethics and Anti-Corruption Commission',
+  'Certified Nomination Forms by the County Executive Committee (CEC) to which the applicant belongs',
+  'Copy of degree certificate from a university recognized in Kenya',
+  'Original receipt from the Party Headquarters as proof of payment of non-refundable nomination fee of Kshs. 500,000 (Kshs. 250,000 for SIGs)',
+  'Original receipt of payment of membership fee of Kshs. 60,000 (for recruitment of members)',
+  'Meet all other requirements of the Elections Act and regulations made by the IEBC',
+]
+
+/** Maps a position title (free text set by admins) to its nomination requirements checklist. */
+function getAspirantRequirements(positionTitle: string): string[] | null {
+  const title = positionTitle.trim().toLowerCase()
+
+  if (title.includes('mca') || title.includes('county assembly')) return MCA_REQUIREMENTS
+  if (title.includes('mna') || title === 'mp' || title.includes('member of parliament') || title.includes('national assembly'))
+    return MNA_REQUIREMENTS
+  if (title.includes('senator') || title.includes('women rep') || title.includes('woman rep'))
+    return SENATOR_WOMEN_REP_REQUIREMENTS
+  if (title.includes('governor')) return GOVERNOR_REQUIREMENTS
+
+  return null
+}
+
+/** Confirms to the aspirant themselves that their application has been received. */
 export async function sendAspirantConfirmation(data: {
   name: string
   email: string
   electionTitle: string
   positionTitle: string
-  positionLevel: string
   area: string
+  isRegisteredMember: boolean
 }) {
-  const senderEmail = process.env.GMAIL_USER
+  const senderEmail = process.env.NEB_EMAIL
 
   if (!senderEmail) {
-    throw new Error('GMAIL_USER not configured in .env')
+    throw new Error('NEB_EMAIL not configured in .env')
   }
 
   const siteUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/+$/, '')
   const portalUrl = `${siteUrl}/membership/profile?section=applications`
   const firstName = data.name.trim().split(' ')[0] || 'there'
+  const requirements = getAspirantRequirements(data.positionTitle)
 
-  await transporter.sendMail({
+  await nebTransporter.sendMail({
     from: `"PM Party Elections Board" <${senderEmail}>`,
     to: data.email,
-    subject: `You're Registered as an Aspirant — ${data.positionTitle}`,
+    subject: `Your Aspirant Application is Successfully Received — ${data.positionTitle}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #003366; color: white; padding: 24px 32px;">
-          <h2 style="margin: 0;">You've Been Registered as an Aspirant</h2>
+          <h2 style="margin: 0;">Your Aspirant Application is Successfully Received</h2>
           <p style="margin: 4px 0 0; opacity: 0.85; font-size: 14px;">People's Renaissance Movement</p>
         </div>
 
         <div style="padding: 32px; background: #f9fafb; border: 1px solid #e5e7eb;">
           <p style="margin: 0 0 16px; color: #374151;">
-            Dear ${firstName},
+            Hello ${firstName},
           </p>
           <p style="margin: 0 0 20px; color: #374151;">
-            You have been registered as an aspirant with People's Renaissance Movement (PM Party) for the
-            position and election below.
+            Your application as an aspirant for the <strong>${data.positionTitle}</strong> position has been
+            received successfully. Below are the details:
           </p>
 
           <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px;">
             <tbody>
               ${row('Election', data.electionTitle)}
               ${row('Position', data.positionTitle)}
-              ${row('Level', data.positionLevel)}
               ${row('Area', data.area)}
             </tbody>
           </table>
 
-          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px 24px; margin-bottom: 16px;">
-            <p style="margin: 0 0 10px; color: #111827; font-weight: 600;">What happens next</p>
-            <ol style="margin: 0; padding-left: 18px; color: #374151; font-size: 14px; line-height: 1.7;">
-              <li>
-                Complete the attached <strong>Application Form for Nomination as a Party Official</strong>
-                (in triplicate) and the Code of Conduct declaration included with it.
-              </li>
-              <li>Gather the supporting documents listed below and submit everything to the National Elections Board.</li>
-              <li>Your application will then be <strong>pending review</strong> by the Elections Board.</li>
-              <li>You'll receive an email once a decision has been made on your application.</li>
-              <li>You can check your status anytime from the Member Portal.</li>
-            </ol>
+          ${
+            !data.isRegisteredMember
+              ? `
+          <div style="background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px;">
+            <p style="margin: 0; color: #9a3412; font-size: 14px;">
+              <strong>Note:</strong> Our records show you are not yet a registered member of People's
+              Renaissance Movement. For your application to be approved by the National Elections Board, you
+              must first register as a <strong>Life Member</strong> of the Party.
+            </p>
           </div>
+          `
+              : ''
+          }
 
+          <p style="margin: 0 0 20px; color: #374151;">
+            The National Elections Board will reach out to you regarding the next steps. In case of further
+            inquiries, send an email to
+            <a href="mailto:neb@pmparty.ke" style="color: #003366;">neb@pmparty.ke</a>.
+          </p>
+
+          ${
+            requirements
+              ? `
           <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px 24px; margin-bottom: 24px;">
-            <p style="margin: 0 0 10px; color: #111827; font-weight: 600;">Documents to submit with your form</p>
+            <p style="margin: 0 0 10px; color: #111827; font-weight: 600;">In the meantime, start preparing the following</p>
             <ol style="margin: 0; padding-left: 18px; color: #374151; font-size: 14px; line-height: 1.7;">
-              <li>A detailed Curriculum Vitae</li>
-              <li>Certified copy of your ID card or passport</li>
-              <li>Certified copies of your academic and professional certificates</li>
-              <li>Certified copy of your certificate of registration with the NCPD, where applicable</li>
-              <li>All clearances as prescribed in Chapter Six of the Constitution of Kenya</li>
-              <li>Certified copy of your Party Membership card and/or certificate</li>
-              <li>Names of a proposer and seconder who are fully paid-up Party members</li>
-              <li>Duly completed, signed and commissioned Code of Conduct form</li>
+              ${requirements.map((item) => `<li>${item}</li>`).join('')}
             </ol>
           </div>
+          `
+              : ''
+          }
 
           <a href="${portalUrl}" style="display: inline-block; background: #003366; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600;">
             View My Application
@@ -179,13 +262,6 @@ export async function sendAspirantConfirmation(data: {
         </div>
       </div>
     `,
-    attachments: [
-      {
-        filename: 'PM-Party-Aspirant-Application-Form.pdf',
-        path: ASPIRANT_APPLICATION_FORM_PATH,
-        contentType: 'application/pdf',
-      },
-    ],
   })
 }
 
@@ -202,7 +278,7 @@ export async function sendNdcWelcomeEmail(data: { name: string; email: string })
   const aspirantUrl = `${siteUrl}/aspirants/apply`
   const firstName = data.name.trim().split(' ')[0]
 
-  await transporter.sendMail({
+  await gmailTransporter.sendMail({
     from: `"PM Party" <${senderEmail}>`,
     to: data.email,
     subject: "You're Registered — National Delegates Convention (NDC) 2026",
@@ -288,7 +364,7 @@ export async function sendAdminWelcomeEmail(data: {
       ? data.modules.map(moduleLabel).join(', ')
       : 'No modules assigned yet'
 
-  await transporter.sendMail({
+  await gmailTransporter.sendMail({
     from: `"PM Party Admin" <${senderEmail}>`,
     to: data.email,
     subject: 'Your PM Party Admin Account',
@@ -351,7 +427,7 @@ export async function sendAdminPasswordResetEmail(data: {
   const loginUrl = `${siteUrl}/admin/login`
   const firstName = data.name?.trim().split(' ')[0] || 'there'
 
-  await transporter.sendMail({
+  await gmailTransporter.sendMail({
     from: `"PM Party Admin" <${senderEmail}>`,
     to: data.email,
     subject: 'Your PM Party Admin Password Has Been Reset',
@@ -408,7 +484,7 @@ export async function sendMembershipRegistrationConfirmation(data: { name: strin
 
   const firstName = data.name.trim().split(' ')[0] || 'there'
 
-  await transporter.sendMail({
+  await gmailTransporter.sendMail({
     from: `"PM Party" <${senderEmail}>`,
     to: data.email,
     subject: 'Thanks for Sharing Your Details with PM Party',
@@ -450,10 +526,10 @@ export async function sendNominationCertificateEmail(data: {
   electionTitle: string
   positionTitle: string
 }) {
-  const senderEmail = process.env.GMAIL_USER
+  const senderEmail = process.env.NEB_EMAIL
 
   if (!senderEmail) {
-    console.error('Email not sent: GMAIL_USER not configured in .env')
+    console.error('Email not sent: NEB_EMAIL not configured in .env')
     return
   }
 
@@ -461,7 +537,7 @@ export async function sendNominationCertificateEmail(data: {
   const portalUrl = `${siteUrl}/membership/profile?section=candidatures`
   const firstName = data.name.trim().split(' ')[0] || 'there'
 
-  await transporter.sendMail({
+  await nebTransporter.sendMail({
     from: `"PM Party Elections Board" <${senderEmail}>`,
     to: data.email,
     subject: `Nomination Certificate Issued — ${data.positionTitle}`,

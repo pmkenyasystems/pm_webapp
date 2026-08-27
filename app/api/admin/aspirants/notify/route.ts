@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import nodemailer from 'nodemailer'
+import { gmailTransporter } from '@/lib/mailer'
 
 export const dynamic = 'force-dynamic'
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-})
 
 export async function POST(request: NextRequest) {
   const session = await getSession()
@@ -58,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     const results = await Promise.allSettled(
       recipients.map((r) =>
-        transporter.sendMail({
+        gmailTransporter.sendMail({
           from: `"People's Renaissance Movement" <${senderEmail}>`,
           to: r.email,
           subject,
