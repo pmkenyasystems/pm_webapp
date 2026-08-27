@@ -216,11 +216,28 @@ model Ward {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  constituency Constituency @relation(fields: [constituencyCode], references: [constituencyCode])
-  aspirants    Aspirant[]
-  members      Member[]
+  constituency   Constituency    @relation(fields: [constituencyCode], references: [constituencyCode])
+  aspirants      Aspirant[]
+  members        Member[]
+  pollingCentres PollingCentre[]
 
   @@unique([wardCode, constituencyCode])
+}
+
+model PollingCentre {
+  id               String   @id @default(cuid())
+  centreCode       Int      @map("centre_code")
+  centreName       String   @map("centre_name")
+  registeredVoters Int?     @map("registered_voters")
+  wardCode         Int      @map("ward_code")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  ward Ward @relation(fields: [wardCode], references: [wardCode])
+
+  @@unique([wardCode, centreCode])
+  @@index([wardCode])
+  @@map("polling_centre")
 }
 
 model Position {

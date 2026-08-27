@@ -159,6 +159,12 @@ export default function ElectionsPage() {
                       {election._count.aspirants}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Link
+                        href={`/admin/elections/${election.id}/edit`}
+                        className="text-primary-blue hover:text-[#002244] mr-4"
+                      >
+                        Edit
+                      </Link>
                       <button
                         onClick={() => toggleActive(election)}
                         className="text-primary-blue hover:text-[#002244] mr-4"

@@ -43,6 +43,13 @@ interface Ward {
   constituencyCode: number
 }
 
+interface PollingCentre {
+  id: string
+  centreCode: number
+  centreName: string
+  wardCode: number
+}
+
 export default function AspirantApplicationPage() {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -62,6 +69,7 @@ export default function AspirantApplicationPage() {
   const [counties, setCounties] = useState<County[]>([])
   const [constituencies, setConstituencies] = useState<Constituency[]>([])
   const [wards, setWards] = useState<Ward[]>([])
+  const [pollingCentres, setPollingCentres] = useState<PollingCentre[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -120,10 +128,15 @@ export default function AspirantApplicationPage() {
       if (name === 'countyCode') {
         next.constituencyCode = ''
         next.wardCode = ''
+        next.pollingStation = ''
         fetchConstituencies(value)
       } else if (name === 'constituencyCode') {
         next.wardCode = ''
+        next.pollingStation = ''
         fetchWards(value)
+      } else if (name === 'wardCode') {
+        next.pollingStation = ''
+        fetchPollingCentres(value)
       }
       return next
     })
@@ -148,6 +161,17 @@ export default function AspirantApplicationPage() {
       if (res.ok) setWards(data.wards || [])
     } catch {
       console.error('Error fetching wards')
+    }
+  }
+
+  const fetchPollingCentres = async (wardCode: string) => {
+    if (!wardCode) { setPollingCentres([]); return }
+    try {
+      const res = await fetch(`/api/locations/polling-centres?wardCode=${wardCode}`)
+      const data = await res.json()
+      if (res.ok) setPollingCentres(data.pollingCentres || [])
+    } catch {
+      console.error('Error fetching polling centres')
     }
   }
 
@@ -193,6 +217,7 @@ export default function AspirantApplicationPage() {
       })
       setConstituencies([])
       setWards([])
+      setPollingCentres([])
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -270,8 +295,35 @@ export default function AspirantApplicationPage() {
           )}
 
           {success && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
-              Application submitted successfully! Your application is pending review.
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+              onClick={() => setSuccess(false)}
+            >
+              <div
+                className="bg-white rounded-lg shadow-xl max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Application Submitted</h3>
+                  <p className="text-gray-700 text-sm">
+                    Your application has been submitted successfully. You will get an update from the
+                    National Elections Board very soon. For any inquiries, contact{' '}
+                    <a href="mailto:neb@pmparty.ke" className="text-primary-blue font-semibold hover:underline">
+                      neb@pmparty.ke
+                    </a>
+                    .
+                  </p>
+                </div>
+                <div className="p-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setSuccess(false)}
+                    className="w-full bg-primary-blue text-white px-4 py-2 rounded-md font-semibold hover:bg-[#002244] transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -436,15 +488,21 @@ export default function AspirantApplicationPage() {
                 </div>
                 <div>
                   <label htmlFor="pollingStation" className={labelClass}>Polling Station</label>
-                  <input
-                    type="text"
+                  <select
                     id="pollingStation"
                     name="pollingStation"
                     value={formData.pollingStation}
                     onChange={handleChange}
-                    placeholder="Enter polling station name"
+                    disabled={!formData.wardCode}
                     className={inputClass}
-                  />
+                  >
+                    <option value="">
+                      {formData.wardCode ? 'Select a polling station' : 'Select a ward first'}
+                    </option>
+                    {pollingCentres.map((p) => (
+                      <option key={p.id} value={p.centreName}>{p.centreName}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

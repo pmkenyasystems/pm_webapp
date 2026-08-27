@@ -186,11 +186,11 @@ export async function sendAspirantConfirmation(data: {
   await nebTransporter.sendMail({
     from: `"PM Party Elections Board" <${senderEmail}>`,
     to: data.email,
-    subject: `You're Registered as an Aspirant — ${data.positionTitle}`,
+    subject: `Your Aspirant Application is Successfully Received — ${data.positionTitle}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #003366; color: white; padding: 24px 32px;">
-          <h2 style="margin: 0;">You've Been Registered as an Aspirant</h2>
+          <h2 style="margin: 0;">Your Aspirant Application is Successfully Received</h2>
           <p style="margin: 4px 0 0; opacity: 0.85; font-size: 14px;">People's Renaissance Movement</p>
         </div>
 
