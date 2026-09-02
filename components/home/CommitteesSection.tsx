@@ -10,7 +10,7 @@ export default function CommitteesSection() {
           Get Involved
         </span>
         <h2 className="font-heading font-black text-2xl md:text-4xl uppercase mt-3.5 text-primary-blue">
-          Committees &amp; Party Organs
+          Party Organs
         </h2>
       </div>
 
