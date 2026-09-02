@@ -115,7 +115,7 @@ export default async function CommitteePage({
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Standing Committees
+          Back to Party Organs
         </Link>
 
         <article className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
@@ -134,14 +134,14 @@ export default async function CommitteePage({
               {committee.description}
             </p>
             <p className="text-gray-600 text-base leading-relaxed mb-8">
-              Each standing committee has a maximum of <strong>9 members</strong>. Volunteers are also welcome to assist the committee in running its activities and programmes. If you would like to contribute your time and skills, please get in touch via the volunteer form.
+              Each party organ has a maximum of <strong>9 members</strong>. Volunteers are also welcome to assist it in running its activities and programmes. If you would like to contribute your time and skills, please get in touch via the volunteer form.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/volunteer"
                 className="inline-flex items-center gap-2 bg-primary-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#9A162D] transition"
               >
-                Volunteer with this committee
+                Volunteer with this party organ
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -155,9 +155,9 @@ export default async function CommitteePage({
           </div>
         </article>
 
-        {/* Committee members */}
+        {/* Members */}
         <section className="mt-10">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Committee Members</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Members</h2>
           {sortedMembers.length > 0 ? (
             <div className="space-y-8">
               {sortedMembers.map((member) => (
@@ -238,7 +238,7 @@ export default async function CommitteePage({
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-500">
-              <p>Committee members will be listed here once appointed.</p>
+              <p>Members will be listed here once appointed.</p>
             </div>
           )}
         </section>

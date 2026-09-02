@@ -54,7 +54,7 @@ export default function Hero() {
           <span className="text-primary-red">TukoPM</span>
         </h1>
         <p className="text-base md:text-[19px] leading-[1.5] text-gray-600 mb-[30px] max-w-[520px] font-semibold">
-          Welcome to the People&apos;s Movement. Get Involved.
+          Welcome to PM Party, the People&apos;s Movement.
         </p>
         <div className="flex gap-2.5 flex-nowrap overflow-x-auto">
           <Link

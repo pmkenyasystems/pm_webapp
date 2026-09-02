@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import Image from 'next/image'
+import SearchButton from './SearchButton'
 
 const NAV_LINKS = [
   { href: '/#news', label: 'News' },
@@ -10,7 +11,7 @@ const NAV_LINKS = [
   { href: '/#about', label: 'About' },
   { href: '/#manifesto', label: 'Manifesto' },
   { href: '/#leadership', label: 'Leadership' },
-  { href: '/#committees', label: 'Committees' },
+  { href: '/#committees', label: 'Party Organs' },
 ]
 
 export default function Navbar() {
@@ -44,6 +45,7 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          <SearchButton />
           <Link
             href="/membership/register"
             className="font-extrabold text-[14.5px] text-white bg-primary-red px-5 py-2.5 rounded-full uppercase tracking-[0.3px] hover:bg-primary-blue transition"
@@ -52,17 +54,20 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        <button
-          type="button"
-          onClick={() => setIsOpen((v) => !v)}
-          aria-label="Toggle menu"
-          aria-expanded={isOpen}
-          className="md:hidden flex flex-col gap-[5px] p-2 flex-shrink-0"
-        >
-          <span className="w-[22px] h-[2.5px] rounded-full bg-primary-blue" />
-          <span className="w-[22px] h-[2.5px] rounded-full bg-primary-red" />
-          <span className="w-[22px] h-[2.5px] rounded-full bg-primary-blue" />
-        </button>
+        <div className="md:hidden flex items-center gap-1 flex-shrink-0">
+          <SearchButton />
+          <button
+            type="button"
+            onClick={() => setIsOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={isOpen}
+            className="flex flex-col gap-[5px] p-2 flex-shrink-0"
+          >
+            <span className="w-[22px] h-[2.5px] rounded-full bg-primary-blue" />
+            <span className="w-[22px] h-[2.5px] rounded-full bg-primary-red" />
+            <span className="w-[22px] h-[2.5px] rounded-full bg-primary-blue" />
+          </button>
+        </div>
       </div>
 
       {isOpen && (

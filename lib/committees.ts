@@ -268,6 +268,7 @@ export const partyOrgans: Committee[] = [
         name: 'Sophie Mugure',
         role: 'Chairperson',
         bio: 'Chairperson of the National Youth League, leading the mobilisation and organisation of young Kenyans in the party\'s programmes for national renewal.',
+        profileImage: '/images/profile/sophie-mugure.jpeg',
       },
     ],
   },
@@ -278,9 +279,10 @@ export const partyOrgans: Committee[] = [
     image: '/images/committees/women-league.jpg',
     members: [
       {
-        name: 'Riziki Juliet',
+        name: 'Patricia Kagendo',
         role: 'Chairperson',
         bio: 'Chairperson of the National Women League, championing the political, economic, and social empowerment of women within the party and across Kenya.',
+        profileImage: '/images/profile/patricia-kagendo.jpeg',
       },
     ],
   },
