@@ -1,72 +1,36 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 const PILLARS = [
   {
     animal: 'Leopard',
     title: 'Jobs',
-    bg: 'bg-primary-blue',
+    image: '/images/manifesto/leopard.jpg',
     description: 'Hunting for opportunity with precision and patience — dignified work for every Kenyan through enterprise, industry, and the digital economy.',
-    icon: (
-      <svg width="30" height="30" viewBox="0 0 64 64" fill="none">
-        <path d="M18 40c2-10 8-16 14-16s12 6 14 16" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="24" cy="26" r="2.8" fill="#fff" />
-        <circle cx="30" cy="23" r="2.8" fill="#fff" />
-        <circle cx="36" cy="23" r="2.8" fill="#fff" />
-        <circle cx="42" cy="26" r="2.8" fill="#fff" />
-        <path d="M20 42l24 0" stroke="#F0181E" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
-    ),
   },
   {
     animal: 'Elephant',
     title: 'Corruption',
-    bg: 'bg-primary-red',
+    image: '/images/manifesto/elephant.jpg',
     description: "Trampling corruption with the Elephant's might, and never forgetting — tracing stolen public funds and holding the looters accountable.",
-    icon: (
-      <svg width="30" height="30" viewBox="0 0 64 64" fill="none">
-        <ellipse cx="30" cy="34" rx="14" ry="10" fill="#fff" />
-        <path d="M42 28c4-4 8-2 8 4s-4 8-8 6" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" />
-        <circle cx="20" cy="28" r="9" fill="#fff" />
-        <path d="M14 30c-2 4-2 8 1 12" stroke="#003491" strokeWidth="3" fill="none" strokeLinecap="round" />
-      </svg>
-    ),
   },
   {
     animal: 'Lion',
     title: 'Constitutionalism & Rule of Law',
-    bg: 'bg-primary-blue',
+    image: '/images/manifesto/lion.jpg',
     description: "Defending our Constitution with the Lion's courage — our shield, our covenant, our promise to one another.",
-    icon: (
-      <svg width="30" height="30" viewBox="0 0 64 64" fill="none">
-        <circle cx="30" cy="30" r="9" fill="#fff" />
-        <path d="M14 22c2-4 6-2 6 2M18 16c3-3 6 0 5 4M44 22c-2-4-6-2-6 2M40 16c-3-3-6 0-5 4M14 40c2 4 6 2 6-2M44 40c-2 4-6 2-6-2" stroke="#F0181E" strokeWidth="3" strokeLinecap="round" fill="none" />
-      </svg>
-    ),
   },
   {
     animal: 'Rhino',
     title: 'Public Debt & Fiscal Policy',
-    bg: 'bg-primary-red',
+    image: '/images/manifesto/rhino.jpg',
     description: 'Discipline and singular purpose — a government that lives within its means, taxes fairly, and borrows responsibly.',
-    icon: (
-      <svg width="30" height="30" viewBox="0 0 64 64" fill="none">
-        <ellipse cx="28" cy="36" rx="15" ry="9" fill="#fff" />
-        <path d="M42 30l10-4" stroke="#003491" strokeWidth="4.5" strokeLinecap="round" />
-        <path d="M40 26l8-6" stroke="#003491" strokeWidth="3.5" strokeLinecap="round" />
-      </svg>
-    ),
   },
   {
     animal: 'Buffalo',
     title: 'Tribalism',
-    bg: 'bg-primary-blue',
+    image: '/images/manifesto/buffalo.jpg',
     description: 'Rising above tribalism as the Buffalo moves in the herd — a Kenya where opportunity is earned through merit, not surname or ethnicity.',
-    icon: (
-      <svg width="30" height="30" viewBox="0 0 64 64" fill="none">
-        <ellipse cx="32" cy="36" rx="16" ry="9" fill="#fff" />
-        <path d="M20 28c-3-4-2-8 2-9M24 26c-1-4 1-7 4-7M40 26c1-4-1-7-4-7M44 28c3-4 2-8-2-9" stroke="#F0181E" strokeWidth="3" strokeLinecap="round" fill="none" />
-      </svg>
-    ),
   },
 ]
 
@@ -93,8 +57,14 @@ export default function ManifestoSection() {
             key={p.animal}
             className="p-[26px] px-5 rounded-[14px] bg-white border-[1.5px] border-gray-200 transition-transform duration-[250ms] hover:-translate-y-2"
           >
-            <div className={`w-[52px] h-[52px] rounded-[14px] ${p.bg} flex items-center justify-center mb-4`}>
-              {p.icon}
+            <div className="relative w-full h-[140px] rounded-[14px] overflow-hidden mb-4">
+              <Image
+                src={p.image}
+                alt={`${p.animal} — ${p.title}`}
+                fill
+                sizes="(max-width: 768px) 100vw, 20vw"
+                className="object-cover"
+              />
             </div>
             <div className="font-heading font-extrabold text-xs tracking-[1.5px] uppercase text-primary-red mb-1.5">
               {p.animal}

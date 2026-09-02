@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
                 </div>
               </div>
               <div style="padding: 14px 28px; background: #f3f4f6; border-top: 1px solid #e5e7eb;">
-                <p style="margin: 0; color: #9ca3af; font-size: 11px;">This email was sent by the PRM Admin Portal.</p>
+                <p style="margin: 0; color: #9ca3af; font-size: 11px;">This email was sent by the PM Party Admin Portal.</p>
               </div>
             </div>
           `,

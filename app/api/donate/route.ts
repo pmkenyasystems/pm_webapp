@@ -13,7 +13,7 @@ async function initiateMpesaSTK(phone: string, amount: number) {
   return initiateStkPush({
     phone,
     amount,
-    accountReference: 'PRM Donation',
+    accountReference: 'PM Party',
     transactionDesc: "Donation to People's Renaissance Movement",
     callbackPath: '/api/donate/callback',
   })

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-People's Renaissance Movement (PRM) — a full-stack Next.js 14 platform for a Kenyan political party. Combines a public-facing website with an admin dashboard and member portal. Key domains: content management, membership, donations (M-Pesa + Stripe), elections & aspirants, volunteers, and party geography (47 counties → constituencies → wards).
+People's Renaissance Movement (PM Party) — a full-stack Next.js 14 platform for a Kenyan political party. Combines a public-facing website with an admin dashboard and member portal. Key domains: content management, membership, donations (M-Pesa + Stripe), elections & aspirants, volunteers, and party geography (47 counties → constituencies → wards).
 
 ## Commands
 

@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function HomeAboutSection() {
   return (
     <section id="about" className="py-12 md:py-[88px] bg-primary-blue text-white scroll-mt-20">
@@ -7,13 +9,20 @@ export default function HomeAboutSection() {
           About Us
         </span>
         <h2 className="font-heading font-black text-[26px] md:text-[38px] uppercase my-3.5 mb-[18px]">
-          Committed To Transforming Kenya
+          Our Ideology
         </h2>
         <p className="text-base md:text-lg leading-relaxed text-white/90">
-          The People&apos;s Renaissance Movement (PM Party) is committed to transforming Kenya through
-          people-centred policies, transparent governance, and inclusive development. We stand for
-          integrity, service, and progress that benefits every citizen.
+          The People&apos;s Renaissance Movement (PM Party) is founded on the ideology of Liberal
+          Democracy &mdash; a belief in the primacy of the individual&apos;s rights and freedoms,
+          safeguarded by constitutionally established institutions, and grounded in the rule of law,
+          justice, and accountable governance.
         </p>
+        <Link
+          href="/about"
+          className="inline-block mt-7 font-extrabold text-[15px] px-7 py-3.5 rounded-full bg-white text-primary-blue hover:bg-primary-red hover:text-white transition"
+        >
+          Read Our Full Story
+        </Link>
       </div>
       </div>
     </section>

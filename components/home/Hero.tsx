@@ -64,24 +64,24 @@ export default function Hero() {
             Become a Member
           </Link>
           <Link
-            href="/donate"
+            href="/aspirants/apply"
             className="font-bold text-[13.5px] px-[18px] py-2.5 rounded-full bg-primary-blue text-white whitespace-nowrap flex-shrink-0 hover:bg-primary-red transition"
           >
-            Donate
-          </Link>
-          <Link
-            href="/volunteer"
-            className="font-bold text-[13.5px] px-[18px] py-2.5 rounded-full border-[1.5px] border-primary-blue text-primary-blue whitespace-nowrap flex-shrink-0 hover:bg-primary-blue hover:text-white transition"
-          >
-            Volunteer
+            Apply as Aspirant
           </Link>
         </div>
         <div className="mt-4 flex gap-5 flex-wrap">
           <Link
-            href="/aspirants/apply"
+            href="/donate"
             className="font-bold text-[13.5px] py-2.5 text-primary-blue border-b-2 border-primary-red"
           >
-            Apply as Aspirant &rarr;
+            Donate &rarr;
+          </Link>
+          <Link
+            href="/volunteer"
+            className="font-bold text-[13.5px] py-2.5 text-primary-blue border-b-2 border-primary-red"
+          >
+            Volunteer &rarr;
           </Link>
           <Link
             href="/membership/login"

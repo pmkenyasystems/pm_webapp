@@ -36,7 +36,14 @@ export async function GET() {
         fullName: true,
         status: true,
         createdAt: true,
+        electionId: true,
+        positionId: true,
+        countyCode: true,
+        constituencyCode: true,
+        wardCode: true,
         county: { select: { countyCode: true, countyName: true } },
+        constituency: { select: { constituencyCode: true, constituencyName: true } },
+        ward: { select: { wardCode: true, wardName: true } },
         position: { select: { id: true, positionTitle: true, positionLevel: true } },
         election: { select: { id: true, title: true, isActive: true } },
       },
@@ -57,6 +64,13 @@ export async function GET() {
     const positionMap = new Map<string, { title: string; level: string; count: number }>()
     const levelMap = new Map<string, number>()
     const electionMap = new Map<string, { title: string; isActive: boolean; count: number }>()
+    // A "post" = a specific seat (election + position + geography). Only approved aspirants are
+    // real, vetted contenders for that seat — if more than one is approved for the same post, the
+    // party has to run a nomination election to pick the candidate.
+    const postMap = new Map<
+      string,
+      { election: string; position: string; level: string; geography: string; count: number }
+    >()
 
     for (const a of aspirants) {
       const countyKey = a.county ? String(a.county.countyCode) : 'unspecified'
@@ -79,7 +93,25 @@ export async function GET() {
       const elEntry = electionMap.get(a.election.id) ?? { title: a.election.title, isActive: a.election.isActive, count: 0 }
       elEntry.count++
       electionMap.set(a.election.id, elEntry)
+
+      if (a.status === 1) {
+        const geography = a.ward?.wardName ?? a.constituency?.constituencyName ?? a.county?.countyName ?? 'National'
+        const postKey = [a.electionId, a.positionId, a.countyCode ?? '', a.constituencyCode ?? '', a.wardCode ?? ''].join('|')
+        const postEntry = postMap.get(postKey) ?? {
+          election: a.election.title,
+          position: a.position.positionTitle,
+          level,
+          geography,
+          count: 0,
+        }
+        postEntry.count++
+        postMap.set(postKey, postEntry)
+      }
     }
+
+    const contestedPosts = Array.from(postMap.values())
+      .filter((p) => p.count > 1)
+      .sort((a, b) => b.count - a.count)
 
     const byCounty = Array.from(countyMap.values()).sort((a, b) => b.count - a.count)
 
@@ -152,6 +184,7 @@ export async function GET() {
       byElection,
       monthlyTrend: monthlyBuckets,
       unpaidAspirants: { total: unpaidItems.length, items: unpaidItems.slice(0, 15) },
+      contestedPosts: { total: contestedPosts.length, items: contestedPosts.slice(0, 15) },
     })
   } catch (error: any) {
     console.error('Error fetching aspirant analytics:', error)
