@@ -14,6 +14,10 @@ interface Analytics {
   byPosition: { position: string; level: string; count: number }[]
   byPositionLevel: { level: string; count: number }[]
   monthlyTrend: { label: string; count: number }[]
+  contestedPosts: {
+    total: number
+    items: { election: string; position: string; level: string; geography: string; count: number }[]
+  }
 }
 
 const LEVEL_COLORS: Record<string, string> = {
@@ -72,11 +76,16 @@ export default function ElectionsDashboardPage() {
         ) : data ? (
           <div className="space-y-5">
             {/* KPIs */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
               <StatTile label="Total Aspirants" value={data.totals.total} />
               <StatTile label="Pending Review" value={data.totals.pending} textClass="text-amber-600" />
               <StatTile label="Approved" value={data.totals.approved} textClass="text-green-600" />
               <StatTile label="Rejected" value={data.totals.rejected} textClass="text-red-600" />
+              <StatTile
+                label="Posts Needing Nomination"
+                value={data.contestedPosts.total}
+                textClass="text-orange-600"
+              />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -114,6 +123,32 @@ export default function ElectionsDashboardPage() {
                 )}
               </div>
             </div>
+
+            {/* Posts with more than one approved aspirant — nomination required */}
+            {data.contestedPosts.total > 0 && (
+              <div className="bg-white border border-gray-100 rounded-xl p-4">
+                <div className="font-bold text-[15px] mb-1">Posts Requiring a Nomination Election</div>
+                <p className="text-[13px] text-gray-500 mb-3.5">
+                  These posts have more than one approved aspirant, so the party must hold a nomination
+                  election to pick the candidate.
+                </p>
+                <div className="divide-y divide-gray-100">
+                  {data.contestedPosts.items.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between py-2.5 text-sm">
+                      <div>
+                        <div className="font-semibold text-gray-800">
+                          {p.position} <span className="text-gray-400 font-normal">— {p.geography}</span>
+                        </div>
+                        <div className="text-[12px] text-gray-500">{p.election} · {p.level}</div>
+                      </div>
+                      <span className="shrink-0 ml-3 inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full bg-orange-50 text-orange-700 text-xs font-bold">
+                        {p.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Distribution by county — map */}
             <div className="bg-white border border-gray-100 rounded-xl p-4">

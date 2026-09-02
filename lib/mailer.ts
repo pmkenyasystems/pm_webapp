@@ -50,7 +50,7 @@ export async function sendAspirantNotification(data: {
   const location = locationParts.length ? locationParts.join(', ') : 'Not specified'
 
   await nebTransporter.sendMail({
-    from: `"PRM Elections" <${senderEmail}>`,
+    from: `"PM Party Elections" <${senderEmail}>`,
     to: nebEmail,
     subject: `New Aspirant Application — ${data.positionTitle} (${data.electionTitle})`,
     html: `
@@ -86,7 +86,7 @@ export async function sendAspirantNotification(data: {
 
         <div style="padding: 16px 32px; background: #f3f4f6; border-top: 1px solid #e5e7eb;">
           <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-            This is an automated notification from the PRM member portal.
+            This is an automated notification from the PM Party member portal.
           </p>
         </div>
       </div>

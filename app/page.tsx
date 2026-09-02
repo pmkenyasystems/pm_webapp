@@ -1,6 +1,7 @@
 import Hero from '@/components/home/Hero'
 import CountdownBar from '@/components/home/CountdownBar'
 import FeaturedContent from '@/components/home/FeaturedContent'
+import UpcomingEventsSection from '@/components/home/UpcomingEventsSection'
 import HomeAboutSection from '@/components/home/HomeAboutSection'
 import ManifestoSection from '@/components/home/ManifestoSection'
 import LeadershipSection from '@/components/home/LeadershipSection'
@@ -18,6 +19,7 @@ export default function Home() {
       <CountdownBar />
       <Hero />
       <FeaturedContent />
+      <UpcomingEventsSection />
       <HomeAboutSection />
       <ManifestoSection />
       <LeadershipSection />
