@@ -26,13 +26,13 @@ export default function UpcomingEventsSection() {
               href="/events"
               className="block rounded-2xl overflow-hidden border border-gray-200 text-inherit shadow-[0_4px_16px_-8px_rgba(0,0,0,0.15)] transition-all duration-[250ms] hover:-translate-y-1.5 hover:shadow-[0_16px_32px_-12px_rgba(0,0,0,0.25)]"
             >
-              <div className="relative aspect-[2/3] overflow-hidden bg-gray-100">
+              <div className="relative h-48 md:h-56 overflow-hidden bg-gray-100">
                 <Image
                   src={event.poster}
                   alt={`${event.title} — ${event.subtitle}`}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
+                  className="object-cover object-top"
                 />
               </div>
               <div className="p-[22px]">
