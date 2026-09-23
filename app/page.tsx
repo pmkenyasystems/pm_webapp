@@ -11,6 +11,8 @@ import CallToAction from '@/components/home/CallToAction'
 import HQLaunchNotice from '@/components/home/HQLaunchNotice'
 import NDCNotice from '@/components/home/NDCNotice'
 
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   return (
     <div>
