@@ -71,6 +71,7 @@ export default function Footer() {
         <div className="font-bold text-sm mb-3.5 uppercase tracking-wide">Resources</div>
         <div className="flex flex-col gap-2.5 text-sm text-gray-600">
           <Link href="/articles" className="hover:text-primary-blue transition">Articles</Link>
+          <Link href="/notices" className="hover:text-primary-blue transition">Statutory Notices</Link>
           <Link href="/contact" className="hover:text-primary-blue transition">Contact Us</Link>
           <Link href="/admin/login" className="hover:text-primary-blue transition">Admin Login</Link>
         </div>

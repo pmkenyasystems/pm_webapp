@@ -62,6 +62,7 @@ export default function AboutPage() {
               { href: '/about/leadership', label: 'Party Leadership', description: 'Meet the people leading the movement.' },
               { href: '/about/manifesto', label: 'Our Manifesto', description: 'Our Big Five Agenda for Kenya.' },
               { href: '/about/leadership-structure', label: 'Leadership Structure', description: 'How the party is organised, county to ward.' },
+              { href: '/notices', label: 'Statutory Notices', description: 'Official notices filed with the Registrar of Political Parties.' },
             ].map((item) => (
               <Link
                 key={item.href}
