@@ -19,13 +19,13 @@ export default function NoticesPage() {
         <div className="w-24 h-1 bg-primary-red mx-auto mb-6" />
         <p className="text-gray-700 text-base leading-relaxed text-center max-w-2xl mx-auto mb-4">
           In compliance with the Political Parties Act, 2011, the People&apos;s Renaissance Movement (PM Party)
-          publishes the following notices filed with, and stamped as received by, the Office of the Registrar
-          of Political Parties (ORPP).
+          publishes the following public notices, including filings with, and stamped as received by, the
+          Office of the Registrar of Political Parties (ORPP).
         </p>
         <p className="text-xs text-gray-400 text-center max-w-2xl mx-auto mb-12">
-          National ID and phone numbers appearing on the original filings have been redacted from the published
-          PDFs below to protect the individuals named; all other content, including signatures and the
-          Registrar&apos;s receipt stamps, is reproduced as filed.
+          Where a notice names individuals, national ID and phone numbers appearing on the original filing have
+          been redacted from the published PDF to protect the individuals named; all other content, including
+          signatures and receipt stamps, is reproduced as filed.
         </p>
 
         <div className="space-y-4">
@@ -39,7 +39,7 @@ export default function NoticesPage() {
                   <span className="text-[12.5px] font-extrabold text-white bg-primary-blue px-3 py-1 rounded-full">
                     {notice.form}
                   </span>
-                  <span className="text-xs text-gray-400">{notice.rule}</span>
+                  {notice.rule && <span className="text-xs text-gray-400">{notice.rule}</span>}
                 </div>
                 <h2 className="font-heading font-extrabold text-lg md:text-xl text-primary-blue mb-1">
                   {notice.title}
