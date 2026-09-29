@@ -1,7 +1,7 @@
 export interface StatutoryNotice {
   slug: string
   form: string
-  rule: string
+  rule?: string
   title: string
   dated: string
   pdf: string
@@ -31,5 +31,12 @@ export const STATUTORY_NOTICES: StatutoryNotice[] = [
     title: 'Notice of Change of Constitution or Rules',
     dated: '11th August 2026',
     pdf: '/docs/notices/Form-PP11-Notice-of-Change-of-Constitution.pdf',
+  },
+  {
+    slug: 'appointment-of-executive-director',
+    form: 'NEC Notice',
+    title: 'Notice of Appointment of the Executive Director',
+    dated: '26th July 2026',
+    pdf: '/docs/notices/Notice-of-Appointment-of-Executive-Director.pdf',
   },
 ]
